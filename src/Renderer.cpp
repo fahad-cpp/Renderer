@@ -370,8 +370,8 @@ namespace Renderer {
 					int nx = int(x + (renderState.width / 2.0));
 					//Pointer to depth buffer
 					float* dep = ((float*)(depth)) + (ny * renderState.width) + nx;
-					float tx = x + renderState.width / 2;
-					float ty = (renderState.height / 2) - y;
+					int tx = x + renderState.width / 2;
+					int ty = (renderState.height / 2) - y;
 					u32 idx = tx + (ty * renderState.width);
 					std::lock_guard<std::mutex> lock(pixelLocks[idx]);
 					if (invZ > (*dep)) {
@@ -381,7 +381,7 @@ namespace Renderer {
 						P = transformVertex(P, camera, RotateOrder::RO_XYZ);
 						Vector R = P - camera.position;
 						R = R / length(R);
-						float light = computeLight(P, N, R, t.material.specular, false);
+						float light = computeLight(P, N, R, t.material.specular, true);
 						u32 hexColor = rgbtoHex(color * light);
 						((u32*)renderState.memory)[idx] = hexColor;
 						*dep = invZ;
@@ -595,7 +595,7 @@ namespace Renderer {
 		for (Sphere& sphere : scene.spheres) {
 			float sphereInt = intersectRaySphere(O, D, sphere);
 			float T = sphereInt;
-			if (isIn(T, tMin, tMax) && T < hitData.intersection) {
+			if (isIn(T, tMin, tMax) && (T < hitData.intersection)) {
 				hitData.intersection = T;
 				Vector P = O + (D * T);
 				hitData.normal = P - sphere.center;
@@ -675,6 +675,9 @@ namespace Renderer {
 					tMax = length(L);
 				}
 				float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, tMax).intersection : INFINITY_V;
+				if (shadowT > 1) {
+					shadowT = INFINITY_V;
+				}
 				if (shadowT != INFINITY_V) {
 					continue;
 				}

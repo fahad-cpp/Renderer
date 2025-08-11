@@ -201,13 +201,13 @@ void init() {
 				.specular = 100.f,
 				.reflectiveness = 0.4f,
 			},
-			{
+			/*{
 				.center = Vector{2,1,0},
 				.radius = .1f,
 				.color = Colour{0,0,255},
 				.specular = 100.f,
 				.reflectiveness = 0.4f,
-			}
+			}*/
 		},
 		.triangles = std::vector<Triangle>{
 			//empty
@@ -216,20 +216,20 @@ void init() {
 			{
 				.mesh = &model,
 				.transform = {
-					.position = {0,0,0},
+					.position = {0,-10,0},
 					.scale = 10.f,
 					.rotation = {0,0,0}
 				}
 
 			},
-			/*{
+			{
 				.mesh = &floor,
 				.transform = {
-					.position = {0,-1.f,0},
+					.position = {0,-10.f,0},
 					.scale = 1.f,
 					.rotation = {0,0,0}
 				}
-			}*/
+			}
 		},
 		.lights = std::vector<Light>{
 			{
