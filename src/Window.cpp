@@ -11,12 +11,16 @@
 #include "Main.h"
 #include "Platform_common.h"
 #include "resource.h"
+#include "tracy/Tracy.hpp"
 //void clearScreen(u32);
 void turnConsoleOff() {
 	FreeConsole();
 	std::fclose(stdout);
 }
 Vector getMouseDiff() {
+	if (GetFocus() != window.handle) {
+		return { 0,0 };
+	}
 	static POINT prevPoint = { 0,0 };
 	POINT mousePoint;
 	RECT rectangle;
@@ -221,6 +225,7 @@ void deleteWindow() {
 }
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
+	//ZoneScopedN("WinMain");
 	//Random seed
 	Timer timer;
 	srand(u32(time(NULL)));
@@ -242,5 +247,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 		swapBuffers();
 	}
 	deleteWindow();
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	return 0;
 }

@@ -1,6 +1,8 @@
 #include "Main.h"
 #include "Renderer.h"
-
+#define TRACY_NO_RPMALLOC
+#define TRACY_ENABLE
+#include "tracy/Tracy.hpp"
 //TODO(Fahad):
 /*
 *	Optimizations:
@@ -176,7 +178,8 @@ void handleInput(const Input& input) {
 	}
 }
 void init() {
-	static Mesh model = Renderer::loadOBJ("res/Models/countrySide.obj", { 255,255,255 }, 0.f, 100.f);
+	//ZoneScopedN("init");
+	static Mesh model = Renderer::loadOBJ("res/Models/cube.obj", { 255,255,255 }, 0.f, 100.f);
 	static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 100.f);
 	scene = {
 		.spheres = std::vector<Sphere>{
@@ -226,7 +229,7 @@ void init() {
 				.mesh = &floor,
 				.transform = {
 					.position = {0,-10.f,0},
-					.scale = 1.f,
+					.scale = 10.f,
 					.rotation = {0,0,0}
 				}
 			}
@@ -254,6 +257,8 @@ void init() {
 	};
 }
 void update(const Input& input) {
+	//ZoneScopedN("update");
+	FrameMark;
 	//Start counting frame time
 	Timer timer;
 	handleInput(input);
