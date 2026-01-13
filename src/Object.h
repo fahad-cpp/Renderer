@@ -28,6 +28,7 @@ struct Triangle{
 	Vector p[3];
 	Vector normal;
 	Material material;
+
 	Triangle() {
 		p[0] = {};
 		p[1] = {};
@@ -36,6 +37,7 @@ struct Triangle{
 		material.reflectiveness = 0;
 		material.specular = -1;
 	}
+
 	Triangle(const Vector p[3], Vector normal = { 0,0,0 }, Colour color = { 0,0,0 }, float specular = -1, float reflectiveness = 0) {
 		this->p[0] = p[0];
 		this->p[1] = p[1];
@@ -44,12 +46,14 @@ struct Triangle{
 		this->material.specular = specular;
 		this->material.reflectiveness = reflectiveness;
 	}
+
 	Triangle(const Vector p[3], Vector normal = { 0,0,0 }, Material material = { Colour{0,0,0},-1.f,0.f }) {
 		this->p[0] = p[0];
 		this->p[1] = p[1];
 		this->p[2] = p[2];
 		this->material = material;
 	}
+
 	Vector getNormal()
 	{
 		//anti clockwise
@@ -60,10 +64,13 @@ struct Triangle{
 		}
 		return normal;
 	}
+
 	Vector getCentroid() {
 		return ((p[0] + p[1] + p[2]) / 3);
 	}
+
 };
+
 struct Plane {
 	Vector normal;
 	float offset;

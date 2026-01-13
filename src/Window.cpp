@@ -50,6 +50,7 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		if (renderState.memory) VirtualFree(renderState.memory, 0, MEM_RELEASE);
 		if (depth)VirtualFree(depth, 0, MEM_RELEASE);
 		if (renderState.ambientOcclusion)VirtualFree(renderState.ambientOcclusion, 0, MEM_RELEASE);
+		running = false;
 		FreeConsole();
 		std::fclose(stdout);
 		DestroyWindow(hWnd);
@@ -234,9 +235,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	LOG_INFO("Initialization took "<<timer.dtms<<" ms\n");
 	init();
 	while (running) {
-
-		handleEvents(window.input);
-
 		//Update Loop
 		update(window.input);
 
@@ -245,6 +243,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 		}
 		//Swap buffers
 		swapBuffers();
+
+		handleEvents(window.input);
 	}
 	deleteWindow();
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));

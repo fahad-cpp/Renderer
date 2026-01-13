@@ -5,9 +5,7 @@
 #include "tracy/Tracy.hpp"
 //TODO(Fahad):
 /*
-*	Optimizations:
-*		-Implement BVH ray tracing
-*		-Implement proper Occlusion culling
+*	
 *	Adding Features:
 *		-Add matrix transformation for renderer
 *		-interpolated normals(Rasterizer)
@@ -15,6 +13,9 @@
 *		-render according to material(Rasterizer)
 *		-Frametime graph
 *		-Add some ui
+*	Optimizations:
+*		-Implement BVH ray tracing(Ray tracer)
+*		-Implement proper Occlusion culling(Rasterizer)
 */
 //frame delta time
 double fdt = 0.06;
@@ -179,8 +180,8 @@ void handleInput(const Input& input) {
 }
 void init() {
 	//ZoneScopedN("init");
-	static Mesh model = Renderer::loadOBJ("res/Models/cube.obj", { 255,255,255 }, 0.f, 100.f);
-	static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 100.f);
+	static Mesh model = Renderer::loadOBJ("res/Models/DemonSkull.obj", { 255,255,255 }, 0.f, 1.f);
+	//static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
 	scene = {
 		.spheres = std::vector<Sphere>{
 			{
@@ -219,20 +220,20 @@ void init() {
 			{
 				.mesh = &model,
 				.transform = {
-					.position = {0,-10,0},
-					.scale = 10.f,
-					.rotation = {0,0,0}
+					.position = {0,-200,50},
+					.scale = 1.f,
+					.rotation = {0,180,0}
 				}
 
 			},
-			{
+			/*{
 				.mesh = &floor,
 				.transform = {
 					.position = {0,-10.f,0},
 					.scale = 10.f,
 					.rotation = {0,0,0}
 				}
-			}
+			}*/
 		},
 		.lights = std::vector<Light>{
 			{

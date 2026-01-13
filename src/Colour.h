@@ -20,7 +20,7 @@ public:
 	bool operator==(const Colour& op)const {
 		return (this->R == op.R && this->G == op.G && this->B == op.B);
 	}
-	Colour operator*(const float num) {
+	Colour operator*(const float num) const{
 		Vector newcol = { float(this->R * num),float(this->G * num),float(this->B * num) };
 		if (newcol.x > 255) {
 			newcol.x = 255;
@@ -33,7 +33,7 @@ public:
 		}
 		return { u8(newcol.x),u8(newcol.y),u8(newcol.z) };
 	}
-	Colour operator+(const Colour& col) {
+	Colour operator+(const Colour& col) const{
 		Vector newcol = { float(this->R + col.R),float(this->G + col.G),float(this->B + col.B) };
 		if (newcol.x > 255) {
 			newcol.x = 255;

@@ -2,6 +2,7 @@
 #include "tracy/Tracy.hpp"
 #include <string_view>
 #include <functional>
+#include <minmax.h>
 namespace Renderer {
 	void clearScreen(u32 color) {
 		u32* pixel = (u32*)renderState.memory;
@@ -145,7 +146,7 @@ namespace Renderer {
 		}
 		return true;
 	}
-	Mesh loadOBJ(std::string filename, Colour color, float reflectiveness, float specular)
+	Mesh loadOBJ(std::string filename,const Colour& color, float reflectiveness, float specular)
 	{
 		ZoneScopedN("loadOBJ");
 		Timer timer;
@@ -166,7 +167,6 @@ namespace Renderer {
 			LOG_ERROR("Cannot open file " << filename << "\n");
 			return {};
 		}
-		std::istringstream iss;
 		while (std::getline(OBJFile, line))
 		{
 			
@@ -277,7 +277,7 @@ namespace Renderer {
 		p2.z = t.p[1].z;
 		p3.z = t.p[2].z;
 
-		Colour color = t.material.color;
+		const Colour& color = t.material.color;
 
 		//sort from top to bottom
 		if (p1.y > p2.y) {
@@ -327,26 +327,26 @@ namespace Renderer {
 		}
 
 		int m = int(x02.size() / (float)2);
-		std::vector<float> xLeft = {};
-		std::vector<float> xRight = {};
-		std::vector<float> zLeft = {};
-		std::vector<float> zRight = {};
+		std::vector<float>* xLeft = {};
+		std::vector<float>* xRight = {};
+		std::vector<float>* zLeft = {};
+		std::vector<float>* zRight = {};
 
 		//Finding left and right
 		if (x02.size()) {
 			if (x02[m] < x01[m]) {
-				xLeft = x02;
-				xRight = x01;
+				xLeft = &x02;
+				xRight = &x01;
 
-				zLeft = z02;
-				zRight = z01;
+				zLeft = &z02;
+				zRight = &z01;
 			}
 			else {
-				xLeft = x01;
-				xRight = x02;
+				xLeft = &x01;
+				xRight = &x02;
 
-				zLeft = z01;
-				zRight = z02;
+				zLeft = &z01;
+				zRight = &z02;
 			}
 		}
 
@@ -360,10 +360,10 @@ namespace Renderer {
 		//Vector centroid = newTri.getCentroid();
 		for (int y = int(p1.y); y < int(p3.y); y++) {
 			int ny = int((renderState.height / (float)2.f) - y);
-			float zL = zLeft[y - int(p1.y)];
-			float zR = zRight[y - int(p1.y)];
-			float xL = xLeft[y - int(p1.y)];
-			float xR = xRight[y - int(p1.y)];
+			float zL = (*zLeft)[y - int(p1.y)];
+			float zR = (*zRight)[y - int(p1.y)];
+			float xL = (*xLeft)[y - int(p1.y)];
+			float xR = (*xRight)[y - int(p1.y)];
 			std::vector<float> zSegment = {};
 			interpolate(zL, xL, zR, xR, zSegment);
 			for (int x = int(xL); x < int(xR); x++) {
@@ -662,7 +662,7 @@ namespace Renderer {
 	Vector reflectRay(const Vector& R, Vector& N) {
 		return (2 * (N * dot(R, N)) - R);
 	}
-	float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows) {
+	float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows ) {
 		//ZoneScopedN("computeLight");
 		float i = 0.f;
 		for (const Light& light : scene.lights) {
@@ -1033,12 +1033,15 @@ namespace Renderer {
 		ZoneScopedN("renderMesh");
 		unsigned int trisCount = mesh.triangles.size();
 		const std::vector<Triangle>& meshTriangles = mesh.triangles;
+
 		std::vector<Triangle> tris = {};
+
 		getDrawableTriangles(meshTriangles,transform,tris);
+
 		sceneSettings.triSeenCount += tris.size();
 		bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
 		if (!multithread) {
-			for (Triangle& tri : tris) {
+			for (const Triangle& tri : tris) {
 				drawTriangle(tri, drawWireframe);
 			}
 		}

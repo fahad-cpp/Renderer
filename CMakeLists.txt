@@ -16,12 +16,4 @@ target_compile_definitions(Renderer PRIVATE
 	 NDEBUG
 )
 
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(Renderer PRIVATE
-        -g
-        -fno-omit-frame-pointer
-    )
-endif()
-
-#target_compile_options(Renderer PUBLIC -O3)
+target_compile_options(Renderer PUBLIC -O3)
