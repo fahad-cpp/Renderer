@@ -4,7 +4,7 @@
 #include "Timer.h"
 #include "Typedefs.h"
 #include "Platform_common.h"
-//#include "SceneSettings.h"
+
 #define isDown(b) input.buttons[b].isDown
 #define pressed(b) (input.buttons[b].isDown && input.buttons[b].changed)
 #define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)

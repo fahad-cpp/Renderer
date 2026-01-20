@@ -1,18 +1,17 @@
 #include "Main.h"
 #include "Renderer.h"
-#define TRACY_NO_RPMALLOC
-#define TRACY_ENABLE
-#include "tracy/Tracy.hpp"
+
 //TODO(Fahad):
 /*
-*	
+*	Software Structure:
+*		-Seperate Engine and Game
 *	Adding Features:
 *		-Add matrix transformation for renderer
 *		-interpolated normals(Rasterizer)
-*		-read and display textures(Rasterizer)
 *		-render according to material(Rasterizer)
-*		-Frametime graph
 *		-Add some ui
+*		-Frametime graph
+*		-read and display textures(Rasterizer)
 *	Optimizations:
 *		-Implement BVH ray tracing(Ray tracer)
 *		-Implement proper Occlusion culling(Rasterizer)
@@ -258,8 +257,6 @@ void init() {
 	};
 }
 void update(const Input& input) {
-	//ZoneScopedN("update");
-	FrameMark;
 	//Start counting frame time
 	Timer timer;
 	handleInput(input);

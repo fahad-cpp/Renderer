@@ -1,5 +1,4 @@
 #include "Renderer.h"
-#include "tracy/Tracy.hpp"
 #include <string_view>
 #include <functional>
 #include <minmax.h>
@@ -68,7 +67,7 @@ namespace Renderer {
 		u32* buffer = (u32*)malloc(sbsize);
 		if (buffer) {
 			memcpy((void*)buffer, renderState.memory, sbsize);
-			ppmThreads.push_back(std::thread(Renderer::exportToPPM,"Image.ppm", buffer, renderState.width, renderState.height));
+			ppmThreads.push_back(std::thread(Renderer::exportToPPM, "Image.ppm", buffer, renderState.width, renderState.height));
 		}
 		else {
 			LOG_WARN("Failed to allocate a buffer");
@@ -78,7 +77,7 @@ namespace Renderer {
 	void exportToPPM(const std::string& filename, u32* buffer, int width, int height) {
 		Timer timer;
 		FILE* file;
-		fopen_s(&file,filename.c_str(), "w");
+		fopen_s(&file, filename.c_str(), "w");
 		if (!file) {
 			LOG_ERROR("Failed to open file : " << filename << "\n");
 			return;
@@ -98,7 +97,6 @@ namespace Renderer {
 	}
 
 	void drawLine(Vector a, Vector b, Colour color) {
-		//ZoneScopedN("drawLine");
 		float dy = b.y - a.y;
 		float dx = b.x - a.x;
 		if (abs(dx) > abs(dy)) {
@@ -146,9 +144,7 @@ namespace Renderer {
 		}
 		return true;
 	}
-	Mesh loadOBJ(std::string filename,const Colour& color, float reflectiveness, float specular)
-	{
-		ZoneScopedN("loadOBJ");
+	Mesh loadOBJ(std::string filename, const Colour& color, float reflectiveness, float specular) {
 		Timer timer;
 		LOG_INFO("Loading " << filename);
 		std::vector<Vector> vertexes = {};
@@ -162,36 +158,30 @@ namespace Renderer {
 		std::ifstream OBJFile;
 		std::string line;
 		OBJFile.open(filename);
-		if (!OBJFile)
-		{
+		if (!OBJFile) {
 			LOG_ERROR("Cannot open file " << filename << "\n");
 			return {};
 		}
-		while (std::getline(OBJFile, line))
-		{
-			
-			if (compare(line.c_str(),"v ",2))
-			{
+		while (std::getline(OBJFile, line)) {
+
+			if (compare(line.c_str(), "v ", 2)) {
 				float x = 0, y = 0, z = 0;
 				sscanf_s(line.c_str(), "v %f %f %f", &x, &y, &z);
 				vertexes.push_back({ x,y,z });
 			}
-			else if (compare(line.c_str(), "vt", 2))
-			{
+			else if (compare(line.c_str(), "vt", 2)) {
 				float u, v, w;
 				sscanf_s(line.c_str(), "vt %f %f %f", &u, &v, &w);
 				Texture newtext({ u, v, w });
 				texture.push_back(newtext);
 			}
-			else if (compare(line.c_str(), "vn", 2))
-			{
+			else if (compare(line.c_str(), "vn", 2)) {
 				float x, y, z;
 				sscanf_s(line.c_str(), "vn %f %f %f", &x, &y, &z);
 				Vector newnorm(x, y, z);
 				normals.push_back(newnorm);
 			}
-			else if (compare(line.c_str(), "f ", 2))
-			{
+			else if (compare(line.c_str(), "f ", 2)) {
 				//---Only works for 3 Vertices faces---
 				int v[3] = {};
 				int t[3] = {};
@@ -200,8 +190,7 @@ namespace Renderer {
 				if (sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
 					&v[0], &t[0], &n[0],
 					&v[1], &t[1], &n[1],
-					&v[2], &t[2], &n[2]) == 9)
-				{
+					&v[2], &t[2], &n[2]) == 9) {
 					newface = {
 						Index{v[0],t[0],n[0]},
 						Index{v[1],t[1],n[1]},
@@ -212,8 +201,7 @@ namespace Renderer {
 				else if (sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d",
 					&v[0], &n[0],
 					&v[1], &n[1],
-					&v[2], &n[2]) == 6)
-				{
+					&v[2], &n[2]) == 6) {
 					newface = {
 						Index{v[0],-1,n[0]},
 						Index{v[1],-1,n[1]},
@@ -222,7 +210,7 @@ namespace Renderer {
 					faces.push_back(newface);
 				}
 				else {
-					LOG_ERROR(("Unsupported face format :" + filename+"\n"));
+					LOG_ERROR(("Unsupported face format :" + filename + "\n"));
 					return {};
 				}
 			}
@@ -241,20 +229,17 @@ namespace Renderer {
 		return mesh;
 	}
 	Vector canvasToViewport(float x, float y) {
-		//ZoneScopedN("canvasToViewport");
 		return { x * (vpWidth / canvas.x), y * (vpHeight / canvas.y), d };
 	}
 	std::pair<float, float> viewportToCanvas(float x, float y) {
 		return { x * (canvas.x / vpWidth) ,y * (canvas.y / vpHeight) };
 	}
 	Vector projectVertex(Vector v) {
-		//ZoneScopedN("projectVertex");
 		//Perspective Projection
 		std::pair<float, float> result = viewportToCanvas(float((v.x * d) / v.z), float((v.y * d) / v.z));
 		return { result.first,result.second ,d };
 	}
 	void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr) {
-		//ZoneScopedN("interpolate");
 		float dx = x1 - x0;
 		float dy = y1 - y0;
 		float aspectratio = (dy != 0) ? (dx / dy) : 0;
@@ -268,7 +253,6 @@ namespace Renderer {
 		}
 	}
 	void drawTriangle(const Triangle& t, bool wireframe) {
-		//ZoneScopedN("drawTriangle");
 		//Project triangle on 2d viewport
 		Vector p1 = projectVertex(t.p[0]);
 		Vector p2 = projectVertex(t.p[1]);
@@ -505,8 +489,7 @@ namespace Renderer {
 		float t = (-b - sqrt(discriminant)) / (2 * a);
 		return t;
 	}
-	float intersectRayTriangle(Vector O, Vector D, Triangle triangle)
-	{
+	float intersectRayTriangle(Vector O, Vector D, Triangle triangle) {
 		float t = 0;
 		Vector N = triangle.getNormal();
 		float NdotRay = dot(N, D);
@@ -516,7 +499,7 @@ namespace Renderer {
 		t = -(dot(N, O) + d) / NdotRay;
 		if (t < 0)
 			return INFINITY_V;
-	   		
+
 		Vector P = O + (t * D);
 
 		Vector C;
@@ -547,8 +530,7 @@ namespace Renderer {
 
 		return t;
 	}
-	bool RayIntersectsBox(Vector& O, Vector& D, Box& box)
-	{
+	bool RayIntersectsBox(Vector& O, Vector& D, Box& box) {
 		Vector invDir = 1.0f / D;
 		float tmin, tmax, tymin, tymax, tzmin, tzmax;
 		if (invDir.x >= 0) {
@@ -606,13 +588,12 @@ namespace Renderer {
 				Vector P = O + (D * T);
 				hitData.normal = P - sphere.center;
 				Material material;
-				material = {sphere.color,sphere.specular,sphere.reflectiveness};
+				material = { sphere.color,sphere.specular,sphere.reflectiveness };
 				hitData.material = material;
 			}
 		}
 		//Triangle
-		for (Triangle& triangle : scene.triangles)
-		{
+		for (Triangle& triangle : scene.triangles) {
 			float triangleInt = intersectRayTriangle(O, D, triangle);
 			if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
 				hitData.intersection = triangleInt;
@@ -621,14 +602,11 @@ namespace Renderer {
 			}
 		}
 		//Mesh
-		for (Instance& instance : scene.instances)
-		{
+		for (Instance& instance : scene.instances) {
 			std::vector<Triangle>& triangles = instance.mesh->triangles;
 			Box mbb = instance.getBoundingBox();
-			if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX)
-			{
-				if (!RayIntersectsBox(O, D, mbb))
-				{
+			if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX) {
+				if (!RayIntersectsBox(O, D, mbb)) {
 					continue;
 				}
 				else {
@@ -638,12 +616,10 @@ namespace Renderer {
 					return hitData;
 				}
 			}
-			else if (!RayIntersectsBox(O, D, mbb))
-			{
+			else if (!RayIntersectsBox(O, D, mbb)) {
 				continue;
 			}
-			for (Triangle& triangle : triangles)
-			{
+			for (Triangle& triangle : triangles) {
 				Triangle tri;
 				tri.p[0] = transformVertex(triangle.p[0], instance.transform);
 				tri.p[1] = transformVertex(triangle.p[1], instance.transform);
@@ -662,8 +638,7 @@ namespace Renderer {
 	Vector reflectRay(const Vector& R, Vector& N) {
 		return (2 * (N * dot(R, N)) - R);
 	}
-	float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows ) {
-		//ZoneScopedN("computeLight");
+	float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows) {
 		float i = 0.f;
 		for (const Light& light : scene.lights) {
 			//L = direction of the light
@@ -720,7 +695,6 @@ namespace Renderer {
 		return (-plane.offset - dot(plane.normal, A)) / dot(plane.normal, (B - A));
 	}
 	std::vector<Triangle> clipTriangle(const Triangle& tri) {
-		//ZoneScopedN("clipTriangle");
 		std::vector<Triangle> triangles = { tri };
 		for (int i = 0; i < 6; i++) {
 			std::vector<Triangle> planeClipped = {};
@@ -754,8 +728,8 @@ namespace Renderer {
 					inCount++;
 					isin[2] = true;
 				}
-				int invec[3] = { -1,-1 ,-1};
-				int outvec[3] = { -1,-1 ,-1};
+				int invec[3] = { -1,-1 ,-1 };
+				int outvec[3] = { -1,-1 ,-1 };
 				int j = 0, k = 0;
 				for (int v = 0; v < 3; v++) {
 					if (isin[v]) {
@@ -924,13 +898,11 @@ namespace Renderer {
 		}
 	}
 	void drawTrianglesThr(const std::vector<Triangle>& tris, size_t start, size_t end, bool drawWireframe) {
-		//ZoneScopedN("drawTrianglesThr");
 		for (size_t i = start; i < end; i++) {
 			drawTriangle(tris[i], drawWireframe);
 		}
 	}
 	void drawTrianglesMultiThread(const std::vector<Triangle>& tris, bool drawWireframe, unsigned int numThreads) {
-		ZoneScopedN("drawTrianglesMultiThread");
 		size_t totalTriangles = tris.size();
 
 		std::vector<std::thread> threads(numThreads);
@@ -953,7 +925,6 @@ namespace Renderer {
 
 	}
 	void modelSpaceToDrawable(const Triangle& triangle, const Transform& transform, std::vector<Triangle>& outTris) {
-		//ZoneScopedN("modelSpaceToDrawable");
 		Vector moved[3];
 		//Model space to world space
 		moved[0] = transformVertex(triangle.p[0], transform);
@@ -992,16 +963,14 @@ namespace Renderer {
 			outTris.push_back(ct);
 		}
 	}
-	void modelSpaceToDrawableThr(const std::vector<Triangle>* inTris,const Transform& transform,std::vector<Triangle>* outTris, u32 start, u32 end) {
-		//ZoneScopedN("modelSpaceToDrawableThr");
+	void modelSpaceToDrawableThr(const std::vector<Triangle>* inTris, const Transform& transform, std::vector<Triangle>* outTris, u32 start, u32 end) {
 		for (int i = start; i < end;i++) {
 			Triangle triangle = inTris->at(i);
 			modelSpaceToDrawable(triangle, transform, *outTris);
 		}
 	}
-	
-	void getDrawableTriangles(const std::vector<Triangle>& inTris,const Transform& transform,std::vector<Triangle>& outTris, bool multithread) {
-		ZoneScopedN("getDrawableTriangles");
+
+	void getDrawableTriangles(const std::vector<Triangle>& inTris, const Transform& transform, std::vector<Triangle>& outTris, bool multithread) {
 		if (!multithread) {
 			for (const Triangle& triangle : inTris) {
 				modelSpaceToDrawable(triangle, transform, outTris);
@@ -1029,14 +998,13 @@ namespace Renderer {
 			}
 		}
 	}
-	void renderMesh(const Mesh& mesh,const Transform& transform, bool multithread) {
-		ZoneScopedN("renderMesh");
+	void renderMesh(const Mesh& mesh, const Transform& transform, bool multithread) {
 		unsigned int trisCount = mesh.triangles.size();
 		const std::vector<Triangle>& meshTriangles = mesh.triangles;
 
 		std::vector<Triangle> tris = {};
 
-		getDrawableTriangles(meshTriangles,transform,tris);
+		getDrawableTriangles(meshTriangles, transform, tris);
 
 		sceneSettings.triSeenCount += tris.size();
 		bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
@@ -1050,7 +1018,6 @@ namespace Renderer {
 		}
 	}
 	Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
-		//ZoneScopedN("traceRay");
 		HitData hitData = closestIntersection(O, D, tMin, tMax);
 		float closestT = hitData.intersection;
 		Colour bgColor = { 100,100,100 };
@@ -1076,9 +1043,7 @@ namespace Renderer {
 
 		return (localColor * (1.f - r)) + (reflectedColor * r);
 	}
-	void rayTraceThr(int threadNum, int threadCount)
-	{
-		ZoneScopedN("raytTraceThr");
+	void rayTraceThr(int threadNum, int threadCount) {
 		float ycount = (canvas.y / threadCount);
 		float ymin = ycount * threadNum;
 		float ymax = ymin + ycount;
@@ -1093,7 +1058,6 @@ namespace Renderer {
 		}
 	}
 	void rayTrace() {
-		ZoneScopedN("rayTrace");
 		clearScreen(0x000000);
 		for (float y = 0; y < renderState.height; y++) {
 			int scanlineDone = y + 1;
@@ -1108,7 +1072,6 @@ namespace Renderer {
 		}
 	}
 	void renderScene() {
-		ZoneScopedN("renderScene");
 		clearScreen(0x646464);
 		static std::unordered_map<Sphere, Mesh> sphereMeshCache = {};
 		sceneSettings.triSeenCount = 0;
@@ -1130,7 +1093,7 @@ namespace Renderer {
 			Vector offset = Vector{ 0,-0.2f,0 };
 			float scale = 0.4f;
 			Transform transform = { (sphere.center + offset), sphere.radius * scale };
-			Instance sphereIns{&sphereM, transform};
+			Instance sphereIns{ &sphereM, transform };
 			renderMesh(*sphereIns.mesh, sphereIns.transform);
 		}
 		//Render scene triangles
@@ -1138,7 +1101,7 @@ namespace Renderer {
 		for (const Triangle& striangle : scene.triangles) {
 			std::vector<Triangle> drawableTris = {};
 			modelSpaceToDrawable(striangle, { {0,0,0},1.f,{0,0,0} }, drawableTris);
-			
+
 			for (const Triangle& tri : drawableTris) {
 				drawTriangle(tri, isWireframe);
 			}
@@ -1160,6 +1123,6 @@ namespace Renderer {
 
 	}
 	void renderAO() {
-		
+
 	}
 };

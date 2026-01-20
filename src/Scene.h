@@ -4,7 +4,7 @@
 struct Instance {
 	Mesh* mesh = nullptr;
 	Transform transform = { {0,0,0},1.f,{0,0,0} };
-	Box boundingBox = {-INFINITY,INFINITY};
+	Box boundingBox = { -INFINITY,INFINITY };
 	//Returns Bounding Box in world space
 	Box getBoundingBox() {
 		bool boundingBoxInitialized = !((boundingBox.lowest == INFINITY) && (boundingBox.highest == -INFINITY));

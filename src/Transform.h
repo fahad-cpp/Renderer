@@ -1,7 +1,7 @@
 #pragma once
 #include "Vector.h"
 struct Transform {
-	Vector position = {0,0,0};
+	Vector position = { 0,0,0 };
 	float scale = 0.f;
 	Vector rotation = 0;
 };

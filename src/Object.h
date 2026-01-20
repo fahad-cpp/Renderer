@@ -4,19 +4,19 @@
 #include "Logging.h"
 #include <vector>
 struct Material {
-	Colour color = {0,0,0};
+	Colour color = { 0,0,0 };
 	float specular = -1.f;
 	float reflectiveness = 0.f;
 };
 struct HitData {
 	float intersection = INFINITY_V;
-	Vector normal = {0,0,0};
+	Vector normal = { 0,0,0 };
 	Material material = {};
 };
-struct Sphere{
-	Vector center = {0,0,0};
+struct Sphere {
+	Vector center = { 0,0,0 };
 	float radius = 0.f;
-	Colour color = {0,0,0};
+	Colour color = { 0,0,0 };
 	float specular = -1.f;
 	float reflectiveness = 0.f;
 	bool operator==(const Sphere& sphere) const {
@@ -24,7 +24,7 @@ struct Sphere{
 	}
 };
 
-struct Triangle{
+struct Triangle {
 	Vector p[3];
 	Vector normal;
 	Material material;
@@ -54,11 +54,9 @@ struct Triangle{
 		this->material = material;
 	}
 
-	Vector getNormal()
-	{
+	Vector getNormal() {
 		//anti clockwise
-		if (normal == Vector{ 0, 0, 0 })
-		{
+		if (normal == Vector{ 0, 0, 0 }) {
 			normal = cross((p[1] - p[0]), (p[2] - p[0]));
 			return normal;
 		}
@@ -75,20 +73,17 @@ struct Plane {
 	Vector normal;
 	float offset;
 };
-struct Texture
-{
+struct Texture {
 	float u;
 	float v;
 	float w;
 };
-struct Index
-{
+struct Index {
 	int vert;
 	int text;
 	int norm;
 };
-struct Face
-{
+struct Face {
 	Index index[3];
 };
 struct Box {
@@ -115,8 +110,7 @@ struct Mesh {
 		boundingBox = {};
 		material = {};
 	}
-	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {}, Colour color = { 0,0,0 }, float reflectiveness = 0.f, float specular = -1)
-	{
+	Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, std::vector<Triangle> triangle = {}, Colour color = { 0,0,0 }, float reflectiveness = 0.f, float specular = -1) {
 		vertices = vertex;
 		normals = normal;
 		texture = text;
@@ -126,8 +120,7 @@ struct Mesh {
 		material.reflectiveness = reflectiveness;
 		material.specular = specular;
 	}
-	void initTriangles()
-	{
+	void initTriangles() {
 		Vector lowest, highest;
 		int count = 0;
 		if (triangles.size()) {

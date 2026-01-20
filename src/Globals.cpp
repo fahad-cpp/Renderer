@@ -23,12 +23,12 @@ float frameLimit = 6.944444415f;
 double FOV = 90;
 //sponza ideal camera
 //Transform camera(Vector{ 78,54,-3 }, 1, { 0,-270,0 });
-Transform camera{Vector{ 0,10,0 }, 1, { 0,0,0 }};
+Transform camera{ Vector{ 0,10,0 }, 1, { 0,0,0 } };
 Scene scene = {};
 //temp
 Triangle tempTri;
 Plane planes[6] = {
-//Near
+	//Near
 	{ {0, 0, 1},-d },
 	//far
 	{ {0, 0, -1},farDist },

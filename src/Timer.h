@@ -3,8 +3,7 @@
 class Timer {
 public:
 	float dtms;
-	Timer()
-	{
+	Timer() {
 		m_StartTimePoint = std::chrono::high_resolution_clock::now();
 		dtms = 0;
 	}

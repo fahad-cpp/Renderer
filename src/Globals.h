@@ -1,6 +1,6 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
-//#include "Window.cpp"
+
 #include <math.h>
 #include <thread>
 #include <mutex>
