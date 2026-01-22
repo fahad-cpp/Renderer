@@ -54,7 +54,7 @@ struct Triangle {
 		this->material = material;
 	}
 
-	Vector getNormal() {
+	Vector getNormal(){
 		//anti clockwise
 		if (normal == Vector{ 0, 0, 0 }) {
 			normal = cross((p[1] - p[0]), (p[2] - p[0]));

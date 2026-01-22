@@ -179,7 +179,7 @@ void handleInput(const Input& input) {
 }
 void init() {
 	//ZoneScopedN("init");
-	static Mesh model = Renderer::loadOBJ("res/Models/DemonSkull.obj", { 255,255,255 }, 0.f, 1.f);
+	static Mesh model = Renderer::loadOBJ("res/Models/King.obj", { 255,255,255 }, 0.f, 1.f);
 	//static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
 	scene = {
 		.spheres = std::vector<Sphere>{
@@ -219,9 +219,9 @@ void init() {
 			{
 				.mesh = &model,
 				.transform = {
-					.position = {0,-200,50},
+					.position = {0,0,0},
 					.scale = 1.f,
-					.rotation = {0,180,0}
+					.rotation = {0,0,0}
 				}
 
 			},

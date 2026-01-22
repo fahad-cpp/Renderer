@@ -231,18 +231,18 @@ namespace Renderer {
 	Vector canvasToViewport(float x, float y) {
 		return { x * (vpWidth / canvas.x), y * (vpHeight / canvas.y), d };
 	}
-	std::pair<float, float> viewportToCanvas(float x, float y) {
+	const std::pair<float, float>& viewportToCanvas(float x, float y) {
 		return { x * (canvas.x / vpWidth) ,y * (canvas.y / vpHeight) };
 	}
 	Vector projectVertex(Vector v) {
 		//Perspective Projection
-		std::pair<float, float> result = viewportToCanvas(float((v.x * d) / v.z), float((v.y * d) / v.z));
+		const std::pair<float, float>& result = viewportToCanvas(float((v.x * d) / v.z), float((v.y * d) / v.z));
 		return { result.first,result.second ,d };
 	}
 	void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr) {
 		float dx = x1 - x0;
 		float dy = y1 - y0;
-		float aspectratio = (dy != 0) ? (dx / dy) : 0;
+		float aspectratio = (dy != 0) ? (dx / dy) : 0.00001;
 		size_t size = int(y1) - int(y0);
 
 		float x = x0;
@@ -371,7 +371,7 @@ namespace Renderer {
 						P = transformVertex(P, camera, RotateOrder::RO_XYZ);
 						Vector R = P - camera.position;
 						R = R / length(R);
-						float light = computeLight(P, N, R, t.material.specular, false);
+						float light = computeLight(P, N, R, t.material.specular, true);
 						u32 hexColor = rgbtoHex(color * light);
 						((u32*)renderState.memory)[idx] = hexColor;
 						*dep = invZ;
@@ -489,7 +489,7 @@ namespace Renderer {
 		float t = (-b - sqrt(discriminant)) / (2 * a);
 		return t;
 	}
-	float intersectRayTriangle(Vector O, Vector D, Triangle triangle) {
+	float intersectRayTriangle(const Vector& O,const Vector& D,Triangle& triangle) {
 		float t = 0;
 		Vector N = triangle.getNormal();
 		float NdotRay = dot(N, D);
@@ -576,7 +576,7 @@ namespace Renderer {
 		}
 		return true;
 	}
-	HitData closestIntersection(Vector O, Vector D, float tMin, float tMax) {
+	HitData closestIntersection(Vector& O,Vector& D, float tMin, float tMax) {
 		HitData hitData = {};
 		hitData.intersection = INFINITY_V;
 		//Sphere intersection
