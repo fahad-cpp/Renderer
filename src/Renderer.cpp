@@ -371,7 +371,7 @@ namespace Renderer {
 						P = transformVertex(P, camera, RotateOrder::RO_XYZ);
 						Vector R = P - camera.position;
 						R = R / length(R);
-						float light = computeLight(P, N, R, t.material.specular, true);
+						float light = computeLight(P, N, R, t.material.specular, false);
 						u32 hexColor = rgbtoHex(color * light);
 						((u32*)renderState.memory)[idx] = hexColor;
 						*dep = invZ;
