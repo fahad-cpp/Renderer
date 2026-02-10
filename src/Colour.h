@@ -57,6 +57,6 @@ INTERNAL_W Colour hexToRGB(u32 hex) {
 	color.B = u8(hex & 0xff);
 	return color;
 }
-INTERNAL_W u32 rgbtoHex(Colour RGB) {
+INTERNAL_W u32 rgbtoHex(const Colour& RGB) {
 	return u32((RGB.R << 16) | (RGB.G << 8) | RGB.B);
 }

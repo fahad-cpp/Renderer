@@ -14,7 +14,7 @@ namespace Renderer {
 	}
 	//Put pixel (x and y specify viewport coordinates)
 	//this means x=0,y=0 will be on center
-	void putPixel(int x, int y, Colour color) {
+	void putPixel(int x, int y,const Colour& color) {
 		u32 hexColor = rgbtoHex(color);
 		x += renderState.width / 2;
 		y = (renderState.height / 2) - y;
@@ -96,7 +96,7 @@ namespace Renderer {
 		LOG_SUCCESS(("Exported to " + filename + " took:" + std::to_string(timer.dtms) + "ms\n"));
 	}
 
-	void drawLine(Vector a, Vector b, Colour color) {
+	void drawLine(Vector& a, Vector& b,const Colour& color) {
 		float dy = b.y - a.y;
 		float dx = b.x - a.x;
 		if (abs(dx) > abs(dy)) {
