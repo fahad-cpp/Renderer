@@ -43,13 +43,12 @@ This project is inspired by Gabriel Gambetta's *Computer Graphics From Scratch* 
 ### Prerequisites
 - **Operating System**: Windows (other platforms not yet supported).
 - **Dependencies**:
-  - `g++` compiler.
-  - Optional: `iconv` and `windres` for specific builds.
+  - C++ compiler and/or CMake
 
 ### Build Instructions
 Clone the repository:
 ```batch
-git clone https://github.com/Fahad704/Renderer.git
+git clone https://github.com/fahad-cpp/Renderer.git
 cd Renderer
 ```
 #### Using Cmake
@@ -113,7 +112,6 @@ Renderer.exe
 
 
 ## Planned Features
-- **Porting to OpenGL**: Rewrite the renderer in OpenGL.
 - **Material and Texture Support**: Import and render MTL files.
 - **Performance Optimizations**: Acceleration structures (e.g., BVH) for ray tracing.
 - **Cross-Platform Support**: Expand compatibility to Linux and macOS.
