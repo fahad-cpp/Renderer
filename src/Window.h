@@ -9,16 +9,16 @@
 #define pressed(b) (input.buttons[b].isDown && input.buttons[b].changed)
 #define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)
 struct RenderState {
-	int height;
-	int width;
-	void* memory;
-	float* ambientOcclusion;
 	BITMAPINFO bitmapinfo;
+	unsigned int height;
+	float* ambientOcclusion;
+	void* memory;
+	unsigned int width;
 };
 struct Window {
+	Input input;
 	HWND handle;
 	HDC dc;
-	Input input;
 };
 void turnConsoleOff();
 Vector getMouseDiff();

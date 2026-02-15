@@ -96,7 +96,7 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	return result;
 }
 void swapBuffers() {
-	StretchDIBits(window.dc, 0, renderState.height - 1, renderState.width, -renderState.height, 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
+	StretchDIBits(window.dc, 0, renderState.height - 1, renderState.width, -((int)renderState.height), 0, 0, renderState.width, renderState.height, renderState.memory, &renderState.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 }
 void initWindow() {
 	LOG_INFO("Initializing Window");

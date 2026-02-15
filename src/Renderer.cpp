@@ -144,25 +144,53 @@ namespace Renderer {
 		}
 		return true;
 	}
+	std::vector<std::string> splitLines(const char* str,size_t length) {
+		const char* ptr = str;
+		const char* beg = ptr;	
+		const char* end = ptr;
+		//size_t lineCount = std::count(str, str+length, '\n');
+		std::vector<std::string> output = {};
+		//output.reserve(lineCount);
+		for (int i = 0; i < length; i++) {
+			if (*ptr == '\n') {
+				if (beg < end) {
+					output.emplace_back(beg, end - beg);
+				}
+				ptr++;
+				beg = ptr;
+				end = ptr;
+				continue;
+			}
+			end++;
+			ptr++;
+		}
+		if (beg < end) {
+			output.emplace_back(beg, end - beg);
+		}
+		return output;
+	}
 	Mesh loadOBJ(std::string filename, const Colour& color, float reflectiveness, float specular) {
 		Timer timer;
 		LOG_INFO("Loading " << filename);
 		std::vector<Vector> vertexes = {};
-		vertexes.reserve(1024);
 		std::vector<Vector> normals = {};
-		normals.reserve(1024);
 		std::vector<Texture> texture = {};
-		texture.reserve(1024);
 		std::vector<Face> faces = {};
-		faces.reserve(1024);
-		std::ifstream OBJFile;
-		std::string line;
-		OBJFile.open(filename);
+		std::vector<std::string> lines = {};
+
+		std::ifstream OBJFile(filename,std::ios::binary | std::ios::ate);
 		if (!OBJFile) {
 			LOG_ERROR("Cannot open file " << filename << "\n");
 			return {};
 		}
-		while (std::getline(OBJFile, line)) {
+
+		size_t size = OBJFile.tellg();
+		OBJFile.seekg(0);
+
+		std::vector<char> wholeFile(size);
+		OBJFile.read(wholeFile.data(), size);
+		lines = splitLines(wholeFile.data(),size);
+		for (const std::string& line : lines) {
 
 			if (compare(line.c_str(), "v ", 2)) {
 				float x = 0, y = 0, z = 0;
@@ -214,9 +242,6 @@ namespace Renderer {
 					return {};
 				}
 			}
-			else {
-				continue;
-			}
 		}
 		OBJFile.close();
 		Mesh mesh = { vertexes,normals,texture,faces };
@@ -243,12 +268,15 @@ namespace Renderer {
 		float dx = x1 - x0;
 		float dy = y1 - y0;
 		float aspectratio = (dy != 0) ? (dx / dy) : 0.00001;
-		size_t size = int(y1) - int(y0);
-
 		float x = x0;
 
+
+		size_t size = abs(int(y1) - int(y0));
+		arr.resize(size);
+		int idx = 0;
 		for (int y = int(y0); y < int(y1); y++) {
-			arr.push_back(x);
+			arr[idx] = x;
+			idx++;
 			x += aspectratio;
 		}
 	}
@@ -302,12 +330,18 @@ namespace Renderer {
 		interpolate(z0, p1.y, z2, p3.y, z02);
 
 		//concatenate short sides in 0-1
-		for (const float& val : x12) {
-			x01.push_back(val);
+		int idx = x01.size();
+		x01.resize(x01.size() + x12.size());
+		for (int i = 0; i < x12.size();i++) {
+			x01.at(idx) = x12.at(i);
+			idx++;
 		}
 
-		for (const float& val : z12) {
-			z01.push_back(val);
+		idx = z01.size();
+		z01.resize(z01.size() + z12.size());
+		for (int i = 0; i < z12.size(); i++) {
+			z01.at(idx) = z12.at(i);
+			idx++;
 		}
 
 		int m = int(x02.size() / (float)2);
@@ -1081,7 +1115,7 @@ namespace Renderer {
 		}
 		//Render spheres
 		for (const Sphere& sphere : scene.spheres) {
-			Mesh sphereM;
+			Mesh sphereM = {};
 			//cache spheres if not already
 			if (sphereMeshCache.find(sphere) == sphereMeshCache.end()) {
 				sphereM = loadOBJ("res/Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);

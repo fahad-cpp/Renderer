@@ -9,7 +9,7 @@ struct Material {
 	float reflectiveness = 0.f;
 };
 struct HitData {
-	float intersection = INFINITY_V;
+	float intersection = float(INFINITY_V);
 	Vector normal = { 0,0,0 };
 	Material material = {};
 };

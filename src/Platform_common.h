@@ -1,6 +1,7 @@
 #pragma once
 //this says platform common but there is only one platform lol
-enum Buttons {
+#include <cstdint>
+constexpr enum Buttons : uint8_t{
 	BUTTON_SHIFT,
 	BUTTON_UP,
 	BUTTON_DOWN,
@@ -33,8 +34,8 @@ enum Buttons {
 };
 
 struct Button_state {
-	bool isDown;
-	bool changed;
+	bool isDown : 1;
+	bool changed : 1;
 };
 struct Input {
 	Button_state buttons[BUTTON_COUNT];
