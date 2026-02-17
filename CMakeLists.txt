@@ -67,7 +67,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     # Optimization & debug info
     target_compile_options(Renderer PRIVATE
         $<$<CONFIG:Release>:
-            -O2                    
+            -O3                    
             -flto                  
             -DNDEBUG
         >

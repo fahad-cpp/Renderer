@@ -1,4 +1,5 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
 #include "Globals.h"
 #include "Logging.h"
 #include "Object.h"

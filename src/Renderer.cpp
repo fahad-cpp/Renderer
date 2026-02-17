@@ -136,39 +136,6 @@ namespace Renderer {
 			}
 		}
 	}
-	static bool compare(const char* str1, const char* str2, u32 size) {
-		for (int i = 0; i < size; i++) {
-			if (str1[i] != str2[i]) {
-				return false;
-			}
-		}
-		return true;
-	}
-	std::vector<std::string> splitLines(const char* str,size_t length) {
-		const char* ptr = str;
-		const char* beg = ptr;	
-		const char* end = ptr;
-		//size_t lineCount = std::count(str, str+length, '\n');
-		std::vector<std::string> output = {};
-		//output.reserve(lineCount);
-		for (int i = 0; i < length; i++) {
-			if (*ptr == '\n') {
-				if (beg < end) {
-					output.emplace_back(beg, end - beg);
-				}
-				ptr++;
-				beg = ptr;
-				end = ptr;
-				continue;
-			}
-			end++;
-			ptr++;
-		}
-		if (beg < end) {
-			output.emplace_back(beg, end - beg);
-		}
-		return output;
-	}
 	Mesh loadOBJ(const std::string& filename, const Colour& color, float reflectiveness, float specular) {
 		Timer timer;
 		LOG_INFO("Loading " << filename);
@@ -176,7 +143,6 @@ namespace Renderer {
 		std::vector<Vector> normals = {};
 		std::vector<Texture> texture = {};
 		std::vector<Face> faces = {};
-		std::vector<std::string> lines = {};
 
 		std::ifstream OBJFile(filename,std::ios::binary | std::ios::ate);
 		if (!OBJFile) {
@@ -187,35 +153,42 @@ namespace Renderer {
 		size_t size = OBJFile.tellg();
 		OBJFile.seekg(0);
 
-		std::vector<char> wholeFile(size);
-		OBJFile.read(wholeFile.data(), size);
-		lines = splitLines(wholeFile.data(),size);
-		for (const std::string& line : lines) {
+		std::vector<char> buffer(size + 1);
+		OBJFile.read(buffer.data(), size);
+		buffer[size] = '\0';
+		OBJFile.close();
 
-			if (compare(line.c_str(), "v ", 2)) {
+		const char* ptr = buffer.data();
+
+		while (*ptr != '\0') {
+			const char* end = ptr;
+			while ((*end != '\0') && *end != '\n')end++;
+			std::string line = std::string(ptr, end) + '\0';
+
+			if (ptr[0] == 'v' && (ptr[1] == ' ' || ptr[1] == '\t')) {
 				float x = 0, y = 0, z = 0;
-				sscanf_s(line.c_str(), "v %f %f %f", &x, &y, &z);
-				vertexes.push_back({ x,y,z });
+				sscanf(line.c_str(), "v %f %f %f", &x, &y, &z);
+				vertexes.emplace_back( x,y,z );
 			}
-			else if (compare(line.c_str(), "vt", 2)) {
+			else if (ptr[0] == 'v' && ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
 				float u, v, w;
-				sscanf_s(line.c_str(), "vt %f %f %f", &u, &v, &w);
+				sscanf(line.c_str(), "vt %f %f %f", &u, &v, &w);
 				Texture newtext({ u, v, w });
-				texture.push_back(newtext);
+				texture.emplace_back(newtext);
 			}
-			else if (compare(line.c_str(), "vn", 2)) {
+			else if (ptr[0] == 'v' && ptr[1] == 'n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
 				float x, y, z;
-				sscanf_s(line.c_str(), "vn %f %f %f", &x, &y, &z);
+				sscanf(line.c_str(), "vn %f %f %f", &x, &y, &z);
 				Vector newnorm(x, y, z);
-				normals.push_back(newnorm);
+				normals.emplace_back(newnorm);
 			}
-			else if (compare(line.c_str(), "f ", 2)) {
+			else if (ptr[0] == 'f' && (ptr[1] == ' ' || ptr[1] == '\t')) {
 				//---Only works for 3 Vertices faces---
 				int v[3] = {};
 				int t[3] = {};
 				int n[3] = {};
 				Face newface = {};
-				if (sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
+				if (sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
 					&v[0], &t[0], &n[0],
 					&v[1], &t[1], &n[1],
 					&v[2], &t[2], &n[2]) == 9) {
@@ -224,9 +197,9 @@ namespace Renderer {
 						Index{v[1],t[1],n[1]},
 						Index{v[2],t[2],n[2]}
 					};
-					faces.push_back(newface);
+					faces.emplace_back(newface);
 				}
-				else if (sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d",
+				else if (sscanf(line.c_str(), "f %d//%d %d//%d %d//%d",
 					&v[0], &n[0],
 					&v[1], &n[1],
 					&v[2], &n[2]) == 6) {
@@ -235,15 +208,17 @@ namespace Renderer {
 						Index{v[1],-1,n[1]},
 						Index{v[2],-1,n[2]}
 					};
-					faces.push_back(newface);
+					faces.emplace_back(newface);
 				}
 				else {
 					LOG_ERROR(("Unsupported face format :" + filename + "\n"));
 					return {};
 				}
 			}
+
+			while ((*ptr != '\0') && *ptr != '\n')ptr++;
+			if (*ptr == '\n')ptr++;
 		}
-		OBJFile.close();
 		Mesh mesh = { vertexes,normals,texture,faces };
 		mesh.material.color = color;
 		mesh.material.specular = specular;
