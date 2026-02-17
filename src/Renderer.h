@@ -18,7 +18,7 @@
 namespace Renderer {
 	void clearScreen(u32 color);
 	void putPixel(int x, int y,const Colour& color);
-	void putPixelD(int x, int y, Colour color);
+	void putPixelD(int x, int y,const Colour& color);
 	Colour getPixel(int x, int y);
 	void renderDepthBuffer();
 	void drawSquare(float x, float y, int size, Colour color);
@@ -26,7 +26,7 @@ namespace Renderer {
 	void printPPM(const std::string& filename);
 	void exportToPPM(const std::string& filename, u32* buffer, int width, int height);
 	void drawLine(Vector& a, Vector& b,const Colour& color);
-	Mesh loadOBJ(std::string filename, const Colour& color = { 0,0,0 }, float reflectiveness = 0, float specular = -1);
+	Mesh loadOBJ(const std::string& filename, const Colour& color = { 0,0,0 }, float reflectiveness = 0, float specular = -1);
 	Vector canvasToViewport(float x, float y);
 	const std::pair<float, float>& viewportToCanvas(float x, float y);
 	Vector projectVertex(Vector v);
@@ -37,8 +37,8 @@ namespace Renderer {
 	void drawBox(Box box, Transform tf = {}, bool inTriangle = true);
 	float intersectRaySphere(Vector& O, Vector& D, Sphere& sphere);
 	float intersectRayTriangle(const Vector& O,const Vector& D, Triangle& triangle);
-	bool RayIntersectsBox(Vector& O, Vector& D, Box& box);
-	HitData closestIntersection(Vector& O,Vector& D, float tMin, float tMax);
+	bool RayIntersectsBox(const Vector& O,const Vector& D,const Box& box);
+	HitData closestIntersection(const Vector& O,const Vector& D, float tMin, float tMax);
 	Vector reflectRay(const Vector& R, Vector& N);
 	float computeLight(Vector& P, Vector& N, const Vector V, float s, bool rtShadows = true);
 	float planeIntersection(Plane& plane, Vector& point);
@@ -49,7 +49,7 @@ namespace Renderer {
 	void FXAA(bool multiThread = true);
 	void drawTrianglesThr(const std::vector<Triangle>& tris, size_t start, size_t end, bool drawWireframe);
 	void renderMesh(const Mesh& mesh, const Transform& transform, bool multithread = true);
-	Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit);
+	Colour traceRay(const Vector& O,const Vector& D, float tMin, float tMax, int recursionLimit);
 	void rayTraceThr(int threadNum, int threadCount);
 	void rayTrace();
 	void renderScene();

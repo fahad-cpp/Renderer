@@ -9,7 +9,7 @@ enum class RotateOrder {
 	RO_YXZ = 0,
 	RO_XYZ
 };
-INTERNAL_W Vector rotate(const Vector& vec, const Vector& rotationP, RotateOrder ro = RotateOrder::RO_YXZ) {
+INTERNAL_W Vector rotate(const Vector& vec, const Vector& rotationP,const RotateOrder& ro = RotateOrder::RO_YXZ) {
 
 	float sinx, siny, sinz, cosx, cosy, cosz;
 

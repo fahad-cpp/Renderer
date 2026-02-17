@@ -24,7 +24,7 @@ namespace Renderer {
 	}
 	//put pixel Direct (x and y specify buffer value)
 	//x=0,y=0 will be on top left
-	void putPixelD(int x, int y, Colour color) {
+	void putPixelD(int x, int y,const Colour& color) {
 		u32 hexColor = rgbtoHex(color);
 		u32 idx = x + (y * renderState.width);
 		std::lock_guard<std::mutex> lock(pixelLocks[idx]);
@@ -169,7 +169,7 @@ namespace Renderer {
 		}
 		return output;
 	}
-	Mesh loadOBJ(std::string filename, const Colour& color, float reflectiveness, float specular) {
+	Mesh loadOBJ(const std::string& filename, const Colour& color, float reflectiveness, float specular) {
 		Timer timer;
 		LOG_INFO("Loading " << filename);
 		std::vector<Vector> vertexes = {};
@@ -507,7 +507,7 @@ namespace Renderer {
 		drawLine(projected[3], projected[7], red);
 	}
 
-	float intersectRaySphere(Vector& O, Vector& D, Sphere& sphere) {
+	float intersectRaySphere(const Vector& O, const Vector& D, Sphere& sphere) {
 		float r = sphere.radius;
 		Vector CO = O - sphere.center;
 
@@ -564,7 +564,7 @@ namespace Renderer {
 
 		return t;
 	}
-	bool RayIntersectsBox(Vector& O, Vector& D, Box& box) {
+	bool RayIntersectsBox(const Vector& O,const Vector& D,const Box& box) {
 		Vector invDir = 1.0f / D;
 		float tmin, tmax, tymin, tymax, tzmin, tzmax;
 		if (invDir.x >= 0) {
@@ -610,7 +610,7 @@ namespace Renderer {
 		}
 		return true;
 	}
-	HitData closestIntersection(Vector& O,Vector& D, float tMin, float tMax) {
+	HitData closestIntersection(const Vector& O,const Vector& D, float tMin, float tMax){
 		HitData hitData = {};
 		hitData.intersection = INFINITY_V;
 		//Sphere intersection
@@ -1051,7 +1051,7 @@ namespace Renderer {
 			drawTrianglesMultiThread(tris, drawWireframe, std::thread::hardware_concurrency());
 		}
 	}
-	Colour traceRay(Vector O, Vector D, float tMin, float tMax, int recursionLimit) {
+	Colour traceRay(const Vector& O,const Vector& D, float tMin, float tMax, int recursionLimit) {
 		HitData hitData = closestIntersection(O, D, tMin, tMax);
 		float closestT = hitData.intersection;
 		Colour bgColor = { 100,100,100 };

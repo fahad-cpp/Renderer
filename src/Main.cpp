@@ -294,6 +294,6 @@ void update(const Input& input) {
 	//FPS count
 	totalFrameTime += (timer.dtms * 0.001);
 	frameCount++;
-	printLive("CUR : " + std::to_string(1.f / (timer.dtms * 0.001)) + " AVG : " + std::to_string(1 / (totalFrameTime / frameCount)) + " FRAMETIME: " + std::to_string(timer.dtms) + "ms");
+	printLive("CUR-FPS: " + std::to_string(1.f / (timer.dtms * 0.001)) + " AVG-FPS : " + std::to_string(1 / (totalFrameTime / frameCount)) + " CUR-FRAME: " + std::to_string(timer.dtms) + "ms" + " AVG-FRAME: " + std::to_string((totalFrameTime * 1000) / frameCount) + "ms");
 	timer.dtms = 0;
 }
