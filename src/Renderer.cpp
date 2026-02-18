@@ -96,7 +96,7 @@ namespace Renderer {
 		LOG_SUCCESS(("Exported to " + filename + " took:" + std::to_string(timer.dtms) + "ms\n"));
 	}
 
-	void drawLine(Vector& a, Vector& b,const Colour& color) {
+	void drawLine(Vector& a,Vector& b,const Colour& color) {
 		float dy = b.y - a.y;
 		float dx = b.x - a.x;
 		if (abs(dx) > abs(dy)) {
@@ -159,11 +159,11 @@ namespace Renderer {
 		OBJFile.close();
 
 		const char* ptr = buffer.data();
-
+		std::string line;
 		while (*ptr != '\0') {
 			const char* end = ptr;
 			while ((*end != '\0') && *end != '\n')end++;
-			std::string line = std::string(ptr, end) + '\0';
+			line = std::string(ptr, end - ptr);
 
 			if (ptr[0] == 'v' && (ptr[1] == ' ' || ptr[1] == '\t')) {
 				float x = 0, y = 0, z = 0;

@@ -26,7 +26,7 @@ namespace Renderer {
 	void drawNoise();
 	void printPPM(const std::string& filename);
 	void exportToPPM(const std::string& filename, u32* buffer, int width, int height);
-	void drawLine(Vector& a, Vector& b,const Colour& color);
+	void drawLine(Vector& a,Vector& b,const Colour& color);
 	Mesh loadOBJ(const std::string& filename, const Colour& color = { 0,0,0 }, float reflectiveness = 0, float specular = -1);
 	Vector canvasToViewport(float x, float y);
 	const std::pair<float, float>& viewportToCanvas(float x, float y);
