@@ -36,7 +36,7 @@ namespace Renderer {
 	std::vector<Triangle> clipTriangle(const Triangle&);
 	void drawTrianglesMultiThread(const std::vector<Triangle>&, bool, unsigned int);
 	void drawBox(Box box, Transform tf = {}, bool inTriangle = true);
-	float intersectRaySphere(Vector& O, Vector& D, Sphere& sphere);
+	float intersectRaySphere(Vector& O, Vector& D,const Sphere& sphere);
 	float intersectRayTriangle(const Vector& O,const Vector& D, Triangle& triangle);
 	bool RayIntersectsBox(const Vector& O,const Vector& D,const Box& box);
 	HitData closestIntersection(const Vector& O,const Vector& D, float tMin, float tMax);

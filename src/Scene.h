@@ -6,7 +6,7 @@ struct Instance {
 	Transform transform = { {0,0,0},1.f,{0,0,0} };
 	Box boundingBox = { -INFINITY,INFINITY };
 	//Returns Bounding Box in world space
-	Box getBoundingBox() {
+	Box getBoundingBox(){
 		bool boundingBoxInitialized = !((boundingBox.lowest == INFINITY) && (boundingBox.highest == -INFINITY));
 		if (!boundingBoxInitialized) {
 			//find lowest and highest point in bounding box

@@ -112,8 +112,8 @@ void handleInput(const Input& input) {
 	}
 	//Change ray tracing to rasterization and vise versa
 	if (pressed(BUTTON_R)) {
-		rayTraceMode = !rayTraceMode;
-		if (rayTraceMode) {
+		sceneSettings.rayTraceMode = !sceneSettings.rayTraceMode;
+		if (sceneSettings.rayTraceMode) {
 			LOG_INFO("Ray tracing turned on\n");
 		}
 		else {
@@ -255,12 +255,16 @@ void init() {
 			},
 		}
 	};
+
+	for (Instance& ins : scene.instances) {
+		ins.getBoundingBox();
+	}
 }
 void update(const Input& input) {
 	//Start counting frame time
 	Timer timer;
 	handleInput(input);
-	if (rayTraceMode && change) {
+	if (sceneSettings.rayTraceMode && change) {
 		Renderer::clearScreen(0x000000);
 		//Ray tracing multithreaded
 		static size_t threadCount = std::thread::hardware_concurrency();

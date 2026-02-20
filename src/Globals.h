@@ -27,8 +27,6 @@ extern float vpHeight;
 //only rendering when frame change to make sure my cpu doesn't explode
 //Especially for Ray tracer
 extern bool change;
-//true = raytracer , false = rasterizer
-extern bool rayTraceMode;
 
 //144 fps
 extern float frameLimit;

@@ -45,6 +45,7 @@ struct Triangle {
 		this->material.color = color;
 		this->material.specular = specular;
 		this->material.reflectiveness = reflectiveness;
+		this->normal = cross((p[1] - p[0]), (p[2] - p[0]));
 	}
 
 	Triangle(const Vector p[3], Vector normal = { 0,0,0 }, Material material = { Colour{0,0,0},-1.f,0.f }) {
@@ -52,14 +53,12 @@ struct Triangle {
 		this->p[1] = p[1];
 		this->p[2] = p[2];
 		this->material = material;
+		this->normal = (normal == Vector{0, 0, 0}) ? cross((p[1] - p[0]), (p[2] - p[0])): normal;
 	}
 
-	Vector getNormal(){
+	Vector calculateNormal(){
 		//anti clockwise
-		if (normal == Vector{ 0, 0, 0 }) {
-			normal = cross((p[1] - p[0]), (p[2] - p[0]));
-			return normal;
-		}
+		normal = cross((p[1] - p[0]), (p[2] - p[0]));
 		return normal;
 	}
 

@@ -15,4 +15,5 @@ struct SceneSettings {
 	DebugState debugState;
 	bool lockMouse;
 	RenderMode renderMode;
+	bool rayTraceMode;
 };

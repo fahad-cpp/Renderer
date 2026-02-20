@@ -348,7 +348,7 @@ namespace Renderer {
 		newTri.p[0] = transformVertex(t.p[0], camera, RotateOrder::RO_XYZ);
 		newTri.p[1] = transformVertex(t.p[1], camera, RotateOrder::RO_XYZ);
 		newTri.p[2] = transformVertex(t.p[2], camera, RotateOrder::RO_XYZ);
-		Vector N = newTri.getNormal();
+		Vector N = newTri.calculateNormal();
 		N = N / length(N);
 		//Vector centroid = newTri.getCentroid();
 		for (int y = int(p1.y); y < int(p3.y); y++) {
@@ -482,7 +482,7 @@ namespace Renderer {
 		drawLine(projected[3], projected[7], red);
 	}
 
-	float intersectRaySphere(const Vector& O, const Vector& D, Sphere& sphere) {
+	float intersectRaySphere(const Vector& O, const Vector& D,const Sphere& sphere) {
 		float r = sphere.radius;
 		Vector CO = O - sphere.center;
 
@@ -500,7 +500,7 @@ namespace Renderer {
 	}
 	float intersectRayTriangle(const Vector& O,const Vector& D,Triangle& triangle) {
 		float t = 0;
-		Vector N = triangle.getNormal();
+		Vector N = triangle.calculateNormal();
 		float NdotRay = dot(N, D);
 		if (NdotRay > 0)
 			return INFINITY_V;
@@ -606,14 +606,14 @@ namespace Renderer {
 			float triangleInt = intersectRayTriangle(O, D, triangle);
 			if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
 				hitData.intersection = triangleInt;
-				hitData.normal = triangle.getNormal();
+				hitData.normal = triangle.normal;
 				hitData.material = triangle.material;
 			}
 		}
 		//Mesh
-		for (Instance& instance : scene.instances) {
+		for (const Instance& instance : scene.instances) {
 			std::vector<Triangle>& triangles = instance.mesh->triangles;
-			Box mbb = instance.getBoundingBox();
+			Box mbb = instance.boundingBox;
 			if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX) {
 				if (!RayIntersectsBox(O, D, mbb)) {
 					continue;
@@ -638,7 +638,7 @@ namespace Renderer {
 				if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
 					hitData.intersection = triangleInt;
 					hitData.material = triangle.material;
-					hitData.normal = tri.getNormal();
+					hitData.normal = tri.normal;
 				}
 			}
 		}
@@ -955,7 +955,7 @@ namespace Renderer {
 		newTri.p[0] = moved[0];
 		newTri.p[1] = moved[1];
 		newTri.p[2] = moved[2];
-		Vector normal = newTri.getNormal();
+		Vector normal = newTri.calculateNormal();
 		normal = normal / length(normal);
 
 		//Backface culling

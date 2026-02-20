@@ -6,7 +6,7 @@ RenderState renderState;
 std::vector<std::thread> ppmThreads;
 std::mutex* pixelLocks;
 bool running = true;
-SceneSettings sceneSettings = { true,false,0,DebugState::DS_OFF, true ,RenderMode::RM_COLOR };
+SceneSettings sceneSettings = { true,false,0,DebugState::DS_OFF, true ,RenderMode::RM_COLOR ,false};
 Vector canvas(720, 720);
 Vector D = { 1,1,1 };
 float vpWidth = 1.f;
@@ -15,7 +15,6 @@ float vpHeight = 1.f;
 //Especially for Ray tracer
 bool change = true;
 //true = raytracer , false = rasterizer
-bool rayTraceMode = false;
 
 //144 fps
 float frameLimit = 6.944444415f;
