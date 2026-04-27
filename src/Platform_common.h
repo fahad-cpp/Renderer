@@ -1,7 +1,7 @@
 #pragma once
 //this says platform common but there is only one platform lol
 #include <cstdint>
-constexpr enum Buttons : uint8_t{
+enum Buttons : uint8_t{
 	BUTTON_SHIFT,
 	BUTTON_UP,
 	BUTTON_DOWN,

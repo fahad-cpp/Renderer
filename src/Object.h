@@ -38,22 +38,22 @@ struct Triangle {
 		material.specular = -1;
 	}
 
-	Triangle(const Vector p[3], Vector normal = { 0,0,0 }, Colour color = { 0,0,0 }, float specular = -1, float reflectiveness = 0) {
-		this->p[0] = p[0];
-		this->p[1] = p[1];
-		this->p[2] = p[2];
+	Triangle(const Vector _p[3], Vector _normal = { 0,0,0 }, Colour color = { 0,0,0 }, float specular = -1, float reflectiveness = 0) {
+		this->p[0] = _p[0];
+		this->p[1] = _p[1];
+		this->p[2] = _p[2];
 		this->material.color = color;
 		this->material.specular = specular;
 		this->material.reflectiveness = reflectiveness;
 		this->normal = cross((p[1] - p[0]), (p[2] - p[0]));
 	}
 
-	Triangle(const Vector p[3], Vector normal = { 0,0,0 }, Material material = { Colour{0,0,0},-1.f,0.f }) {
-		this->p[0] = p[0];
-		this->p[1] = p[1];
-		this->p[2] = p[2];
-		this->material = material;
-		this->normal = (normal == Vector{0, 0, 0}) ? cross((p[1] - p[0]), (p[2] - p[0])): normal;
+	Triangle(const Vector _p[3], Vector _normal = { 0,0,0 }, Material _material = { Colour{0,0,0},-1.f,0.f }) {
+		this->p[0] = _p[0];
+		this->p[1] = _p[1];
+		this->p[2] = _p[2];
+		this->material = _material;
+		this->normal = (_normal == Vector{0, 0, 0}) ? cross((p[1] - p[0]), (p[2] - p[0])): normal;
 	}
 
 	Vector calculateNormal(){

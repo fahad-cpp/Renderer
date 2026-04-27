@@ -2,11 +2,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Globals.h"
 #include "Logging.h"
-#include "Object.h"
-#include "Transform.h"
 #include "Hash.h"
 #include "Utility.h"
-#include "Typedefs.h"
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>

@@ -139,7 +139,7 @@ namespace Renderer {
 	Mesh loadOBJ(const std::string& filename, const Colour& color, float reflectiveness, float specular) {
 		Timer timer;
 		LOG_INFO("Loading " << filename);
-		std::vector<Vector> vertexes = {};
+		std::vector<Vector> vertices = {};
 		std::vector<Vector> normals = {};
 		std::vector<Texture> texture = {};
 		std::vector<Face> faces = {};
@@ -168,7 +168,7 @@ namespace Renderer {
 			if (ptr[0] == 'v' && (ptr[1] == ' ' || ptr[1] == '\t')) {
 				float x = 0, y = 0, z = 0;
 				sscanf(line.c_str(), "v %f %f %f", &x, &y, &z);
-				vertexes.emplace_back( x,y,z );
+				vertices.emplace_back( x,y,z );
 			}
 			else if (ptr[0] == 'v' && ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
 				float u, v, w;
@@ -219,7 +219,7 @@ namespace Renderer {
 			while ((*ptr != '\0') && *ptr != '\n')ptr++;
 			if (*ptr == '\n')ptr++;
 		}
-		Mesh mesh = { vertexes,normals,texture,faces };
+		Mesh mesh = { vertices,normals,texture,faces };
 		mesh.material.color = color;
 		mesh.material.specular = specular;
 		mesh.material.reflectiveness = reflectiveness;
@@ -407,9 +407,9 @@ namespace Renderer {
 			{ box.highest.x, box.highest.y, box.highest.z },
 			{ box.highest.x, box.lowest.y, box.highest.z }
 		};
-		int size = sizeof(p) / sizeof(p[0]);
+		int psize = sizeof(p) / sizeof(p[0]);
 		Vector projected[8];
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < psize; i++) {
 			p[i] = transformVertex(p[i], tf);
 			projected[i] = projectVertex(p[i]);
 		}

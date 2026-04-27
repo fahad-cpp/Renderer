@@ -11,10 +11,10 @@ public:
 		G = 0;
 		B = 0;
 	}
-	Colour(unsigned char R, unsigned char G, unsigned char B) {
-		this->R = R;
-		this->G = G;
-		this->B = B;
+	Colour(unsigned char _R, unsigned char _G, unsigned char _B) {
+		this->R = _R;
+		this->G = _G;
+		this->B = _B;
 	}
 
 	bool operator==(const Colour& op)const {
