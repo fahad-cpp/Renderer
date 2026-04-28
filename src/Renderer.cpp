@@ -14,17 +14,15 @@ namespace Renderer {
 	}
 	//Put pixel (x and y specify viewport coordinates)
 	//this means x=0,y=0 will be on center
-	void putPixel(int x, int y,const Colour& color) {
-		u32 hexColor = rgbtoHex(color);
-		x += renderState.width / 2;
-		y = (renderState.height / 2) - y;
-		u32 idx = x + (y * renderState.width);
+	void putPixel(const int x,const int y,const Colour& color) {
+		const u32 hexColor = rgbtoHex(color);
+		const u32 idx = (x + renderState.width / 2) + (((renderState.height / 2) - y) * renderState.width);
 		std::lock_guard<std::mutex> lock(pixelLocks[idx]);
 		((u32*)renderState.memory)[idx] = hexColor;
 	}
 	//put pixel Direct (x and y specify buffer value)
 	//x=0,y=0 will be on top left
-	void putPixelD(int x, int y,const Colour& color) {
+	void putPixelD(const int x,const int y,const Colour& color){
 		u32 hexColor = rgbtoHex(color);
 		u32 idx = x + (y * renderState.width);
 		std::lock_guard<std::mutex> lock(pixelLocks[idx]);
@@ -40,7 +38,7 @@ namespace Renderer {
 			}
 		}
 	}
-	Colour getPixel(int x, int y) {
+	Colour getPixel(const int x,const int y) {
 		u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
 		Colour result = hexToRGB(*pixel);
 		return result;
@@ -234,7 +232,7 @@ namespace Renderer {
 	const std::pair<float, float>& viewportToCanvas(float x, float y) {
 		return { x * (canvas.x / vpWidth) ,y * (canvas.y / vpHeight) };
 	}
-	Vector projectVertex(Vector v) {
+	Vector projectVertex(const Vector& v) {
 		//Perspective Projection
 		const std::pair<float, float>& result = viewportToCanvas(float((v.x * d) / v.z), float((v.y * d) / v.z));
 		return { result.first,result.second ,d };
@@ -380,7 +378,7 @@ namespace Renderer {
 						P = transformVertex(P, camera, RotateOrder::RO_XYZ);
 						Vector R = P - camera.position;
 						R = R / length(R);
-						float light = computeLight(P, N, R, t.material.specular, false);
+						const float light = computeLight(P, N, R, t.material.specular, false);
 						u32 hexColor = rgbtoHex(color * light);
 						((u32*)renderState.memory)[idx] = hexColor;
 						*dep = invZ;
@@ -393,7 +391,7 @@ namespace Renderer {
 	void drawBox(Box box, Transform tf, bool inTriangle) {
 		//The tf transform is inverse camera tranform to convert world space box into
 		//camera space box
-		Colour red = { 255,0,0 };
+		const Colour red = { 255,0,0 };
 		//Points of a box
 		Vector p[8] = {
 			//Front Points
@@ -483,8 +481,8 @@ namespace Renderer {
 	}
 
 	float intersectRaySphere(const Vector& O, const Vector& D,const Sphere& sphere) {
-		float r = sphere.radius;
-		Vector CO = O - sphere.center;
+		const float r = sphere.radius;
+		const Vector CO = O - sphere.center;
 
 		float a = dot(D, D);
 		float b = 2 * dot(CO, D);
@@ -495,7 +493,7 @@ namespace Renderer {
 		if (discriminant < 0) {
 			return INFINITY_V;
 		}
-		float t = (-b - sqrt(discriminant)) / (2 * a);
+		const float t = (-b - sqrt(discriminant)) / (2 * a);
 		return t;
 	}
 	float intersectRayTriangle(const Vector& O,const Vector& D,Triangle& triangle) {
@@ -1052,7 +1050,7 @@ namespace Renderer {
 
 		return (localColor * (1.f - r)) + (reflectedColor * r);
 	}
-	void rayTraceThr(int threadNum, int threadCount) {
+	void rayTraceThr(const int threadNum,const int threadCount) {
 		float ycount = (canvas.y / threadCount);
 		float ymin = ycount * threadNum;
 		float ymax = ymin + ycount;

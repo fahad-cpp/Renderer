@@ -15,9 +15,9 @@
 #define WHITE {255,255,255}
 namespace Renderer {
 	void clearScreen(u32 color);
-	void putPixel(int x, int y,const Colour& color);
-	void putPixelD(int x, int y,const Colour& color);
-	Colour getPixel(int x, int y);
+	void putPixel(const int x,const int y,const Colour& color);
+	void putPixelD(const int x,const int y,const Colour& color);
+	Colour getPixel(const int x,const int y);
 	void renderDepthBuffer();
 	void drawSquare(float x, float y, int size, Colour color);
 	void drawNoise();
@@ -27,7 +27,7 @@ namespace Renderer {
 	Mesh loadOBJ(const std::string& filename, const Colour& color = { 0,0,0 }, float reflectiveness = 0, float specular = -1);
 	Vector canvasToViewport(float x, float y);
 	const std::pair<float, float>& viewportToCanvas(float x, float y);
-	Vector projectVertex(Vector v);
+	Vector projectVertex(const Vector& v);
 	void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr);
 	void drawTriangle(const Triangle& t, bool wireframe = true);
 	std::vector<Triangle> clipTriangle(const Triangle&);
@@ -48,7 +48,7 @@ namespace Renderer {
 	void drawTrianglesThr(const std::vector<Triangle>& tris, size_t start, size_t end, bool drawWireframe);
 	void renderMesh(const Mesh& mesh, const Transform& transform, bool multithread = true);
 	Colour traceRay(const Vector& O,const Vector& D, float tMin, float tMax, int recursionLimit);
-	void rayTraceThr(int threadNum, int threadCount);
+	void rayTraceThr(const int threadNum,const int threadCount);
 	void rayTrace();
 	void renderScene();
 	void renderAO();
