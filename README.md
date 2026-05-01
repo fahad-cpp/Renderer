@@ -65,17 +65,10 @@ cmake --build . --config Release
 Release\Renderer.exe
 
 ```
-#### Using GCC and Iconv
+#### Using GCC
 ```batch
 cd src
-Build.bat
-
-```
-
-#### Without Iconv
-```batch
-cd src
-build-no-icon.bat
+build.bat
 
 ```
 
