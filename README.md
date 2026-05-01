@@ -65,9 +65,8 @@ cmake --build . --config Release
 Release\Renderer.exe
 
 ```
-#### Using GCC
+#### Or run the script
 ```batch
-cd src
 build.bat
 
 ```
