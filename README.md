@@ -71,10 +71,6 @@ build.bat
 
 ```
 
-#### Using Visual Studio
-- Open the `.vcxproj` file in Visual Studio.
-- Build the project from the IDE.
-
 ### Running the Application
 After building, run the executable from the `bin` directory:
 ```bash
