@@ -65,23 +65,11 @@ cmake --build . --config Release
 Release\Renderer.exe
 
 ```
-#### Using GCC and Iconv
+#### Or run the script
 ```batch
-cd src
-Build.bat
+build.bat
 
 ```
-
-#### Without Iconv
-```batch
-cd src
-build-no-icon.bat
-
-```
-
-#### Using Visual Studio
-- Open the `.vcxproj` file in Visual Studio.
-- Build the project from the IDE.
 
 ### Running the Application
 After building, run the executable from the `bin` directory:
