@@ -3,8 +3,8 @@
 #include <functional>
 #include <minmax.h>
 namespace Renderer {
-	void clearScreen(u32 color) {
-		u32* pixel = (u32*)renderState.memory;
+	void clearScreen(uint32_t color) {
+		uint32_t* pixel = (uint32_t*)renderState.memory;
 		float* dep = (float*)depth;
 		int bufferSize = renderState.width * renderState.height;
 		for (int i = 0; i < bufferSize; i++) {
@@ -15,18 +15,18 @@ namespace Renderer {
 	//Put pixel (x and y specify viewport coordinates)
 	//this means x=0,y=0 will be on center
 	void putPixel(const int x,const int y,const Colour& color) {
-		const u32 hexColor = rgbtoHex(color);
-		const u32 idx = (x + renderState.width / 2) + (((renderState.height / 2) - y) * renderState.width);
+		const uint32_t hexColor = rgbtoHex(color);
+		const uint32_t idx = (x + renderState.width / 2) + (((renderState.height / 2) - y) * renderState.width);
 		std::lock_guard<std::mutex> lock(pixelLocks[idx]);
-		((u32*)renderState.memory)[idx] = hexColor;
+		((uint32_t*)renderState.memory)[idx] = hexColor;
 	}
 	//put pixel Direct (x and y specify buffer value)
 	//x=0,y=0 will be on top left
 	void putPixelD(const int x,const int y,const Colour& color){
-		u32 hexColor = rgbtoHex(color);
-		u32 idx = x + (y * renderState.width);
+		uint32_t hexColor = rgbtoHex(color);
+		uint32_t idx = x + (y * renderState.width);
 		std::lock_guard<std::mutex> lock(pixelLocks[idx]);
-		((u32*)renderState.memory)[idx] = hexColor;
+		((uint32_t*)renderState.memory)[idx] = hexColor;
 	}
 	void renderDepthBuffer() {
 		for (int y = 0; y < renderState.height; y++) {
@@ -39,7 +39,7 @@ namespace Renderer {
 		}
 	}
 	Colour getPixel(const int x,const int y) {
-		u32* pixel = (u32*)renderState.memory + x + (y * renderState.width);
+		uint32_t* pixel = (uint32_t*)renderState.memory + x + (y * renderState.width);
 		Colour result = hexToRGB(*pixel);
 		return result;
 	}
@@ -55,14 +55,14 @@ namespace Renderer {
 	void drawNoise() {
 		for (int y = -(canvas.y / 2.f); y < (canvas.y / 2.f); y++) {
 			for (int x = -(canvas.x / 2.f); x < (canvas.x / 2.f); x++) {
-				Colour color = { u8(rand() % 256),u8(rand() % 256) , u8(rand() % 256) };
+				Colour color = { uint8_t(rand() % 256),uint8_t(rand() % 256) , uint8_t(rand() % 256) };
 				putPixel(x, y, color);
 			}
 		}
 	}
 	void printPPM(const std::string& filename) {
-		u32 sbsize = (renderState.width * renderState.height) * sizeof(u32);
-		u32* buffer = (u32*)malloc(sbsize);
+		uint32_t sbsize = (renderState.width * renderState.height) * sizeof(uint32_t);
+		uint32_t* buffer = (uint32_t*)malloc(sbsize);
 		if (buffer) {
 			memcpy((void*)buffer, renderState.memory, sbsize);
 			ppmThreads.push_back(std::thread(Renderer::exportToPPM, "Image.ppm", buffer, renderState.width, renderState.height));
@@ -72,7 +72,7 @@ namespace Renderer {
 		}
 	}
 
-	void exportToPPM(const std::string& filename, u32* buffer, int width, int height) {
+	void exportToPPM(const std::string& filename, uint32_t* buffer, int width, int height) {
 		Timer timer;
 		FILE* file;
 		fopen_s(&file, filename.c_str(), "w");
@@ -84,7 +84,7 @@ namespace Renderer {
 		output += ("P3\n" + std::to_string(width) + ' ' + std::to_string(height) + "\n255\n");
 		int bufferSize = width * height;
 		for (int i = 0; i < bufferSize; i++) {
-			u32 currentColor = buffer[i];
+			uint32_t currentColor = buffer[i];
 			output += std::string((std::to_string((currentColor >> 16) & 0xFF)) + ' ' + std::to_string((currentColor >> 8) & 0xFF) + ' ' + std::to_string(currentColor & 0xFF) + '\n');
 		}
 		fwrite(output.data(), sizeof(char), output.length(), file);
@@ -308,7 +308,7 @@ namespace Renderer {
 		//concatenate short sides in 0-1
 		int idx = x01.size();
 		x01.resize(x01.size() + x12.size());
-		for (u32 i = 0; i < x12.size();i++) {
+		for (uint32_t i = 0; i < x12.size();i++) {
 			x01.at(idx) = x12.at(i);
 			idx++;
 		}
@@ -372,7 +372,7 @@ namespace Renderer {
 					float* dep = ((float*)(depth)) + (ny * renderState.width) + nx;
 					int tx = x + renderState.width / 2;
 					int ty = (renderState.height / 2) - y;
-					u32 idx = tx + (ty * renderState.width);
+					uint32_t idx = tx + (ty * renderState.width);
 					std::lock_guard<std::mutex> lock(pixelLocks[idx]);
 					if (invZ > (*dep)) {
 						//Point in camera space
@@ -382,8 +382,8 @@ namespace Renderer {
 						Vector R = P - camera.position;
 						R = R / length(R);
 						const float light = computeLight(P, N, R, t.material.specular, false);
-						u32 hexColor = rgbtoHex(color * light);
-						((u32*)renderState.memory)[idx] = hexColor;
+						uint32_t hexColor = rgbtoHex(color * light);
+						((uint32_t*)renderState.memory)[idx] = hexColor;
 						*dep = invZ;
 					}
 				}
@@ -912,7 +912,7 @@ namespace Renderer {
 			drawTriangle(tris[i], drawWireframe);
 		}
 	}
-	void drawTrianglesMultiThread(const std::vector<Triangle>& tris, bool drawWireframe, unsigned int numThreads) {
+	void drawTrianglesMultiThread(const std::vector<Triangle>& tris, bool drawWireframe, uint32_t numThreads) {
 		size_t totalTriangles = tris.size();
 
 		std::vector<std::thread> threads(numThreads);
@@ -921,7 +921,7 @@ namespace Renderer {
 		size_t remainingTriangles = totalTriangles % numThreads;
 
 		size_t start = 0;
-		for (unsigned int i = 0; i < numThreads; i++) {
+		for (uint32_t i = 0; i < numThreads; i++) {
 			//distributing remaining triangles equally to starting n threads
 			//where n is the number of remaining triangles
 			size_t end = start + trisPerThread + ((i < remainingTriangles) ? 1 : 0);
@@ -973,7 +973,7 @@ namespace Renderer {
 			outTris.push_back(ct);
 		}
 	}
-	void modelSpaceToDrawableThr(const std::vector<Triangle>* inTris, const Transform& transform, std::vector<Triangle>* outTris, u32 start, u32 end) {
+	void modelSpaceToDrawableThr(const std::vector<Triangle>* inTris, const Transform& transform, std::vector<Triangle>* outTris, uint32_t start, uint32_t end) {
 		for (int i = start; i < end;i++) {
 			Triangle triangle = inTris->at(i);
 			modelSpaceToDrawable(triangle, transform, *outTris);
@@ -987,18 +987,18 @@ namespace Renderer {
 			}
 		}
 		else {
-			const u32 threadSize = std::thread::hardware_concurrency();
-			u32 triPerThread = inTris.size() / threadSize;
-			u32 remainingTris = inTris.size() % threadSize;
+			const uint32_t threadSize = std::thread::hardware_concurrency();
+			uint32_t triPerThread = inTris.size() / threadSize;
+			uint32_t remainingTris = inTris.size() % threadSize;
 			std::vector<std::thread> triProcessThr(threadSize);
 			std::vector<std::vector<Triangle>> outTrisArr(threadSize);
-			u32 start = 0;
-			for (u32 i = 0; i < threadSize; i++) {
-				u32 end = start + triPerThread + ((i < remainingTris) ? 1 : 0);
+			uint32_t start = 0;
+			for (uint32_t i = 0; i < threadSize; i++) {
+				uint32_t end = start + triPerThread + ((i < remainingTris) ? 1 : 0);
 				triProcessThr[i] = std::thread(Renderer::modelSpaceToDrawableThr, &inTris, (transform), &outTrisArr[i], start, end);
 				start = end;
 			}
-			for (u32 i = 0; i < threadSize; i++) {
+			for (uint32_t i = 0; i < threadSize; i++) {
 				triProcessThr[i].join();
 			}
 			for (const std::vector<Triangle>& tris : outTrisArr) {
@@ -1009,7 +1009,7 @@ namespace Renderer {
 		}
 	}
 	void renderMesh(const Mesh& mesh, const Transform& transform, bool multithread) {
-		unsigned int trisCount = mesh.triangles.size();
+		uint32_t trisCount = mesh.triangles.size();
 		const std::vector<Triangle>& meshTriangles = mesh.triangles;
 
 		std::vector<Triangle> tris = {};

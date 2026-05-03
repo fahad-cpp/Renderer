@@ -11,7 +11,7 @@
 #include "Main.h"
 #include "Platform_common.h"
 #include "resource.h"
-//void clearScreen(u32);
+//void clearScreen(uint32_t);
 void turnConsoleOff() {
 	FreeConsole();
 	std::fclose(stdout);
@@ -65,7 +65,7 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 			int screenRes = renderState.width * renderState.height;
 			//Screen backbuffer
 			if (renderState.memory) VirtualFree(renderState.memory, 0, MEM_RELEASE);
-			renderState.memory = VirtualAlloc(0, screenRes * sizeof(unsigned int), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+			renderState.memory = VirtualAlloc(0, screenRes * sizeof(uint32_t), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 			//Depth buffer
 			if (depth)VirtualFree(depth, 0, MEM_RELEASE);
 			depth = VirtualAlloc(0, screenRes * sizeof(float), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -156,7 +156,7 @@ void handleEvents(Input& input) {
 		switch (message.message) {
 			case WM_KEYUP:
 			case WM_KEYDOWN: {
-				u32 vk_code = (u32)message.wParam;
+				uint32_t vk_code = (uint32_t)message.wParam;
 				bool isDown = ((message.lParam & (1 << 31)) == 0);
 #define process_messages(b,vk)\
 case vk:{\
@@ -227,7 +227,7 @@ void deleteWindow() {
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 	//Random seed
 	Timer timer;
-	srand(u32(time(NULL)));
+	srand(uint32_t(time(NULL)));
 	initWindow();
 	timer.Stop();
 	LOG_INFO("Initialization took " << timer.dtms << " ms\n");
