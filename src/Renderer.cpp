@@ -229,12 +229,12 @@ namespace Renderer {
 	Vector canvasToViewport(float x, float y) {
 		return { x * (vpWidth / canvas.x), y * (vpHeight / canvas.y), d };
 	}
-	const std::pair<float, float>& viewportToCanvas(float x, float y) {
+	std::pair<float, float> viewportToCanvas(float x, float y) {
 		return { x * (canvas.x / vpWidth) ,y * (canvas.y / vpHeight) };
 	}
 	Vector projectVertex(const Vector& v) {
 		//Perspective Projection
-		const std::pair<float, float>& result = viewportToCanvas(float((v.x * d) / v.z), float((v.y * d) / v.z));
+		std::pair<float, float> result = viewportToCanvas(((v.x * d) / v.z), ((v.y * d) / v.z));
 		return { result.first,result.second ,d };
 	}
 	void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr) {
@@ -254,10 +254,13 @@ namespace Renderer {
 		}
 	}
 	void drawTriangle(const Triangle& t, bool wireframe) {
+		Vector p1;
+		Vector p2;
+		Vector p3;
 		//Project triangle on 2d viewport
-		Vector p1 = projectVertex(t.p[0]);
-		Vector p2 = projectVertex(t.p[1]);
-		Vector p3 = projectVertex(t.p[2]);
+		p1 = projectVertex(t.p[0]);
+		p2 = projectVertex(t.p[1]);
+		p3 = projectVertex(t.p[2]);
 		p1.z = t.p[0].z;
 		p2.z = t.p[1].z;
 		p3.z = t.p[2].z;
@@ -305,7 +308,7 @@ namespace Renderer {
 		//concatenate short sides in 0-1
 		int idx = x01.size();
 		x01.resize(x01.size() + x12.size());
-		for (int i = 0; i < x12.size();i++) {
+		for (u32 i = 0; i < x12.size();i++) {
 			x01.at(idx) = x12.at(i);
 			idx++;
 		}

@@ -26,7 +26,7 @@ namespace Renderer {
 	void drawLine(Vector& a,Vector& b,const Colour& color);
 	Mesh loadOBJ(const std::string& filename, const Colour& color = { 0,0,0 }, float reflectiveness = 0, float specular = -1);
 	Vector canvasToViewport(float x, float y);
-	const std::pair<float, float>& viewportToCanvas(float x, float y);
+	std::pair<float, float> viewportToCanvas(float x, float y);
 	Vector projectVertex(const Vector& v);
 	void interpolate(float x0, float y0, float x1, float y1, std::vector<float>& arr);
 	void drawTriangle(const Triangle& t, bool wireframe = true);
