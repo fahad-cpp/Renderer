@@ -10,10 +10,10 @@
 #define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)
 struct RenderState {
 	BITMAPINFO bitmapinfo;
-	unsigned int height;
+	uint32_t height;
 	float* ambientOcclusion;
 	void* memory;
-	unsigned int width;
+	uint32_t width;
 };
 struct Window {
 	Input input;

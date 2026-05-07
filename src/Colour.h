@@ -11,7 +11,7 @@ public:
 		G = 0;
 		B = 0;
 	}
-	Colour(unsigned char _R, unsigned char _G, unsigned char _B) {
+	Colour(uint8_t _R, uint8_t _G, uint8_t _B) {
 		this->R = _R;
 		this->G = _G;
 		this->B = _B;

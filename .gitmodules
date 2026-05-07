@@ -1,3 +1,6 @@
 [submodule "vendor/tracy"]
 	path = vendor/tracy
 	url = https://github.com/wolfpld/tracy
+[submodule "vendor/FSWindow"]
+	path = vendor/FSWindow
+	url = https://github.com/fahad-cpp/FSWindow

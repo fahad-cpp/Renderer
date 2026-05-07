@@ -33,7 +33,7 @@ namespace Renderer {
 			for (int x = 0; x < renderState.width; x++) {
 				float* value = (((float*)depth) + x + (y * renderState.width));
 				clamp(*value, 0.f, 1.f);
-				Colour color = { (unsigned char)((*value) * 255),(unsigned char)((*value) * 255),(unsigned char)((*value) * 255) };
+				Colour color = { (uint8_t)((*value) * 255),(uint8_t)((*value) * 255),(uint8_t)((*value) * 255) };
 				putPixelD(x, y, color);
 			}
 		}

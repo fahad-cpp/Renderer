@@ -16,7 +16,9 @@ else()
 endif()
 
 file(GLOB SOURCES src/*.cpp)
+add_subdirectory(vendor/FSWindow)
 add_executable(Renderer WIN32 ${SOURCES})
+target_link_libraries(Renderer PRIVATE FSWindow)
 
 target_compile_definitions(Renderer PRIVATE 
 _UNICODE
