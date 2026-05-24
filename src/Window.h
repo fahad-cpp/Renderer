@@ -1,24 +1,22 @@
 #pragma once
-#include <Windows.h>
-#include "Vector.h"
-#include "Timer.h"
-#include "Typedefs.h"
 #include "Platform_common.h"
+#include "Vector.h"
+#include <Windows.h>
 
 #define isDown(b) input.buttons[b].isDown
 #define pressed(b) (input.buttons[b].isDown && input.buttons[b].changed)
 #define released(b) (!input.buttons[b].isDown && input.buttons[b].changed)
 struct RenderState {
-	BITMAPINFO bitmapinfo;
-	uint32_t height;
-	float* ambientOcclusion;
-	void* memory;
-	uint32_t width;
+    BITMAPINFO bitmapinfo;
+    uint32_t height;
+    float *ambientOcclusion;
+    void *memory;
+    uint32_t width;
 };
 struct Window {
-	Input input;
-	HWND handle;
-	HDC dc;
+    Input input;
+    HWND handle;
+    HDC dc;
 };
 void turnConsoleOff();
 Vector getMouseDiff();

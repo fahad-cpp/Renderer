@@ -1,42 +1,42 @@
 #include "Globals.h"
 
 Window window = {};
-void* depth;
+void *depth;
 RenderState renderState;
 std::vector<std::thread> ppmThreads;
-std::mutex* pixelLocks;
+std::mutex *pixelLocks;
 bool running = true;
-SceneSettings sceneSettings = { true,false,0,DebugState::DS_OFF, true ,RenderMode::RM_COLOR ,false};
+SceneSettings sceneSettings = { true, false, 0, DebugState::DS_OFF, true, RenderMode::RM_COLOR, false };
 Vector canvas(720, 720);
-Vector D = { 1,1,1 };
+Vector D = { 1, 1, 1 };
 float vpWidth = 1.f;
 float vpHeight = 1.f;
-//only ray tracing when frame change to make sure my cpu doesn't explode
-//Especially for Ray tracer
+// only ray tracing when frame change to make sure my cpu doesn't explode
+// Especially for Ray tracer
 bool change = true;
-//true = raytracer , false = rasterizer
+// true = raytracer , false = rasterizer
 
-//144 fps
+// 144 fps
 float frameLimit = 6.944444415f;
-//float frameLimit = 1.f;
+// float frameLimit = 1.f;
 double FOV = 90;
-//sponza ideal camera
-//Transform camera(Vector{ 78,54,-3 }, 1, { 0,-270,0 });
+// sponza ideal camera
+// Transform camera(Vector{ 78,54,-3 }, 1, { 0,-270,0 });
 Transform camera{ Vector{ 80.f, 60.f, -3.6f }, 1, { 0, -270, 0 } };
 Scene scene = {};
-//temp
+// temp
 Triangle tempTri;
 Plane planes[6] = {
-	//Near
-	{ {0, 0, 1},-d },
-	//far
-	{ {0, 0, -1},farDist },
-	//Right
-	{ {float(-1 / sqrt(2)),0,float(1 / sqrt(2))},0.f },
-	//Left
-	{ {float(1 / sqrt(2)),0,float(1 / sqrt(2))},0.f },
-	//Up
-	{ {0,float(-1 / sqrt(2)),float(1 / sqrt(2))},0.f },
-	//Down
-	{ {0,float(1 / sqrt(2)),float(1 / sqrt(2))},0.f }
+    // Near
+    { { 0, 0, 1 }, -d },
+    // far
+    { { 0, 0, -1 }, farDist },
+    // Right
+    { { float(-1 / sqrt(2)), 0, float(1 / sqrt(2)) }, 0.f },
+    // Left
+    { { float(1 / sqrt(2)), 0, float(1 / sqrt(2)) }, 0.f },
+    // Up
+    { { 0, float(-1 / sqrt(2)), float(1 / sqrt(2)) }, 0.f },
+    // Down
+    { { 0, float(1 / sqrt(2)), float(1 / sqrt(2)) }, 0.f }
 };

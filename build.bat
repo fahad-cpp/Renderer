@@ -14,7 +14,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-cmake -G %GENERATOR% -S . -B build -DCMAKE_BUILD_TYPE=%CONFIG% >nul 2>build\error.txt
+cmake -G %GENERATOR% -DCMAKE_CXX_COMPILER=clang++ -S . -B build -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_EXPORT_COMPILE_COMMANDS=ON >nul 2>build\error.txt
 if errorlevel 1 (
     echo Failed to generate build files.
     exit /b 1
@@ -26,5 +26,5 @@ if errorlevel 1 (
     exit /b 1
 )
 
-if exist bin\%CONFIG%\%EXENAME% start bin\%CONFIG%\%EXENAME% 
+if exist bin\%CONFIG%\%EXENAME% start bin\%CONFIG%\%EXENAME%
 endlocal

@@ -8,11 +8,11 @@ set(WINDOWS_SUBSYTEM "WINDOWS")
 project(Renderer LANGUAGES CXX)
 
 if(MSVC)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-	message(STATUS "Using Microslop visual studio")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+    message(STATUS "Using Microslop visual studio")
 else()
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
-	message(STATUS "Not Using Microslop visual studio")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
+    message(STATUS "Not Using Microslop visual studio")
 endif()
 
 file(GLOB SOURCES src/*.cpp)
@@ -20,36 +20,36 @@ add_subdirectory(vendor/FSWindow)
 add_executable(Renderer WIN32 ${SOURCES})
 target_link_libraries(Renderer PRIVATE FSWindow)
 
-target_compile_definitions(Renderer PRIVATE 
+target_compile_definitions(Renderer PRIVATE
 _UNICODE
 UNICODE
 )
-
+set_property(TARGET Renderer PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 if(MSVC)
     target_compile_options(Renderer PRIVATE
-        /permissive-               
-        /W3                        
-        /WX-                       
-        /EHsc                      
-        /GS                        
-        /sdl                       
-        /Zc:wchar_t                
-        /Zc:inline                 
-        /Zc:forScope               
-        /fp:precise                
-        /Oi                        
-        /Gy                        
-        /Zi                        
+        /permissive-
+        /W3
+        /WX-
+        /EHsc
+        /GS
+        /sdl
+        /Zc:wchar_t
+        /Zc:inline
+        /Zc:forScope
+        /fp:precise
+        /Oi
+        /Gy
+        /Zi
     )
 
     target_compile_options(Renderer PRIVATE
         $<$<CONFIG:Release>:
-            /O2                     
-            /GL                     
+            /O2
+            /GL
         >
         $<$<CONFIG:Debug>:
-            /Od                     
-            /RTC1                   
+            /Od
+            /RTC1
         >
     )
 
@@ -57,30 +57,30 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(Renderer PRIVATE
         -Wall
         -Wextra
-        -Wpedantic                  
+        -Wpedantic
         -Wshadow
         -Wnon-virtual-dtor
-        -Wold-style-cast
         -Wcast-align
         -Woverloaded-virtual
-        -fno-exceptions                 
+        -fno-exceptions
     )
 
     # Optimization & debug info
     target_compile_options(Renderer PRIVATE
         $<$<CONFIG:Release>:
-            -O3                 
-            -flto                  
+            -O3
+            -march=native
+            -flto
             -DNDEBUG
             -D_NDEBUG
         >
         $<$<CONFIG:Debug>:
             -O0
-            -g                      
-            -fno-omit-frame-pointer 
+            -g
+            -fno-omit-frame-pointer
         >
     )
+    target_link_options(Renderer PRIVATE -fuse-ld=lld -pthread)
 else()
     message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID} — no custom flags applied")
 endif()
-
