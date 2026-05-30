@@ -180,7 +180,7 @@ void handleInput(const Input &input) {
 }
 void init() {
     // ZoneScopedN("init");
-    static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, 1.f);
+    static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, 1000.f);
     // static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
     scene = {
         .spheres = std::vector<Sphere>{
@@ -230,7 +230,7 @@ void init() {
             }*/
         },
         .lights = std::vector<Light>{
-            { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.2f },
+            { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.1f },
             { .type = LT_POINT, .pos = { 2, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.6f },
             { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.2f },
         }

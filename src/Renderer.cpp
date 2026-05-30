@@ -381,7 +381,7 @@ void drawTriangle(const Triangle &t, bool wireframe) {
                     P = transformVertex(P, camera, RotateOrder::RO_XYZ);
                     Vector R = P - camera.position;
                     R = R / length(R);
-                    const float light = computeLight(P, N, R, t.material.specular, false);
+                    const float light = computeLight(P, N, R, t.material.specular, true);
                     uint32_t hexColor = rgbtoHex(color * light);
                     ((uint32_t *)renderState.memory)[idx] = hexColor;
                     *dep = invZ;
@@ -949,7 +949,7 @@ void modelSpaceToDrawable(const Triangle &triangle, const Transform &transform, 
     if (!(dot(normal, PO) > 0.f) && backFaceCulling) {
         return;
     }
-    newTri.material.color = triangle.material.color;
+    newTri.material = triangle.material;
 
     // Frustum culling
     std::vector<Triangle> clippedTris = clipTriangle(newTri);
