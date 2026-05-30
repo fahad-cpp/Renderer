@@ -1,8 +1,9 @@
 #include "Main.h"
 #include "Globals.h"
-#include "Renderer.h"
 #include "Logging.h"
+#include "Renderer.h"
 #include "Timer.h"
+#include <thread>
 
 // TODO(Fahad):
 /*
@@ -82,10 +83,10 @@ void handleInput(const Input &input) {
         int totalTris = 0;
         for (const Instance &instance : scene.instances) {
             LOG_INFO("Model " << c << ":\n");
-            LOG_INFO("Triangle count : " << instance.mesh->triangles.size() << "\n");
+            // LOG_INFO("Triangle count : " << instance.mesh->triangles.size() << "\n");
             LOG_INFO("Face count : " << instance.mesh->faces.size() << "\n");
             LOG_INFO("Normal count : " << instance.mesh->normals.size() << "\n");
-            totalTris += instance.mesh->triangles.size();
+            // totalTris += instance.mesh->triangles.size();
             c++;
         }
         LOG_INFO("---\n");
@@ -180,7 +181,8 @@ void handleInput(const Input &input) {
 }
 void init() {
     // ZoneScopedN("init");
-    static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, 1.f);
+    //static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, -1);
+
     // static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
     scene = {
         .spheres = std::vector<Sphere>{
@@ -217,9 +219,7 @@ void init() {
             // empty
         },
         .instances = std::vector<Instance>{
-            { .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = .1f, .rotation = { 0, 0, 0 } }
-
-            },
+            //{ .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = .1f, .rotation = { 0, 0, 0 } } },
             /*{
                 .mesh = &floor,
                 .transform = {
@@ -235,7 +235,6 @@ void init() {
             { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.2f },
         }
     };
-
     for (Instance &ins : scene.instances) {
         ins.getBoundingBox();
     }
@@ -262,9 +261,12 @@ void update(const Input &input) {
         // LOG_INFO("RayTracing this frame took : "+std::to_string(timer.dtms)+"ms\n");
         change = false;
     } else if (change) {
-        // Rasterize
+        // Rasterizer
         Renderer::renderScene();
         Renderer::renderAO();
+        if (sceneSettings.renderMode == RenderMode::RM_DEPTH) {
+            Renderer::renderDepthBuffer();
+        }
         timer.Stop();
     }
     // Limit frame rate to 144

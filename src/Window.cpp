@@ -240,17 +240,18 @@ int main() {
     timer.Stop();
     LOG_INFO("Initialization took " << timer.dtms << " ms\n");
     init();
-    while (running) {
-        // Update Loop
-        update(window.input);
+    try{
+        while (running) {
+            // Update Loop
+            update(window.input);
+            // Swap buffers
+            swapBuffers();
 
-        if (sceneSettings.renderMode == RenderMode::RM_DEPTH) {
-            Renderer::renderDepthBuffer();
+            handleEvents(window.input);
         }
-        // Swap buffers
-        swapBuffers();
-
-        handleEvents(window.input);
+    }catch(std::exception& e){
+        std::cerr << e.what() << "\n";
+        std::cin.get();
     }
     deleteWindow();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));

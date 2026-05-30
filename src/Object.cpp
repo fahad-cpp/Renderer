@@ -55,16 +55,16 @@ Mesh::Mesh() {
     normals = {};
     texture = {};
     faces = {};
-    triangles = {};
+    //triangles = {};
     boundingBox = {};
     material = {};
 }
-Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<Texture> text, std::vector<Face> face, std::vector<Triangle> triangle, Colour color, float reflectiveness, float specular) {
+Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<Texture> text, std::vector<Face> face, Colour color, float reflectiveness, float specular) {
     vertices = vertex;
     normals = normal;
     texture = text;
     faces = face;
-    triangles = triangle;
+    //triangles = triangle;
     material.color = color;
     material.reflectiveness = reflectiveness;
     material.specular = specular;
@@ -72,25 +72,6 @@ Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<T
 void Mesh::initTriangles() {
     Vector lowest, highest;
     int count = 0;
-    if (triangles.size()) {
-        return;
-    }
-    for (const Face &face : faces) {
-        triangles.reserve(faces.size());
-        Triangle triangle;
-        Vector v1, v2, v3;
-        v1 = vertices.at(face.index[0].vert - 1);
-        v2 = vertices.at(face.index[1].vert - 1);
-        v3 = vertices.at(face.index[2].vert - 1);
-        triangle.material.reflectiveness = material.reflectiveness;
-        triangle.material.specular = material.specular;
-        triangle.material.color = this->material.color;
-        triangle.p[0] = v1;
-        triangle.p[1] = v2;
-        triangle.p[2] = v3;
-        triangle.normal = normals.at(face.index[0].norm - 1);
-        triangles.push_back(triangle);
-    }
     for (const Vector &vertex : vertices) {
         if (count == 0) {
             lowest = vertex;
@@ -112,4 +93,18 @@ void Mesh::initTriangles() {
     }
     boundingBox.lowest = lowest;
     boundingBox.highest = highest;
+}
+
+void Mesh::getTriangles(std::vector<Triangle>& tris){
+    tris.clear();
+    tris.reserve(faces.size());
+    for(const Face& face : faces){
+        Vector p[3] = {
+            vertices.at(face.index[0].vert),
+            vertices.at(face.index[1].vert),
+            vertices.at(face.index[2].vert)
+        };
+        Triangle tri(p,{0,0,0},material.color,material.specular,material.reflectiveness);
+        tris.push_back(tri);
+    }
 }
