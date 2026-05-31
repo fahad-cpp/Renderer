@@ -1,17 +1,17 @@
 #include "Object.h"
 #include <vector>
 
-//Sphere
-bool operator==(const Sphere& sphere1,const Sphere &sphere2) {
+// Sphere
+bool operator==(const Sphere &sphere1, const Sphere &sphere2) {
     return ((sphere1.color == sphere2.color) && (sphere1.specular == sphere2.specular) && (sphere1.reflectiveness == sphere2.reflectiveness));
 }
 
-//Box
+// Box
 bool operator==(const Box &box2, const Box &box) {
     return ((box.lowest == box2.lowest) && (box.highest == box2.highest));
 }
 
-//Triangle
+// Triangle
 Triangle::Triangle() {
     p[0] = {};
     p[1] = {};
@@ -28,7 +28,7 @@ Triangle::Triangle(const Vector _p[3], Vector _normal, Colour color, float specu
     this->material.color = color;
     this->material.specular = specular;
     this->material.reflectiveness = reflectiveness;
-    this->normal = (_normal == Vector{0,0,0})?cross((p[1] - p[0]), (p[2] - p[0])):_normal;
+    this->normal = (_normal == Vector{ 0, 0, 0 }) ? cross((p[1] - p[0]), (p[2] - p[0])) : _normal;
 }
 
 Triangle::Triangle(const Vector _p[3], Vector _normal, Material _material) {
@@ -49,13 +49,13 @@ Vector Triangle::getCentroid() {
     return ((p[0] + p[1] + p[2]) / 3);
 }
 
-//Mesh
+// Mesh
 Mesh::Mesh() {
     vertices = {};
     normals = {};
     texture = {};
     faces = {};
-    //triangles = {};
+    // triangles = {};
     boundingBox = {};
     material = {};
 }
@@ -64,7 +64,7 @@ Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<T
     normals = normal;
     texture = text;
     faces = face;
-    //triangles = triangle;
+    // triangles = triangle;
     material.color = color;
     material.reflectiveness = reflectiveness;
     material.specular = specular;
@@ -95,16 +95,16 @@ void Mesh::initTriangles() {
     boundingBox.highest = highest;
 }
 
-void Mesh::getTriangles(std::vector<Triangle>& tris){
+void Mesh::getTriangles(std::vector<Triangle> &tris) {
     tris.clear();
     tris.reserve(faces.size());
-    for(const Face& face : faces){
+    for (const Face &face : faces) {
         Vector p[3] = {
             vertices[face.index[0].vert],
             vertices[face.index[1].vert],
             vertices[face.index[2].vert]
         };
-        Triangle tri(p,{0,0,0},material.color,material.specular,material.reflectiveness);
+        Triangle tri(p, { 0, 0, 0 }, material.color, material.specular, material.reflectiveness);
         tris.push_back(tri);
     }
 }

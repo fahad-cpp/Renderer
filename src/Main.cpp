@@ -1,6 +1,8 @@
 #include "Main.h"
+#include "Colour.h"
 #include "Globals.h"
 #include "Logging.h"
+#include "Object.h"
 #include "Renderer.h"
 #include "Timer.h"
 #include <thread>
@@ -186,27 +188,27 @@ void init() {
     // static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
     scene = {
         .spheres = std::vector<Sphere>{
-            {
-                .center = Vector{ 0, 0, -3 },
-                .radius = 1.f,
-                .color = Colour{ 255, 0, 0 },
-                .specular = 100.f,
-                .reflectiveness = 0.4f,
-            },
-            {
-                .center = Vector{ -1, 0, -4 },
-                .radius = 1.f,
-                .color = Colour{ 0, 255, 0 },
-                .specular = 100.f,
-                .reflectiveness = 0.4f,
-            },
-            {
-                .center = Vector{ 1, 0, -4 },
-                .radius = 1.f,
-                .color = Colour{ 0, 0, 255 },
-                .specular = 100.f,
-                .reflectiveness = 0.4f,
-            },
+            // {
+            //     .center = Vector{ 0, 0, -3 },
+            //     .radius = 1.f,
+            //     .color = Colour{ 255, 0, 0 },
+            //     .specular = 100.f,
+            //     .reflectiveness = 0.4f,
+            // },
+            // {
+            //     .center = Vector{ -1, 0, -4 },
+            //     .radius = 1.f,
+            //     .color = Colour{ 0, 255, 0 },
+            //     .specular = 100.f,
+            //     .reflectiveness = 0.4f,
+            // },
+            // {
+            //     .center = Vector{ 1, 0, -4 },
+            //     .radius = 1.f,
+            //     .color = Colour{ 0, 0, 255 },
+            //     .specular = 100.f,
+            //     .reflectiveness = 0.4f,
+            // },
             /*{
                 .center = Vector{2,1,0},
                 .radius = .1f,
@@ -235,9 +237,9 @@ void init() {
             { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.2f },
         }
     };
-    for (Instance &ins : scene.instances) {
-        ins.getBoundingBox();
-    }
+    // for (Instance &ins : scene.instances) {
+    //     ins.getBoundingBox();
+    // }
 }
 void update(const Input &input) {
     // Start counting frame time

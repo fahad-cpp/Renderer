@@ -14,7 +14,7 @@
 #include <thread>
 
 extern Window window;
-extern void *depth;
+extern void *depthBuffer;
 extern RenderState renderState;
 extern bool running;
 extern SceneSettings sceneSettings;

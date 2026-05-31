@@ -1,7 +1,7 @@
 #include "Globals.h"
 
 Window window = {};
-void *depth;
+void *depthBuffer = nullptr;
 RenderState renderState;
 std::vector<std::thread> ppmThreads;
 std::mutex *pixelLocks;
@@ -22,7 +22,7 @@ float frameLimit = 6.944444415f;
 double FOV = 90;
 // sponza ideal camera
 Transform camera{ Vector{ 80.f, 60.f, -3.6f }, 1, { 0, -270, 0 } };
-//Transform camera{ Vector{ 0, 0, -20 }, 1, { 0, 0, 0 } };
+// Transform camera{ Vector{ 0, 0, -20 }, 1, { 0, 0, 0 } };
 Scene scene = {};
 // temp
 Triangle tempTri;

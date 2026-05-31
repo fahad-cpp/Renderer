@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "Colour.h"
 #include "Globals.h"
 #include "Hash.h"
 #include "Logging.h"
@@ -18,7 +19,7 @@
 namespace Renderer {
 void clearScreen(uint32_t color) {
     uint32_t *pixel = (uint32_t *)renderState.memory;
-    float *dep = (float *)depth;
+    float *dep = (float *)depthBuffer;
     int bufferSize = renderState.width * renderState.height;
     for (int i = 0; i < bufferSize; i++) {
         *pixel++ = color;
@@ -44,7 +45,7 @@ void putPixelD(const int x, const int y, const Colour &color) {
 void renderDepthBuffer() {
     for (uint32_t y = 0; y < renderState.height; y++) {
         for (uint32_t x = 0; x < renderState.width; x++) {
-            float *value = (((float *)depth) + x + (y * renderState.width));
+            float *value = (((float *)depthBuffer) + x + (y * renderState.width));
             clamp(*value, 0.f, 1.f);
             Colour color = { (uint8_t)((*value) * 255.f), (uint8_t)((*value) * 255.f), (uint8_t)((*value) * 255.f) };
             putPixelD(x, y, color);
@@ -259,17 +260,17 @@ void interpolate(float x0, float y0, float x1, float y1, std::vector<float> &arr
         x += aspectratio;
     }
 }
-void interpolate(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, std::vector<uint32_t> &arr) {
-    uint32_t dx = x1 - x0;
-    uint32_t dy = y1 - y0;
+void interpolate(int x0, int y0, int x1, int y1, std::vector<int> &arr) {
+    int dx = x1 - x0;
+    int dy = y1 - y0;
     float aspectratio = (dy != 0) ? (float(dx) / dy) : 0.00001f;
     float x = x0;
 
     size_t size = y1 - y0;
     arr.resize(size);
     int idx = 0;
-    for (uint32_t y = y0; y < y1; y++) {
-        arr[idx] = uint32_t(x);
+    for (int y = y0; y < y1; y++) {
+        arr[idx] = int(x);
         idx++;
         x += aspectratio;
     }
@@ -343,7 +344,7 @@ void drawTriangle(const Triangle &t, bool wireframe) {
         }
     }
 
-    int m = int(x02.size() / (float)2);
+    int m = uint32_t(x02.size() / 2.f);
     std::vector<float> *xLeft = {};
     std::vector<float> *xRight = {};
     std::vector<float> *zLeft = {};
@@ -375,7 +376,7 @@ void drawTriangle(const Triangle &t, bool wireframe) {
     N = N / length(N);
 
     for (int y = int(p1.y); y < int(p3.y); y++) {
-        int ny = int((renderState.height / (float)2.f) - y);
+        int ny = int((renderState.height / 2.f) - y);
         float zL = (*zLeft)[y - int(p1.y)];
         float zR = (*zRight)[y - int(p1.y)];
         float xL = (*xLeft)[y - int(p1.y)];
@@ -391,7 +392,7 @@ void drawTriangle(const Triangle &t, bool wireframe) {
             if (isIn(float(x), float(-canvas.x / 2.f), float(canvas.x / 2.f)) && isIn(float(y), float(-canvas.y / 2.f), float(canvas.y / 2.f))) {
                 int nx = int(x + (renderState.width / 2.0));
                 // Pointer to depth buffer
-                float *dep = ((float *)(depth)) + (ny * renderState.width) + nx;
+                float *dep = ((float *)(depthBuffer)) + (ny * renderState.width) + nx;
                 int tx = x + renderState.width / 2;
                 int ty = (renderState.height / 2) - y;
                 uint32_t idx = tx + (ty * renderState.width);
@@ -419,6 +420,10 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
         projectVertex(p[2]),
     };
 
+    projected[0].z = p[0].z;
+    projected[1].z = p[1].z;
+    projected[2].z = p[2].z;
+
     if (projected[0].y > projected[1].y) {
         std::swap(projected[0], projected[1]);
     }
@@ -433,20 +438,21 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
         drawLine(projected[0], projected[1], material.color);
         drawLine(projected[1], projected[2], material.color);
         drawLine(projected[0], projected[2], material.color);
+        return;
     }
 
-    float z0 = (1.f / p[0].z), z1 = (1.f / p[1].z), z2 = (1.f / p[2].z);
+    float z0 = (1.f / projected[0].z), z1 = (1.f / projected[1].z), z2 = (1.f / projected[2].z);
 
-    size_t size01 = (uint32_t(projected[1].y) - uint32_t(projected[0].y));
-    size_t size12 = (uint32_t(projected[2].y) - uint32_t(projected[1].y));
-    size_t size02 = (uint32_t(projected[2].y) - uint32_t(projected[0].y));
+    size_t size01 = uint32_t(projected[1].y - projected[0].y);
+    size_t size12 = uint32_t(projected[2].y - projected[1].y);
+    size_t size02 = uint32_t(projected[2].y - projected[0].y);
 
-    std::vector<uint32_t> x01 = {};
+    std::vector<int> x01 = {};
     // Reserve space for x01 + x12 because we concatenate later
     x01.reserve(size01 + size12);
-    std::vector<uint32_t> x12 = {};
+    std::vector<int> x12 = {};
     x12.reserve(size12);
-    std::vector<uint32_t> x02 = {};
+    std::vector<int> x02 = {};
     x02.reserve(size02);
 
     std::vector<float> z01 = {};
@@ -466,22 +472,20 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
     interpolate(z0, projected[0].y, z2, projected[2].y, z02);
 
     // Concatenate short sides
-    {
-        for (const uint32_t &x : x12) {
-            x01.push_back(x);
-        }
+    for (const int &x : x12) {
+        x01.push_back(x);
+    }
 
-        for (const float &z : z12) {
-            z01.push_back(z);
-        }
+    for (const float &z : z12) {
+        z01.push_back(z);
     }
 
     uint32_t middle = uint32_t(x02.size() / 2.f);
-    std::vector<uint32_t> *xleft = nullptr;
-    std::vector<uint32_t> *xright = nullptr;
+    std::vector<int> *xleft = nullptr;
+    std::vector<int> *xright = nullptr;
     std::vector<float> *zleft = nullptr;
     std::vector<float> *zright = nullptr;
-    if((!x01.size()) || (!x02.size())){
+    if ((!x02.size())) {
         return;
     }
     // Find left and right
@@ -508,9 +512,39 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
     Vector normal = cross((worldSpace[1] - worldSpace[0]), (worldSpace[2] - worldSpace[0]));
     normal = normal / length(normal);
 
-    for (uint32_t y = uint32_t(projected[0].y); y < uint32_t(projected[2].y); y++) {
-        for (uint32_t x = uint32_t(projected[0].x); x < uint32_t(projected[2].x); x++) {
+    for (int y = int(projected[0].y); y < int(projected[2].y); y++) {
+        uint32_t scanline = uint32_t(y - int(projected[0].y));
+        float lz = (*zleft)[scanline];
+        float rz = (*zright)[scanline];
+        int lx = (*xleft)[scanline];
+        int rx = (*xright)[scanline];
 
+        // interpolate z
+        std::vector<float> zsegment = {};
+        interpolate(lz, float(lx), rz, float(rx), zsegment);
+
+        for (int x = lx; x < rx; x++) {
+            float invz = zsegment[x - lx];
+            float z = 1.f / invz;
+
+            Vector point = canvasToViewport(x * z / d, y * z / d);
+            point.z = z;
+            Vector direction = point - camera.position;
+            direction = direction / length(direction);
+
+            int screenx = x + (renderState.width / 2.f);
+            int screeny = (renderState.height / 2.f) - y;
+            uint32_t index = (screeny * renderState.width) + screenx;
+            if ((!isIn(screenx, 0, int(renderState.width)) || !isIn(screeny, 0, int(renderState.height)))) {
+                continue;
+            }
+            float dep = ((float *)depthBuffer)[index];
+            if (invz <= dep) {
+                continue;
+            }
+            Colour color = material.color * computeLight(point, normal, direction,material.specular, false);
+            ((float *)depthBuffer)[index] = invz;
+            ((uint32_t *)renderState.memory)[index] = rgbtoHex(color);
         }
     }
 }

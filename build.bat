@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set CONFIG=Debug
+set CONFIG=Release
 set ARCH=x64
 set GENERATOR="Ninja"
 set EXENAME=Renderer.exe

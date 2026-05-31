@@ -2,8 +2,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Object.h"
 #include "Transform.h"
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
 #include <string>
 #define WHITE { 255, 255, 255 }
 namespace Renderer {
