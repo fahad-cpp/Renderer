@@ -9,10 +9,12 @@
 #include "Vector.h"
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <minmax.h>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 namespace Renderer {
 void clearScreen(uint32_t color) {
     uint32_t *pixel = (uint32_t *)renderState.memory;
@@ -257,6 +259,21 @@ void interpolate(float x0, float y0, float x1, float y1, std::vector<float> &arr
         x += aspectratio;
     }
 }
+void interpolate(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, std::vector<uint32_t> &arr) {
+    uint32_t dx = x1 - x0;
+    uint32_t dy = y1 - y0;
+    float aspectratio = (dy != 0) ? (float(dx) / dy) : 0.00001f;
+    float x = x0;
+
+    size_t size = y1 - y0;
+    arr.resize(size);
+    int idx = 0;
+    for (uint32_t y = y0; y < y1; y++) {
+        arr[idx] = uint32_t(x);
+        idx++;
+        x += aspectratio;
+    }
+}
 void drawTriangle(const Triangle &t, bool wireframe) {
     Vector p1;
     Vector p2;
@@ -356,7 +373,7 @@ void drawTriangle(const Triangle &t, bool wireframe) {
     newTri.p[2] = transformVertex(t.p[2], camera, RotateOrder::RO_XYZ);
     Vector N = newTri.calculateNormal();
     N = N / length(N);
-    // Vector centroid = newTri.getCentroid();
+
     for (int y = int(p1.y); y < int(p3.y); y++) {
         int ny = int((renderState.height / (float)2.f) - y);
         float zL = (*zLeft)[y - int(p1.y)];
@@ -395,7 +412,118 @@ void drawTriangle(const Triangle &t, bool wireframe) {
         }
     }
 }
+void drawVerticesTriangle(const Vector p[3], const Material &material, bool wireframe) {
+    Vector projected[3] = {
+        projectVertex(p[0]),
+        projectVertex(p[1]),
+        projectVertex(p[2]),
+    };
 
+    if (projected[0].y > projected[1].y) {
+        std::swap(projected[0], projected[1]);
+    }
+    if (projected[0].y > projected[2].y) {
+        std::swap(projected[0], projected[2]);
+    }
+    if (projected[1].y > projected[2].y) {
+        std::swap(projected[1], projected[2]);
+    }
+
+    if (wireframe) {
+        drawLine(projected[0], projected[1], material.color);
+        drawLine(projected[1], projected[2], material.color);
+        drawLine(projected[0], projected[2], material.color);
+    }
+
+    float z0 = (1.f / p[0].z), z1 = (1.f / p[1].z), z2 = (1.f / p[2].z);
+
+    size_t size01 = (uint32_t(projected[1].y) - uint32_t(projected[0].y));
+    size_t size12 = (uint32_t(projected[2].y) - uint32_t(projected[1].y));
+    size_t size02 = (uint32_t(projected[2].y) - uint32_t(projected[0].y));
+
+    std::vector<uint32_t> x01 = {};
+    // Reserve space for x01 + x12 because we concatenate later
+    x01.reserve(size01 + size12);
+    std::vector<uint32_t> x12 = {};
+    x12.reserve(size12);
+    std::vector<uint32_t> x02 = {};
+    x02.reserve(size02);
+
+    std::vector<float> z01 = {};
+    // Reserve space for z01 + z12 because we concatenate later
+    z01.reserve(size01 + size12);
+    std::vector<float> z12 = {};
+    z12.reserve(size12);
+    std::vector<float> z02 = {};
+    z02.reserve(size02);
+
+    interpolate(projected[0].x, projected[0].y, projected[1].x, projected[1].y, x01);
+    interpolate(projected[1].x, projected[1].y, projected[2].x, projected[2].y, x12);
+    interpolate(projected[0].x, projected[0].y, projected[2].x, projected[2].y, x02);
+
+    interpolate(z0, projected[0].y, z1, projected[1].y, z01);
+    interpolate(z1, projected[1].y, z2, projected[2].y, z12);
+    interpolate(z0, projected[0].y, z2, projected[2].y, z02);
+
+    // Concatenate short sides
+    {
+        for (const uint32_t &x : x12) {
+            x01.push_back(x);
+        }
+
+        for (const float &z : z12) {
+            z01.push_back(z);
+        }
+    }
+
+    uint32_t middle = uint32_t(x02.size() / 2.f);
+    std::vector<uint32_t> *xleft = nullptr;
+    std::vector<uint32_t> *xright = nullptr;
+    std::vector<float> *zleft = nullptr;
+    std::vector<float> *zright = nullptr;
+    if((!x01.size()) || (!x02.size())){
+        return;
+    }
+    // Find left and right
+    if (x01[middle] > x02[middle]) {
+        xleft = &x01;
+        xright = &x02;
+
+        zleft = &z01;
+        zright = &z02;
+    } else {
+        xleft = &x02;
+        xright = &x01;
+
+        zleft = &z02;
+        zright = &z01;
+    }
+
+    Vector worldSpace[3] = {
+        transformVertex(p[0], camera, RotateOrder::RO_XYZ),
+        transformVertex(p[1], camera, RotateOrder::RO_XYZ),
+        transformVertex(p[2], camera, RotateOrder::RO_XYZ)
+    };
+
+    Vector normal = cross((worldSpace[1] - worldSpace[0]), (worldSpace[2] - worldSpace[0]));
+    normal = normal / length(normal);
+
+    for (uint32_t y = uint32_t(projected[0].y); y < uint32_t(projected[2].y); y++) {
+        for (uint32_t x = uint32_t(projected[0].x); x < uint32_t(projected[2].x); x++) {
+
+        }
+    }
+}
+void drawFaces(const std::vector<Vector> &vertices, const std::vector<Face> &faces, const Material &material, bool wireframe) {
+    for (const Face &face : faces) {
+        Vector p[3] = {
+            vertices.at(face.index[0].vert),
+            vertices.at(face.index[1].vert),
+            vertices.at(face.index[2].vert)
+        };
+        drawVerticesTriangle(p, material, wireframe);
+    }
+}
 void drawBox(Box box, Transform tf, bool inTriangle) {
     // The tf transform is inverse camera tranform to convert world space box into
     // camera space box
@@ -965,11 +1093,10 @@ void modelSpaceToDrawable(const Triangle &triangle, const Transform &transform, 
         outTris.push_back(ct);
     }
 }
-void MStoDrawableVertices(const std::vector<Vector> &verticesIn, const std::vector<Face> &facesIn, const Transform &transform, std::vector<Vector> &verticesOut, std::vector<Face> &facesOut,uint32_t start,uint32_t end) {
+void MStoDrawableVertices(const std::vector<Vector> &verticesIn, const std::vector<Face> &facesIn, const Transform &transform, std::vector<Vector> &verticesOut, std::vector<Face> &facesOut) {
     verticesOut.reserve(verticesIn.size());
     facesOut.reserve(facesIn.size());
     std::unordered_map<Vector, uint32_t> indexMap = {};
-    std::span<const Face> facesWindow(facesIn.data() + start,end - start);
     uint64_t indexCount = 0;
     for (const Vector &vertex : verticesIn) {
         Vector newVertex = vertex;
@@ -983,10 +1110,10 @@ void MStoDrawableVertices(const std::vector<Vector> &verticesIn, const std::vect
         indexMap[newVertex] = indexCount;
         indexCount++;
     }
-    for (const Face &face : facesWindow) {
-        const Vector &v1 = verticesOut.at(face.index[0].vert);
-        const Vector &v2 = verticesOut.at(face.index[1].vert);
-        const Vector &v3 = verticesOut.at(face.index[2].vert);
+    for (const Face &face : facesIn) {
+        const Vector &v1 = verticesOut[face.index[0].vert];
+        const Vector &v2 = verticesOut[face.index[1].vert];
+        const Vector &v3 = verticesOut[face.index[2].vert];
         // Backface culling
         Vector normal = cross((v2 - v1), (v3 - v1));
         normal = normal / length(normal);
@@ -1000,7 +1127,7 @@ void MStoDrawableVertices(const std::vector<Vector> &verticesIn, const std::vect
             v3
         };
         Triangle tri(p, { 0, 0, 0 }, Colour{ 0, 0, 0 });
-        std::vector<Triangle> clippedTris = {tri};//clipTriangle(tri);
+        std::vector<Triangle> clippedTris = clipTriangle(tri);
         if (!clippedTris.size()) {
             continue;
         }
@@ -1033,11 +1160,6 @@ void MStoDrawableVertices(const std::vector<Vector> &verticesIn, const std::vect
         }
     }
 }
-void getDrawableVerticesThr(const std::vector<Vector> &verticesIn, const std::vector<Face> &facesIn, const Transform &transform, std::vector<Vector> &verticesOut, std::vector<Face> &facesOut, uint32_t start, uint32_t end) {
-    for (uint32_t i = start; i < end; i++) {
-        MStoDrawableVertices(verticesIn, facesIn, transform, verticesOut, facesOut,start,end);
-    }
-}
 void modelSpaceToDrawableThr(const std::vector<Triangle> *inTris, const Transform &transform, std::vector<Triangle> *outTris, uint32_t start, uint32_t end) {
     for (uint32_t i = start; i < end; i++) {
         Triangle triangle = inTris->at(i);
@@ -1045,34 +1167,6 @@ void modelSpaceToDrawableThr(const std::vector<Triangle> *inTris, const Transfor
     }
 }
 
-void getDrawableVertices(const std::vector<Vector> &verticesIn, const std::vector<Face> &facesIn, const Transform &transform, std::vector<Vector> &verticesOut, std::vector<Face> &facesOut) {
-    const uint32_t threadSize = std::thread::hardware_concurrency();
-    uint32_t facePerThread = facesIn.size() / threadSize;
-    uint32_t remainingFace = facesIn.size() % threadSize;
-    std::vector<std::thread> faceProcessThr(threadSize);
-    uint32_t start = 0;
-    std::vector<std::vector<Vector>> vertOutThr(threadSize);
-    std::vector<std::vector<Face>> faceOutThr(threadSize);
-    for (uint32_t i = 0; i < threadSize; i++) {
-        uint32_t end = start + facePerThread + ((i < remainingFace) ? 1 : 0);
-        faceProcessThr[i] = std::thread(Renderer::getDrawableVerticesThr, std::cref(verticesIn), std::cref(facesIn), std::cref(transform), std::ref(vertOutThr[i]), std::ref(faceOutThr[i]), start, end);
-        start = end;
-    }
-    for (uint32_t i = 0; i < threadSize; i++) {
-        faceProcessThr[i].join();
-    }
-
-    for (const std::vector<Face> &faces : faceOutThr) {
-        for (const Face &face : faces) {
-            facesOut.push_back(face);
-        }
-    }
-    for (const std::vector<Vector> &vertices : vertOutThr) {
-        for (const Vector &vert : vertices) {
-            verticesOut.push_back(vert);
-        }
-    }
-}
 void getDrawableTriangles(const std::vector<Triangle> &inTris, const Transform &transform, std::vector<Triangle> &outTris, bool multithread) {
     if (!multithread) {
         for (const Triangle &triangle : inTris) {
@@ -1103,25 +1197,15 @@ void getDrawableTriangles(const std::vector<Triangle> &inTris, const Transform &
 void renderMesh(const Mesh &mesh, const Transform &transform, bool multithread) {
     std::vector<Vector> vertices = {};
     std::vector<Face> faces = {};
-    getDrawableVertices(mesh.vertices, mesh.faces, transform, vertices, faces);
+    MStoDrawableVertices(mesh.vertices, mesh.faces, transform, vertices, faces);
 
     sceneSettings.triSeenCount += faces.size();
     bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
-    // if (!multithread) {
-    int count = 0;
-    for (const Face &face : faces) {
-        Vector p[3] = {
-            vertices.at(face.index[0].vert),
-            vertices.at(face.index[1].vert),
-            vertices.at(face.index[2].vert)
-        };
-        count++;
-        Triangle tri(p, { 0, 0, 0 }, mesh.material.color, mesh.material.specular, mesh.material.reflectiveness);
-        drawTriangle(tri, drawWireframe);
+    if (true) { //! multithread) {
+        drawFaces(vertices, faces, mesh.material, drawWireframe);
+    } else if (faces.size()) {
+        // Handle later
     }
-    // } else if (faces.size()) {
-    //     // drawTrianglesMultiThread(tris, drawWireframe, std::thread::hardware_concurrency());
-    // }
 }
 Colour traceRay(const Vector &O, const Vector &D, float tMin, float tMax, int recursionLimit) {
     HitData hitData = closestIntersection(O, D, tMin, tMax);

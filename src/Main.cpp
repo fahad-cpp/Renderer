@@ -181,7 +181,7 @@ void handleInput(const Input &input) {
 }
 void init() {
     // ZoneScopedN("init");
-    //static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, -1);
+    static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, -1);
 
     // static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
     scene = {
@@ -219,7 +219,7 @@ void init() {
             // empty
         },
         .instances = std::vector<Instance>{
-            //{ .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = .1f, .rotation = { 0, 0, 0 } } },
+            { .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = .1f, .rotation = { 0, 0, 0 } } },
             /*{
                 .mesh = &floor,
                 .transform = {

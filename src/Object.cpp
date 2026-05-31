@@ -100,9 +100,9 @@ void Mesh::getTriangles(std::vector<Triangle>& tris){
     tris.reserve(faces.size());
     for(const Face& face : faces){
         Vector p[3] = {
-            vertices.at(face.index[0].vert),
-            vertices.at(face.index[1].vert),
-            vertices.at(face.index[2].vert)
+            vertices[face.index[0].vert],
+            vertices[face.index[1].vert],
+            vertices[face.index[2].vert]
         };
         Triangle tri(p,{0,0,0},material.color,material.specular,material.reflectiveness);
         tris.push_back(tri);
