@@ -381,7 +381,7 @@ void drawTriangle(const Triangle &t, bool wireframe) {
                     P = transformVertex(P, camera, RotateOrder::RO_XYZ);
                     Vector R = P - camera.position;
                     R = R / length(R);
-                    const float light = computeLight(P, N, R, t.material.specular, true);
+                    const float light = computeLight(P, N, R, t.material.specular, false);
                     uint32_t hexColor = rgbtoHex(color * light);
                     ((uint32_t *)renderState.memory)[idx] = hexColor;
                     *dep = invZ;
