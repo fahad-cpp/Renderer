@@ -21,8 +21,8 @@ float frameLimit = 6.944444415f;
 // float frameLimit = 1.f;
 double FOV = 90;
 // sponza ideal camera
-Transform camera{ Vector{ 80.f, 60.f, -3.6f }, 1, { 0, -270, 0 } };
-// Transform camera{ Vector{ 0, 0, -20 }, 1, { 0, 0, 0 } };
+// Transform camera{ Vector{ 80.f, 60.f, -3.6f }, 1, { 0, -270, 0 } };
+Transform camera{ Vector{ 0, 0, 2.f }, 1, { 0, 180, 0 } };
 Scene scene = {};
 // temp
 Triangle tempTri;

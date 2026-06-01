@@ -376,7 +376,7 @@ void drawTriangle(const Triangle &t, bool wireframe) {
     N = N / length(N);
 
     for (int y = int(p1.y); y < int(p3.y); y++) {
-        int ny = int((renderState.height / 2.f) - y);
+        int ty = (renderState.height / 2) - y;
         float zL = (*zLeft)[y - int(p1.y)];
         float zR = (*zRight)[y - int(p1.y)];
         float xL = (*xLeft)[y - int(p1.y)];
@@ -390,11 +390,9 @@ void drawTriangle(const Triangle &t, bool wireframe) {
             Vector T = canvasToViewport((x * z) / d, (y * z) / d);
             T.z = z;
             if (isIn(float(x), float(-canvas.x / 2.f), float(canvas.x / 2.f)) && isIn(float(y), float(-canvas.y / 2.f), float(canvas.y / 2.f))) {
-                int nx = int(x + (renderState.width / 2.0));
                 // Pointer to depth buffer
-                float *dep = ((float *)(depthBuffer)) + (ny * renderState.width) + nx;
                 int tx = x + renderState.width / 2;
-                int ty = (renderState.height / 2) - y;
+                float *dep = ((float *)(depthBuffer)) + (ty * renderState.width) + tx;
                 uint32_t idx = tx + (ty * renderState.width);
                 std::lock_guard<std::mutex> lock(pixelLocks[idx]);
                 if (invZ > (*dep)) {
@@ -448,19 +446,19 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
     size_t size02 = uint32_t(projected[2].y - projected[0].y);
 
     std::vector<int> x01 = {};
+    std::vector<int> x12 = {};
+    std::vector<int> x02 = {};
     // Reserve space for x01 + x12 because we concatenate later
     x01.reserve(size01 + size12);
-    std::vector<int> x12 = {};
     x12.reserve(size12);
-    std::vector<int> x02 = {};
     x02.reserve(size02);
 
     std::vector<float> z01 = {};
+    std::vector<float> z12 = {};
+    std::vector<float> z02 = {};
     // Reserve space for z01 + z12 because we concatenate later
     z01.reserve(size01 + size12);
-    std::vector<float> z12 = {};
     z12.reserve(size12);
-    std::vector<float> z02 = {};
     z02.reserve(size02);
 
     interpolate(projected[0].x, projected[0].y, projected[1].x, projected[1].y, x01);
@@ -485,22 +483,23 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
     std::vector<int> *xright = nullptr;
     std::vector<float> *zleft = nullptr;
     std::vector<float> *zright = nullptr;
+
     if ((!x02.size())) {
         return;
     }
     // Find left and right
-    if (x01[middle] > x02[middle]) {
-        xleft = &x01;
-        xright = &x02;
-
-        zleft = &z01;
-        zright = &z02;
-    } else {
+    if (x02[middle] < x01[middle]) {
         xleft = &x02;
         xright = &x01;
 
         zleft = &z02;
         zright = &z01;
+    } else {
+        xleft = &x01;
+        xright = &x02;
+
+        zleft = &z01;
+        zright = &z02;
     }
 
     Vector worldSpace[3] = {
@@ -524,25 +523,25 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
         interpolate(lz, float(lx), rz, float(rx), zsegment);
 
         for (int x = lx; x < rx; x++) {
+            if ((!isIn(float(x), -canvas.x / 2.f, canvas.x / 2.f) || !isIn(float(y), -canvas.y / 2.f, canvas.y / 2.f))) {
+                continue;
+            }
+            int screenx = x + (renderState.width / 2);
+            int screeny = (renderState.height / 2) - y;
+            uint32_t index = (screeny * renderState.width) + screenx;
+            float dep = ((float *)depthBuffer)[index];
             float invz = zsegment[x - lx];
             float z = 1.f / invz;
+            if (invz <= dep) {
+                continue;
+            }
 
             Vector point = canvasToViewport(x * z / d, y * z / d);
             point.z = z;
             Vector direction = point - camera.position;
             direction = direction / length(direction);
 
-            int screenx = x + (renderState.width / 2.f);
-            int screeny = (renderState.height / 2.f) - y;
-            uint32_t index = (screeny * renderState.width) + screenx;
-            if ((!isIn(screenx, 0, int(renderState.width)) || !isIn(screeny, 0, int(renderState.height)))) {
-                continue;
-            }
-            float dep = ((float *)depthBuffer)[index];
-            if (invz <= dep) {
-                continue;
-            }
-            Colour color = material.color * computeLight(point, normal, direction,material.specular, false);
+            Colour color = material.color * computeLight(point, normal, direction, material.specular, false);
             ((float *)depthBuffer)[index] = invz;
             ((uint32_t *)renderState.memory)[index] = rgbtoHex(color);
         }

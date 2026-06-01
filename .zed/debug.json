@@ -8,5 +8,6 @@
         "program": "bin/Debug/Renderer.exe",
         "adapter": "CodeLLDB",
         "request": "launch",
+        "terminal": "console",
     },
 ]
