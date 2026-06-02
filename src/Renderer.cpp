@@ -8,11 +8,13 @@
 #include "Transform.h"
 #include "Utility.h"
 #include "Vector.h"
+#include <Windows.h>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <minmax.h>
+#include <mutex>
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -529,6 +531,7 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
             int screenx = x + (renderState.width / 2);
             int screeny = (renderState.height / 2) - y;
             uint32_t index = (screeny * renderState.width) + screenx;
+            std::lock_guard<std::mutex> lock(pixelLocks[index]);
             float dep = ((float *)depthBuffer)[index];
             float invz = zsegment[x - lx];
             float z = 1.f / invz;
@@ -538,6 +541,7 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
 
             Vector point = canvasToViewport(x * z / d, y * z / d);
             point.z = z;
+            point = transformVertex(point, camera, RotateOrder::RO_XYZ);
             Vector direction = point - camera.position;
             direction = direction / length(direction);
 
@@ -547,14 +551,41 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
         }
     }
 }
-void drawFaces(const std::vector<Vector> &vertices, const std::vector<Face> &faces, const Material &material, bool wireframe) {
-    for (const Face &face : faces) {
+void drawFacesThr(const std::vector<Vector> &vertices, const std::vector<Face> &faces, const Material &material, bool wireframe, uint32_t start, uint32_t end) {
+    for (uint32_t i = start; i < end; i++) {
+        const Face &face = faces[i];
         Vector p[3] = {
             vertices.at(face.index[0].vert),
             vertices.at(face.index[1].vert),
             vertices.at(face.index[2].vert)
         };
         drawVerticesTriangle(p, material, wireframe);
+    }
+}
+void drawFaces(const std::vector<Vector> &vertices, const std::vector<Face> &faces, const Material &material, bool wireframe, bool multiThread) {
+    if (!multiThread) {
+        for (const Face &face : faces) {
+            Vector p[3] = {
+                vertices.at(face.index[0].vert),
+                vertices.at(face.index[1].vert),
+                vertices.at(face.index[2].vert)
+            };
+            drawVerticesTriangle(p, material, wireframe);
+        }
+    } else {
+        uint32_t threadSize = std::thread::hardware_concurrency();
+        std::vector<std::thread> drawingThreads(threadSize);
+        uint32_t facePerThread = faces.size() / threadSize;
+        uint32_t remainingFaces = faces.size() % threadSize;
+        uint32_t start = 0;
+        for (uint32_t i = 0; i < threadSize; i++) {
+            uint32_t end = start + facePerThread + ((i < remainingFaces) ? 1 : 0);
+            drawingThreads[i] = std::thread(Renderer::drawFacesThr, std::cref(vertices), std::cref(faces), std::cref(material), wireframe, start, end);
+            start = end;
+        }
+        for (uint32_t i = 0; i < threadSize; i++) {
+            drawingThreads[i].join();
+        }
     }
 }
 void drawBox(Box box, Transform tf, bool inTriangle) {
@@ -1234,11 +1265,7 @@ void renderMesh(const Mesh &mesh, const Transform &transform, bool multithread) 
 
     sceneSettings.triSeenCount += faces.size();
     bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
-    if (true) { //! multithread) {
-        drawFaces(vertices, faces, mesh.material, drawWireframe);
-    } else if (faces.size()) {
-        // Handle later
-    }
+    drawFaces(vertices, faces, mesh.material, drawWireframe, multithread);
 }
 Colour traceRay(const Vector &O, const Vector &D, float tMin, float tMax, int recursionLimit) {
     HitData hitData = closestIntersection(O, D, tMin, tMax);
