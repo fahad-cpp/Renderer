@@ -402,7 +402,7 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
         }
     }
 }
-void drawBox(const Box& box,const Transform& tf, bool inTriangle) {
+void drawBox(const Box &box, const Transform &tf, bool inTriangle) {
     // The tf transform is inverse camera tranform to convert world space box into
     // camera space box
     const Colour red = { 255, 0, 0 };
@@ -449,7 +449,7 @@ void drawBox(const Box& box,const Transform& tf, bool inTriangle) {
         };
         std::vector<Vector> triangles = {};
         std::vector<Vector> inTris = {};
-        inTris.reserve(12*3);
+        inTris.reserve(12 * 3);
         for (int i = 0; i < 12; i++) {
             Triangle tri(tris[i], { 0, 0, 0 }, Material{});
             std::vector<Triangle> clippedTris = clipTriangle(tri);
@@ -458,9 +458,8 @@ void drawBox(const Box& box,const Transform& tf, bool inTriangle) {
                 triangles.push_back(ct.p[1]);
                 triangles.push_back(ct.p[2]);
             }
-
         }
-        drawVertices(triangles, Material{red,-1,0.f}, true, false);
+        drawVertices(triangles, Material{ red, -1, 0.f }, true, false);
         return;
     }
     // Front lines
@@ -1008,7 +1007,7 @@ void drawVertices(const std::vector<Vector> &vertices, const Material &material,
         uint32_t start = 0;
         for (uint32_t i = 0; i < threadSize; i++) {
             uint32_t end = start + triPerThread + ((i < remainingTris) ? 1 : 0);
-            drawVerticesThr[i] = std::thread(Renderer::drawVerticesThr, std::cref(vertices), std::cref(material),wireframe, start, end);
+            drawVerticesThr[i] = std::thread(Renderer::drawVerticesThr, std::cref(vertices), std::cref(material), wireframe, start, end);
             start = end;
         }
         for (uint32_t i = 0; i < threadSize; i++) {
