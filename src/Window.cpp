@@ -197,6 +197,7 @@ void handleEvents(Input &input) {
                 process_messages(BUTTON_V, 'V');
                 process_messages(BUTTON_W, 'W');
                 process_messages(BUTTON_X, 'X');
+                process_messages(BUTTON_Y, 'Y');
                 process_messages(BUTTON_Z, 'Z');
             }
         } break;
@@ -255,6 +256,5 @@ int main() {
     }
     deleteWindow();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    std::cout << "Program finished\n";
     return 0;
 }

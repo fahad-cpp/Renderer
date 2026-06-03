@@ -63,11 +63,11 @@ struct Mesh {
     std::vector<Vector> normals;
     std::vector<Texture> texture;
     std::vector<Face> faces;
-    // std::vector<Triangle> triangles;
+    std::vector<Vector> triangles;
     Box boundingBox;
     Material material;
     Mesh();
     Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, Colour color = { 0, 0, 0 }, float reflectiveness = 0.f, float specular = -1);
     void initTriangles();
-    void getTriangles(std::vector<Triangle> &tris);
+    void getTriangles();
 };

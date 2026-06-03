@@ -447,9 +447,9 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
     size_t size12 = uint32_t(projected[2].y - projected[1].y);
     size_t size02 = uint32_t(projected[2].y - projected[0].y);
 
-    std::vector<int> x01 = {};
-    std::vector<int> x12 = {};
-    std::vector<int> x02 = {};
+    std::vector<float> x01 = {};
+    std::vector<float> x12 = {};
+    std::vector<float> x02 = {};
     // Reserve space for x01 + x12 because we concatenate later
     x01.reserve(size01 + size12);
     x12.reserve(size12);
@@ -472,7 +472,7 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
     interpolate(z0, projected[0].y, z2, projected[2].y, z02);
 
     // Concatenate short sides
-    for (const int &x : x12) {
+    for (const float &x : x12) {
         x01.push_back(x);
     }
 
@@ -481,8 +481,8 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
     }
 
     uint32_t middle = uint32_t(x02.size() / 2.f);
-    std::vector<int> *xleft = nullptr;
-    std::vector<int> *xright = nullptr;
+    std::vector<float> *xleft = nullptr;
+    std::vector<float> *xright = nullptr;
     std::vector<float> *zleft = nullptr;
     std::vector<float> *zright = nullptr;
 
@@ -522,6 +522,8 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
 
         // interpolate z
         std::vector<float> zsegment = {};
+        uint32_t zsegmentSize = (rx - lx) > renderState.width ? renderState.width : (rx - lx);
+        zsegment.reserve(zsegmentSize);
         interpolate(lz, float(lx), rz, float(rx), zsegment);
 
         for (int x = lx; x < rx; x++) {
@@ -545,7 +547,7 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
             Vector direction = point - camera.position;
             direction = direction / length(direction);
 
-            Colour color = material.color * computeLight(point, normal, direction, material.specular, false);
+            Colour color = material.color * computeLight(point, normal, direction, material.specular, true);
             ((float *)depthBuffer)[index] = invz;
             ((uint32_t *)renderState.memory)[index] = rgbtoHex(color);
         }
@@ -811,8 +813,7 @@ HitData closestIntersection(const Vector &O, const Vector &D, float tMin, float 
     }
     // Mesh
     for (const Instance &instance : scene.instances) {
-        std::vector<Triangle> triangles = {};
-        instance.mesh->getTriangles(triangles);
+        std::vector<Vector>& triangles = instance.mesh->triangles;
         Box mbb = instance.boundingBox;
         if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX) {
             if (!RayIntersectsBox(O, D, mbb)) {
@@ -826,26 +827,29 @@ HitData closestIntersection(const Vector &O, const Vector &D, float tMin, float 
         } else if (!RayIntersectsBox(O, D, mbb)) {
             continue;
         }
-        for (Triangle &triangle : triangles) {
-            Triangle tri;
-            tri.p[0] = transformVertex(triangle.p[0], instance.transform);
-            tri.p[1] = transformVertex(triangle.p[1], instance.transform);
-            tri.p[2] = transformVertex(triangle.p[2], instance.transform);
+        for (int i = 0; i < triangles.size(); i+=3) {
+            Vector p[3] = {
+                transformVertex(triangles[i],instance.transform),
+                transformVertex(triangles[i+1],instance.transform),
+                transformVertex(triangles[i+2],instance.transform),
+            };
+            Triangle tri(p, { 0, 0, 0 }, Material{});
 
             float triangleInt = intersectRayTriangle(O, D, tri);
             if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
                 hitData.intersection = triangleInt;
-                hitData.material = triangle.material;
-                hitData.normal = tri.normal;
+                hitData.material = instance.mesh->material;
+                hitData.normal = tri.calculateNormal();
+                break;
             }
         }
     }
     return hitData;
 }
-Vector reflectRay(const Vector &R, Vector &N) {
+Vector reflectRay(const Vector &R,const Vector &N){
     return (2 * (N * dot(R, N)) - R);
 }
-float computeLight(Vector &P, Vector &N, const Vector V, float s, bool rtShadows) {
+float computeLight(const Vector &P,const Vector &N, const Vector V, float s, bool rtShadows) {
     float i = 0.f;
     for (const Light &light : scene.lights) {
         // L = direction of the light
@@ -865,6 +869,7 @@ float computeLight(Vector &P, Vector &N, const Vector V, float s, bool rtShadows
             if (shadowT > 1) {
                 shadowT = INT_MAX;
             }
+            // cast a shadow if an object intersected between light and point
             if (shadowT != INT_MAX) {
                 continue;
             }

@@ -180,10 +180,18 @@ void handleInput(const Input &input) {
         camera.rotation.x += mouseDiff.y * fdt;
         change = true;
     }
+
+    if (pressed(BUTTON_X)) {
+        scene.lights[2].direction.x++;
+    } else if (pressed(BUTTON_Y)) {
+        scene.lights[2].direction.y++;
+    } else if (pressed(BUTTON_Z)) {
+        scene.lights[2].direction.z++;
+    }
 }
 void init() {
     // ZoneScopedN("init");
-    static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 1.f, 100);
+    static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, -1);
 
     // static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
     scene = {
@@ -233,13 +241,13 @@ void init() {
         },
         .lights = std::vector<Light>{
             { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.2f },
-            { .type = LT_POINT, .pos = { 2, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.6f },
-            { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.2f },
+            { .type = LT_POINT, .pos = { 2, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.4f },
+            { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 0, -1, 1 }, .intensity = 0.6f },
         }
     };
-    // for (Instance &ins : scene.instances) {
-    //     ins.getBoundingBox();
-    // }
+     for (Instance &ins : scene.instances) {
+         ins.getBoundingBox();
+     }
 }
 void update(const Input &input) {
     // Start counting frame time

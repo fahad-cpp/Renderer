@@ -55,7 +55,7 @@ Mesh::Mesh() {
     normals = {};
     texture = {};
     faces = {};
-    // triangles = {};
+    triangles = {};
     boundingBox = {};
     material = {};
 }
@@ -64,7 +64,6 @@ Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<T
     normals = normal;
     texture = text;
     faces = face;
-    // triangles = triangle;
     material.color = color;
     material.reflectiveness = reflectiveness;
     material.specular = specular;
@@ -93,18 +92,23 @@ void Mesh::initTriangles() {
     }
     boundingBox.lowest = lowest;
     boundingBox.highest = highest;
+    this->getTriangles();
 }
 
-void Mesh::getTriangles(std::vector<Triangle> &tris) {
-    tris.clear();
-    tris.reserve(faces.size());
+void Mesh::getTriangles() {
+    if (triangles.size()) {
+        return;
+    }
+    triangles.clear();
+    triangles.reserve(faces.size() * 3);
     for (const Face &face : faces) {
         Vector p[3] = {
             vertices[face.index[0].vert],
             vertices[face.index[1].vert],
             vertices[face.index[2].vert]
         };
-        Triangle tri(p, { 0, 0, 0 }, material.color, material.specular, material.reflectiveness);
-        tris.push_back(tri);
+        triangles.push_back(p[0]);
+        triangles.push_back(p[1]);
+        triangles.push_back(p[2]);
     }
 }
