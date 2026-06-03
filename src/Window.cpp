@@ -51,8 +51,8 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         running = false;
         if (renderState.memory)
             VirtualFree(renderState.memory, 0, MEM_RELEASE);
-        if (depth)
-            VirtualFree(depth, 0, MEM_RELEASE);
+        if (depthBuffer)
+            VirtualFree(depthBuffer, 0, MEM_RELEASE);
         if (renderState.ambientOcclusion)
             VirtualFree(renderState.ambientOcclusion, 0, MEM_RELEASE);
         running = false;
@@ -73,9 +73,9 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             VirtualFree(renderState.memory, 0, MEM_RELEASE);
         renderState.memory = VirtualAlloc(0, screenRes * sizeof(uint32_t), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         // Depth buffer
-        if (depth)
-            VirtualFree(depth, 0, MEM_RELEASE);
-        depth = VirtualAlloc(0, screenRes * sizeof(float), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        if (depthBuffer)
+            VirtualFree(depthBuffer, 0, MEM_RELEASE);
+        depthBuffer = VirtualAlloc(0, screenRes * sizeof(float), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         // AO buffer
         if (renderState.ambientOcclusion)
             VirtualFree(renderState.ambientOcclusion, 0, MEM_RELEASE);
@@ -197,6 +197,7 @@ void handleEvents(Input &input) {
                 process_messages(BUTTON_V, 'V');
                 process_messages(BUTTON_W, 'W');
                 process_messages(BUTTON_X, 'X');
+                process_messages(BUTTON_Y, 'Y');
                 process_messages(BUTTON_Z, 'Z');
             }
         } break;
@@ -240,20 +241,20 @@ int main() {
     timer.Stop();
     LOG_INFO("Initialization took " << timer.dtms << " ms\n");
     init();
-    while (running) {
-        // Update Loop
-        update(window.input);
+    try {
+        while (running) {
+            // Update Loop
+            update(window.input);
+            // Swap buffers
+            swapBuffers();
 
-        if (sceneSettings.renderMode == RenderMode::RM_DEPTH) {
-            Renderer::renderDepthBuffer();
+            handleEvents(window.input);
         }
-        // Swap buffers
-        swapBuffers();
-
-        handleEvents(window.input);
+    } catch (std::exception &e) {
+        std::cerr << e.what() << "\n";
+        std::cin.get();
     }
     deleteWindow();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    std::cout << "Program finished\n";
     return 0;
 }

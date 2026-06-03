@@ -20,13 +20,13 @@ static Vector rotate(const Vector &vec, const Vector &rotationP, const RotateOrd
     }
     Vector rotation = { float(rotationP.x * (std::numbers::pi * 2)) / 360.f, float(rotationP.y * (std::numbers::pi * 2)) / 360.f, float(rotationP.z * (std::numbers::pi * 2)) / 360.f };
 
-    sinx = sin(rotation.x);
-    siny = sin(rotation.y);
-    sinz = sin(rotation.z);
+    sinx = std::sin(rotation.x);
+    siny = std::sin(rotation.y);
+    sinz = std::sin(rotation.z);
 
-    cosx = cos(rotation.x);
-    cosy = cos(rotation.y);
-    cosz = cos(rotation.z);
+    cosx = std::cos(rotation.x);
+    cosy = std::cos(rotation.y);
+    cosz = std::cos(rotation.z);
 
     Vector result = {};
     if (ro == RotateOrder::RO_YXZ) {

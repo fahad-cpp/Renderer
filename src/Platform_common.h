@@ -29,6 +29,7 @@ enum Buttons : uint8_t {
     BUTTON_V,
     BUTTON_W,
     BUTTON_X,
+    BUTTON_Y,
     BUTTON_Z,
     BUTTON_COUNT
 };

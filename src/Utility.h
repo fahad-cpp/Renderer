@@ -1,10 +1,15 @@
 #pragma once
 template <typename T>
 void swap(T &a, T &b) {
-    T c;
-    c = a;
+    T c = a;
     a = b;
     b = c;
+}
+template <typename T>
+void swap(T *a, T *b) {
+    T c = *a;
+    *a = *b;
+    *b = c;
 }
 template <typename T>
 void clamp(T &num, T minLimit, T maxLimit) {
@@ -19,10 +24,7 @@ void clamp(T &num, T minLimit, T maxLimit) {
 }
 template <typename T>
 bool isIn(T value, T lower, T higher) {
-    if ((value >= higher) || (value <= lower)) {
-        return false;
-    }
-    return true;
+    return ((value <= higher) && (value >= lower));
 }
 
 float getMax(const float &n1, const float &n2);

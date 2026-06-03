@@ -7,29 +7,26 @@ struct Instance {
     Box boundingBox = { -INFINITY, INFINITY };
     // Returns Bounding Box in world space
     Box getBoundingBox() {
+        if (mesh == nullptr) {
+            return {};
+        }
         bool boundingBoxInitialized = !((boundingBox.lowest == INFINITY) && (boundingBox.highest == -INFINITY));
         if (!boundingBoxInitialized) {
             // find lowest and highest point in bounding box
             Vector lowest = { INFINITY, INFINITY, INFINITY };
             Vector highest = { -INFINITY, -INFINITY, -INFINITY };
-            for (const Triangle &triangle : mesh->triangles) {
-                Vector tv[3];
-                tv[0] = transformVertex(triangle.p[0], transform);
-                tv[1] = transformVertex(triangle.p[1], transform);
-                tv[2] = transformVertex(triangle.p[2], transform);
-                for (int i = 0; i < 3; i++) {
-                    lowest.x = (tv[i].x < lowest.x ? tv[i].x : lowest.x);
-                    lowest.y = (tv[i].y < lowest.y ? tv[i].y : lowest.y);
-                    lowest.z = (tv[i].z < lowest.z ? tv[i].z : lowest.z);
+            for (const Vector &vert : mesh->vertices) {
+                Vector vertex = transformVertex(vert, transform);
+                lowest.x = vertex.x < lowest.x ? vertex.x : lowest.x;
+                lowest.y = vertex.y < lowest.y ? vertex.y : lowest.y;
+                lowest.z = vertex.z < lowest.z ? vertex.z : lowest.z;
 
-                    highest.x = (tv[i].x > highest.x ? tv[i].x : highest.x);
-                    highest.y = (tv[i].y > highest.y ? tv[i].y : highest.y);
-                    highest.z = (tv[i].z > highest.z ? tv[i].z : highest.z);
-                }
+                highest.x = vertex.x > highest.x ? vertex.x : highest.x;
+                highest.y = vertex.y > highest.y ? vertex.y : highest.y;
+                highest.z = vertex.z > highest.z ? vertex.z : highest.z;
             }
-
             boundingBox = { highest, lowest };
-            return { highest, lowest };
+            return boundingBox;
         } else {
             return boundingBox;
         }

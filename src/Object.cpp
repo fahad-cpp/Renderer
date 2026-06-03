@@ -1,17 +1,17 @@
 #include "Object.h"
 #include <vector>
 
-//Sphere
-bool operator==(const Sphere& sphere1,const Sphere &sphere2) {
+// Sphere
+bool operator==(const Sphere &sphere1, const Sphere &sphere2) {
     return ((sphere1.color == sphere2.color) && (sphere1.specular == sphere2.specular) && (sphere1.reflectiveness == sphere2.reflectiveness));
 }
 
-//Box
+// Box
 bool operator==(const Box &box2, const Box &box) {
     return ((box.lowest == box2.lowest) && (box.highest == box2.highest));
 }
 
-//Triangle
+// Triangle
 Triangle::Triangle() {
     p[0] = {};
     p[1] = {};
@@ -28,7 +28,7 @@ Triangle::Triangle(const Vector _p[3], Vector _normal, Colour color, float specu
     this->material.color = color;
     this->material.specular = specular;
     this->material.reflectiveness = reflectiveness;
-    this->normal = (_normal == Vector{0,0,0})?cross((p[1] - p[0]), (p[2] - p[0])):_normal;
+    this->normal = (_normal == Vector{ 0, 0, 0 }) ? cross((p[1] - p[0]), (p[2] - p[0])) : _normal;
 }
 
 Triangle::Triangle(const Vector _p[3], Vector _normal, Material _material) {
@@ -49,7 +49,7 @@ Vector Triangle::getCentroid() {
     return ((p[0] + p[1] + p[2]) / 3);
 }
 
-//Mesh
+// Mesh
 Mesh::Mesh() {
     vertices = {};
     normals = {};
@@ -59,12 +59,11 @@ Mesh::Mesh() {
     boundingBox = {};
     material = {};
 }
-Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<Texture> text, std::vector<Face> face, std::vector<Triangle> triangle, Colour color, float reflectiveness, float specular) {
+Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<Texture> text, std::vector<Face> face, Colour color, float reflectiveness, float specular) {
     vertices = vertex;
     normals = normal;
     texture = text;
     faces = face;
-    triangles = triangle;
     material.color = color;
     material.reflectiveness = reflectiveness;
     material.specular = specular;
@@ -72,25 +71,6 @@ Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<T
 void Mesh::initTriangles() {
     Vector lowest, highest;
     int count = 0;
-    if (triangles.size()) {
-        return;
-    }
-    for (const Face &face : faces) {
-        triangles.reserve(faces.size());
-        Triangle triangle;
-        Vector v1, v2, v3;
-        v1 = vertices.at(face.index[0].vert - 1);
-        v2 = vertices.at(face.index[1].vert - 1);
-        v3 = vertices.at(face.index[2].vert - 1);
-        triangle.material.reflectiveness = material.reflectiveness;
-        triangle.material.specular = material.specular;
-        triangle.material.color = this->material.color;
-        triangle.p[0] = v1;
-        triangle.p[1] = v2;
-        triangle.p[2] = v3;
-        triangle.normal = normals.at(face.index[0].norm - 1);
-        triangles.push_back(triangle);
-    }
     for (const Vector &vertex : vertices) {
         if (count == 0) {
             lowest = vertex;
@@ -112,4 +92,23 @@ void Mesh::initTriangles() {
     }
     boundingBox.lowest = lowest;
     boundingBox.highest = highest;
+    this->getTriangles();
+}
+
+void Mesh::getTriangles() {
+    if (triangles.size()) {
+        return;
+    }
+    triangles.clear();
+    triangles.reserve(faces.size() * 3);
+    for (const Face &face : faces) {
+        Vector p[3] = {
+            vertices[face.index[0].vert],
+            vertices[face.index[1].vert],
+            vertices[face.index[2].vert]
+        };
+        triangles.push_back(p[0]);
+        triangles.push_back(p[1]);
+        triangles.push_back(p[2]);
+    }
 }

@@ -6,7 +6,7 @@ set GENERATOR="Ninja"
 set EXENAME=Renderer.exe
 
 if not exist build mkdir build
-if exist build\%EXENAME% del build\%EXENAME%
+if exist bin\%CONFIG%\%EXENAME% del bin\%CONFIG%\%EXENAME%
 
 where cmake >nul 2>nul
 if errorlevel 1 (
@@ -14,7 +14,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-cmake -G %GENERATOR% -DCMAKE_CXX_COMPILER=clang++ -S . -B build -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_EXPORT_COMPILE_COMMANDS=ON >nul 2>build\error.txt
+cmake -G %GENERATOR% -S . -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_EXPORT_COMPILE_COMMANDS=ON >nul 2>build\error.txt
 if errorlevel 1 (
     echo Failed to generate build files.
     exit /b 1
