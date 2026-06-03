@@ -199,7 +199,7 @@ void init() {
         { 0.f, 2.f, 1.f },
         { 1.f, 0.f, 1.f },
     };
-    Triangle tri(p, { 0, 0, 0 }, Material{ {255,0,0},-1,0.f });
+    Triangle tri(p, { 0, 0, 0 }, Material{ { 255, 0, 0 }, -1, 0.f });
     scene = {
         .spheres = std::vector<Sphere>{
             {
@@ -252,9 +252,9 @@ void init() {
             { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.2f },
         }
     };
-     for (Instance &ins : scene.instances) {
-         ins.getBoundingBox();
-     }
+    for (Instance &ins : scene.instances) {
+        ins.getBoundingBox();
+    }
 }
 void update(const Input &input) {
     // Start counting frame time
