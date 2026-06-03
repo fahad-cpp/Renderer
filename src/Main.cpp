@@ -247,7 +247,7 @@ void init() {
             }*/
         },
         .lights = std::vector<Light>{
-            { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.2f },
+            { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.1f },
             { .type = LT_POINT, .pos = { 2, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.6f },
             { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.2f },
         }
