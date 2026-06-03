@@ -194,6 +194,12 @@ void init() {
     static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, -1);
 
     // static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
+    Vector p[3] = {
+        { -1.f, 0.f, 1.f },
+        { 0.f, 2.f, 1.f },
+        { 1.f, 0.f, 1.f },
+    };
+    Triangle tri(p, { 0, 0, 0 }, Material{ {255,0,0},-1,0.f });
     scene = {
         .spheres = std::vector<Sphere>{
             {
@@ -226,6 +232,7 @@ void init() {
             }*/
         },
         .triangles = std::vector<Triangle>{
+            tri
             // empty
         },
         .instances = std::vector<Instance>{
@@ -241,8 +248,8 @@ void init() {
         },
         .lights = std::vector<Light>{
             { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.2f },
-            { .type = LT_POINT, .pos = { 2, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.4f },
-            { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 0, -1, 1 }, .intensity = 0.6f },
+            { .type = LT_POINT, .pos = { 2, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.6f },
+            { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.2f },
         }
     };
      for (Instance &ins : scene.instances) {

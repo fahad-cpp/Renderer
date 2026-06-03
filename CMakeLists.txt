@@ -76,7 +76,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         $<$<CONFIG:Debug>:
             -O0
             -g
-            -pg
             -fno-omit-frame-pointer
         >
     )

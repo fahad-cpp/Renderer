@@ -15,7 +15,8 @@ struct Instance {
             // find lowest and highest point in bounding box
             Vector lowest = { INFINITY, INFINITY, INFINITY };
             Vector highest = { -INFINITY, -INFINITY, -INFINITY };
-            for (const Vector &vertex : mesh->vertices) {
+            for (const Vector &vert : mesh->vertices) {
+                Vector vertex = transformVertex(vert, transform);
                 lowest.x = vertex.x < lowest.x ? vertex.x : lowest.x;
                 lowest.y = vertex.y < lowest.y ? vertex.y : lowest.y;
                 lowest.z = vertex.z < lowest.z ? vertex.z : lowest.z;
