@@ -3,7 +3,7 @@
 enum class DebugState {
     DS_OFF,
     DS_BOUNDING_BOX,
-    DS_TRIANGLE
+    DS_TRIANGLE,
 };
 enum class LightingMode : uint8_t {
     NO_LIGHT,
@@ -13,7 +13,8 @@ enum class LightingMode : uint8_t {
 };
 enum class RenderMode {
     RM_COLOR = 0,
-    RM_DEPTH
+    RM_DEPTH,
+    RM_AO
 };
 struct SceneSettings {
     bool bfc;

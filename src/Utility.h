@@ -22,6 +22,18 @@ void clamp(T &num, T minLimit, T maxLimit) {
     }
     return;
 }
+
+template <typename T>
+T clampv(const T &val, T minLimit, T maxLimit) {
+    T num = val;
+    if (num < minLimit) {
+        num = minLimit;
+    } else if (num > maxLimit) {
+        num = maxLimit;
+    }
+    return num;
+}
+
 template <typename T>
 bool isIn(T value, T lower, T higher) {
     return ((value <= higher) && (value >= lower));

@@ -4,6 +4,7 @@
 #include "Logging.h"
 #include "Object.h"
 #include "Renderer.h"
+#include "SceneSettings.h"
 #include "Timer.h"
 #include <thread>
 
@@ -191,6 +192,14 @@ void handleInput(const Input &input) {
     } else if (pressed(BUTTON_Y)) {
         sceneSettings.lightingMode = LightingMode::LIGHT_ONLY;
     }
+
+    if (pressed(BUTTON_O)) {
+        if (sceneSettings.renderMode == RenderMode::RM_AO) {
+            sceneSettings.renderMode = RenderMode::RM_COLOR;
+        } else {
+            sceneSettings.renderMode = RenderMode::RM_AO;
+        }
+    }
 }
 void init() {
     // ZoneScopedN("init");
@@ -283,8 +292,9 @@ void update(const Input &input) {
     } else if (change) {
         // Rasterizer
         Renderer::renderScene();
-        Renderer::renderAO();
-        if (sceneSettings.renderMode == RenderMode::RM_DEPTH) {
+        if (sceneSettings.renderMode == RenderMode::RM_AO) {
+            Renderer::renderAO();
+        } else if (sceneSettings.renderMode == RenderMode::RM_DEPTH) {
             Renderer::renderDepthBuffer();
         }
         timer.Stop();

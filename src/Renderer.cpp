@@ -18,11 +18,10 @@
 #include <fstream>
 #include <minmax.h>
 #include <mutex>
+#include <random>
 #include <thread>
 #include <unordered_map>
 #include <vector>
-#include <random>
-
 
 namespace Renderer {
 void clearScreen(uint32_t color) {
@@ -1147,14 +1146,14 @@ void renderScene() {
 void renderAO() {
     std::random_device rd;
     std::mt19937 gen(rd());
-    const uint32_t SAMPLE_COUNT = 10;
-    const uint32_t SAMPLE_RADIUS = 20;
-    std::uniform_int_distribution<> dist(0,SAMPLE_RADIUS*2);
+    const uint32_t SAMPLE_COUNT = 20;
+    const uint32_t SAMPLE_RADIUS = 10;
+    std::uniform_int_distribution<> dist(-SAMPLE_RADIUS, SAMPLE_RADIUS);
     FS::Vector2 samplesLoc[SAMPLE_COUNT];
     for (uint32_t y = 0; y < renderState.height; y++) {
         for (uint32_t x = 0; x < renderState.width; x++) {
             for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
-                samplesLoc[i] = FS::Vector2{ (float(dist(gen) % SAMPLE_RADIUS * 2) - SAMPLE_RADIUS) + x, (float(dist(gen) & SAMPLE_RADIUS * 2) - SAMPLE_RADIUS) + y };
+                samplesLoc[i] = FS::Vector2{ float(dist(gen)) + x, float(dist(gen)) + y };
             }
             int occlusionFactor = 0;
             uint32_t pixelIndex = (y * renderState.width) + x;
@@ -1165,13 +1164,50 @@ void renderAO() {
                 }
                 uint32_t sampleIndex = (samplesLoc[i].y * renderState.width) + samplesLoc[i].x;
                 float sampleDepth = ((float *)depthBuffer)[sampleIndex];
-                if (sampleDepth > pixelDepth && (pixelDepth != 0.f)) {
+                // float threshold = 0.001f;
+                if ((sampleDepth > pixelDepth) && (pixelDepth != 0.f)) {
                     occlusionFactor++;
                 }
             }
-            Colour color = getPixel(x, y);
-            putPixelD(x, y, color * (1 - (float(occlusionFactor) / SAMPLE_COUNT)));
+            Colour color = { 255, 255, 255 }; // getPixel(x, y);
+            putPixelD(x, y, color * (1 - float(occlusionFactor) / SAMPLE_COUNT));
             renderState.ambientOcclusion[pixelIndex] = (float(occlusionFactor) / SAMPLE_COUNT);
+        }
+    }
+    // boxBlur();
+}
+void boxBlur() {
+    for (uint32_t y = 1; y < renderState.height - 1; y++) {
+        for (uint32_t x = 1; x < renderState.width - 1; x++) {
+            Colour grid[9] = {
+                getPixel(x - 1, y - 1),
+                getPixel(x, y - 1),
+                getPixel(x + 1, y - 1),
+
+                getPixel(x - 1, y),
+                getPixel(x, y),
+                getPixel(x + 1, y),
+
+                getPixel(x - 1, y),
+                getPixel(x, y),
+                getPixel(x + 1, y)
+            };
+
+            float totalR = 0;
+            float totalG = 0;
+            float totalB = 0;
+
+            for (int i = 0; i < 8; i++) {
+                totalR += grid[i].R;
+                totalG += grid[i].G;
+                totalB += grid[i].B;
+            }
+
+            uint8_t R = (uint8_t)clampv(int(totalR / 9), 0, 255);
+            uint8_t G = (uint8_t)clampv(int(totalG / 9), 0, 255);
+            uint8_t B = (uint8_t)clampv(int(totalB / 9), 0, 255);
+
+            putPixelD(x, y, Colour{ R, G, B });
         }
     }
 }
