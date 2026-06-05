@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <minmax.h>
 #include <mutex>
@@ -1154,6 +1155,8 @@ void renderAO() {
         for (uint32_t x = 0; x < renderState.width; x++) {
             for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
                 samplesLoc[i] = FS::Vector2{ float(dist(gen)) + x, float(dist(gen)) + y };
+                clamp(samplesLoc[i].x,0.f,float(renderState.width));
+                clamp(samplesLoc[i].y,0.f,float(renderState.height));
             }
             int occlusionFactor = 0;
             uint32_t pixelIndex = (y * renderState.width) + x;
@@ -1174,9 +1177,11 @@ void renderAO() {
             renderState.ambientOcclusion[pixelIndex] = (float(occlusionFactor) / SAMPLE_COUNT);
         }
     }
-    // boxBlur();
+    boxBlur();
 }
 void boxBlur() {
+    uint32_t *buffer = (uint32_t *)malloc(renderState.width * renderState.height * sizeof(uint32_t));
+    memcpy(buffer, renderState.memory, renderState.width * renderState.height * sizeof(uint32_t));
     for (uint32_t y = 1; y < renderState.height - 1; y++) {
         for (uint32_t x = 1; x < renderState.width - 1; x++) {
             Colour grid[9] = {
@@ -1188,27 +1193,30 @@ void boxBlur() {
                 getPixel(x, y),
                 getPixel(x + 1, y),
 
-                getPixel(x - 1, y),
-                getPixel(x, y),
-                getPixel(x + 1, y)
+                getPixel(x - 1, y + 1),
+                getPixel(x, y + 1),
+                getPixel(x + 1, y + 1)
             };
 
-            float totalR = 0;
-            float totalG = 0;
-            float totalB = 0;
+            int totalR = 0;
+            int totalG = 0;
+            int totalB = 0;
 
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < 9; i++) {
                 totalR += grid[i].R;
                 totalG += grid[i].G;
                 totalB += grid[i].B;
             }
 
-            uint8_t R = (uint8_t)clampv(int(totalR / 9), 0, 255);
-            uint8_t G = (uint8_t)clampv(int(totalG / 9), 0, 255);
-            uint8_t B = (uint8_t)clampv(int(totalB / 9), 0, 255);
+            uint8_t R = totalR / 9;
+            uint8_t G = totalG / 9;
+            uint8_t B = totalB / 9;
 
-            putPixelD(x, y, Colour{ R, G, B });
+            uint32_t index = (y * renderState.width) + x;
+            buffer[index] = rgbtoHex({ R, G, B });
         }
     }
+    memcpy(renderState.memory, buffer, renderState.width * renderState.height * sizeof(uint32_t));
+    free(buffer);
 }
 }; // namespace Renderer
