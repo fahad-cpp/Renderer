@@ -16,6 +16,7 @@ enum Buttons : uint8_t {
     BUTTON_B,
     BUTTON_C,
     BUTTON_D,
+    BUTTON_E,
     BUTTON_F,
     BUTTON_G,
     BUTTON_L,

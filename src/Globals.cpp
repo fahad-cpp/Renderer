@@ -6,7 +6,7 @@ RenderState renderState;
 std::vector<std::thread> ppmThreads;
 std::mutex *pixelLocks;
 bool running = true;
-SceneSettings sceneSettings = { true, false, 0, DebugState::DS_OFF, true, RenderMode::RM_COLOR, false };
+SceneSettings sceneSettings = { true, false, 0, DebugState::DS_OFF, true, RenderMode::RM_COLOR, false, LightingMode::LIGHT_ONLY };
 Vector canvas(720, 720);
 Vector D = { 1, 1, 1 };
 float vpWidth = 1.f;

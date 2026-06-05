@@ -8,6 +8,9 @@
 #include "Transform.h"
 #include "Utility.h"
 #include "Vector.h"
+#include "Vector2.h"
+#include "Window.h"
+#include <FSWindow.h>
 #include <Windows.h>
 #include <cstdint>
 #include <cstdio>
@@ -18,6 +21,9 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <random>
+
+
 namespace Renderer {
 void clearScreen(uint32_t color) {
     uint32_t *pixel = (uint32_t *)renderState.memory;
@@ -362,6 +368,8 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
     Vector normal = cross((worldSpace[1] - worldSpace[0]), (worldSpace[2] - worldSpace[0]));
     normal = normal / length(normal);
 
+    bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
+    bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
     for (int y = int(projected[0].y); y < int(projected[2].y); y++) {
         uint32_t scanline = uint32_t(y - int(projected[0].y));
         float lz = (*zleft)[scanline];
@@ -396,7 +404,7 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
             Vector direction = point - camera.position;
             direction = direction / length(direction);
 
-            Colour color = material.color * computeLight(point, normal, direction, material.specular, false);
+            Colour color = material.color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
             ((float *)depthBuffer)[index] = invz;
             ((uint32_t *)renderState.memory)[index] = rgbtoHex(color);
         }
@@ -1137,5 +1145,34 @@ void renderScene() {
     }
 }
 void renderAO() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    const uint32_t SAMPLE_COUNT = 10;
+    const uint32_t SAMPLE_RADIUS = 20;
+    std::uniform_int_distribution<> dist(0,SAMPLE_RADIUS*2);
+    FS::Vector2 samplesLoc[SAMPLE_COUNT];
+    for (uint32_t y = 0; y < renderState.height; y++) {
+        for (uint32_t x = 0; x < renderState.width; x++) {
+            for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
+                samplesLoc[i] = FS::Vector2{ (float(dist(gen) % SAMPLE_RADIUS * 2) - SAMPLE_RADIUS) + x, (float(dist(gen) & SAMPLE_RADIUS * 2) - SAMPLE_RADIUS) + y };
+            }
+            int occlusionFactor = 0;
+            uint32_t pixelIndex = (y * renderState.width) + x;
+            float pixelDepth = ((float *)depthBuffer)[pixelIndex];
+            for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
+                if (!isIn(uint32_t(samplesLoc[i].x), 0u, renderState.width) || !isIn(uint32_t(samplesLoc[i].y), 0u, renderState.height)) {
+                    continue;
+                }
+                uint32_t sampleIndex = (samplesLoc[i].y * renderState.width) + samplesLoc[i].x;
+                float sampleDepth = ((float *)depthBuffer)[sampleIndex];
+                if (sampleDepth > pixelDepth && (pixelDepth != 0.f)) {
+                    occlusionFactor++;
+                }
+            }
+            Colour color = getPixel(x, y);
+            putPixelD(x, y, color * (1 - (float(occlusionFactor) / SAMPLE_COUNT)));
+            renderState.ambientOcclusion[pixelIndex] = (float(occlusionFactor) / SAMPLE_COUNT);
+        }
+    }
 }
 }; // namespace Renderer

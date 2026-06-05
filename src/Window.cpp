@@ -184,6 +184,7 @@ void handleEvents(Input &input) {
                 process_messages(BUTTON_B, 'B');
                 process_messages(BUTTON_C, 'C');
                 process_messages(BUTTON_D, 'D');
+                process_messages(BUTTON_E, 'E');
                 process_messages(BUTTON_F, 'F');
                 process_messages(BUTTON_G, 'G');
                 process_messages(BUTTON_L, 'L');

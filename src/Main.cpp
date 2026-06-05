@@ -38,18 +38,21 @@ void handleInput(const Input &input) {
         running = false;
     }
     // Movement events
-    if (isDown(BUTTON_W))
+    if (isDown(BUTTON_W)) {
         velocity = velocity + Vector{ 0, 0, 1.f };
-    if (isDown(BUTTON_A))
+    }
+    if (isDown(BUTTON_A)) {
         velocity = velocity + Vector{ -1.f, 0, 0 };
-
-    if (isDown(BUTTON_S))
+    }
+    if (isDown(BUTTON_S)) {
         velocity = velocity + Vector{ 0, 0, -1.f };
+    }
     if (isDown(BUTTON_D)) {
         velocity = velocity + Vector{ 1.f, 0, 0 };
     }
-    if (isDown(BUTTON_CTRL))
+    if (isDown(BUTTON_CTRL)) {
         velocity = velocity + Vector{ 0, -1.f, 0 };
+    }
     if (isDown(BUTTON_SPACE)) {
         velocity = velocity + Vector{ 0, 1.f, 0 };
     }
@@ -182,11 +185,11 @@ void handleInput(const Input &input) {
     }
 
     if (pressed(BUTTON_X)) {
-        scene.lights[2].direction.x++;
-    } else if (pressed(BUTTON_Y)) {
-        scene.lights[2].direction.y++;
+        sceneSettings.lightingMode = LightingMode::LIGHT_SHADOWS;
     } else if (pressed(BUTTON_Z)) {
-        scene.lights[2].direction.z++;
+        sceneSettings.lightingMode = LightingMode::NO_LIGHT;
+    } else if (pressed(BUTTON_Y)) {
+        sceneSettings.lightingMode = LightingMode::LIGHT_ONLY;
     }
 }
 void init() {
