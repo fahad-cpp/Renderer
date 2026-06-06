@@ -69,6 +69,6 @@ static Vector rotate(const Vector &vec, const Vector &rotationP, const RotateOrd
     }
     return result;
 }
-inline Vector transformVertex(Vector vec, const Transform &tf, RotateOrder ro = RotateOrder::RO_YXZ) {
+inline Vector transformVertex(const Vector& vec, const Transform &tf, RotateOrder ro = RotateOrder::RO_YXZ) {
     return ((rotate(vec, tf.rotation, ro) * tf.scale) + tf.position);
 }

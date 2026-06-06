@@ -3,7 +3,9 @@
 #include "Vector.h"
 #include <cmath>
 #include <cstdint>
+#include <string>
 #include <vector>
+
 struct Material {
     Colour color = { 0, 0, 0 };
     float specular = -1.f;
@@ -71,3 +73,5 @@ struct Mesh {
     void initTriangles();
     void getTriangles();
 };
+
+Mesh loadOBJ(const std::string &filename, const Colour &color = { 255, 255, 255 }, float reflectiveness = 0, float specular = -1);

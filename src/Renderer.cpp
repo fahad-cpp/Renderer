@@ -4,11 +4,11 @@
 #include "Hash.h"
 #include "Logging.h"
 #include "Object.h"
+#include "PostProcess.h"
 #include "Timer.h"
 #include "Transform.h"
 #include "Utility.h"
 #include "Vector.h"
-#include "Vector2.h"
 #include "Window.h"
 #include <FSWindow.h>
 #include <Windows.h>
@@ -16,13 +16,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <fstream>
 #include <minmax.h>
 #include <mutex>
-#include <random>
 #include <thread>
 #include <unordered_map>
 #include <vector>
+
 
 namespace Renderer {
 void clearScreen(uint32_t color) {
@@ -53,9 +52,10 @@ void putPixelD(const int x, const int y, const Colour &color) {
 void renderDepthBuffer() {
     for (uint32_t y = 0; y < renderState.height; y++) {
         for (uint32_t x = 0; x < renderState.width; x++) {
-            float *value = (((float *)depthBuffer) + x + (y * renderState.width));
-            clamp(*value, 0.f, 1.f);
-            Colour color = { (uint8_t)((*value) * 255.f), (uint8_t)((*value) * 255.f), (uint8_t)((*value) * 255.f) };
+            uint32_t index = x + (y * renderState.width);
+            float value = ((float *)depthBuffer)[index];
+            clamp(value, 0.f, 1.f);
+            Colour color = { (uint8_t)((value) * 255.f), (uint8_t)((value) * 255.f), (uint8_t)((value) * 255.f) };
             putPixelD(x, y, color);
         }
     }
@@ -152,96 +152,7 @@ void drawLine(Vector a, Vector b, const Colour &color) {
         }
     }
 }
-Mesh loadOBJ(const std::string &filename, const Colour &color, float reflectiveness, float specular) {
-    Timer timer;
-    LOG_INFO("Loading " << filename);
-    std::vector<Vector> vertices = {};
-    std::vector<Vector> normals = {};
-    std::vector<Texture> texture = {};
-    std::vector<Face> faces = {};
 
-    std::ifstream OBJFile(filename, std::ios::binary | std::ios::ate);
-    if (!OBJFile) {
-        LOG_ERROR("Cannot open file " << filename << "\n");
-        return {};
-    }
-
-    size_t size = OBJFile.tellg();
-    OBJFile.seekg(0);
-
-    std::vector<char> buffer(size + 1);
-    OBJFile.read(buffer.data(), size);
-    buffer[size] = '\0';
-    OBJFile.close();
-
-    const char *ptr = buffer.data();
-    std::string line;
-    while (*ptr != '\0') {
-        const char *end = ptr;
-        while ((*end != '\0') && *end != '\n')
-            end++;
-        line = std::string(ptr, end - ptr);
-
-        if (ptr[0] == 'v' && (ptr[1] == ' ' || ptr[1] == '\t')) {
-            float x = 0, y = 0, z = 0;
-            std::sscanf(line.c_str(), "v %f %f %f", &x, &y, &z);
-            vertices.emplace_back(x, y, z);
-        } else if (ptr[0] == 'v' && ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
-            float u, v, w;
-            std::sscanf(line.c_str(), "vt %f %f %f", &u, &v, &w);
-            Texture newtext({ u, v, w });
-            texture.emplace_back(newtext);
-        } else if (ptr[0] == 'v' && ptr[1] == 'n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
-            float x, y, z;
-            std::sscanf(line.c_str(), "vn %f %f %f", &x, &y, &z);
-            Vector newnorm(x, y, z);
-            normals.emplace_back(newnorm);
-        } else if (ptr[0] == 'f' && (ptr[1] == ' ' || ptr[1] == '\t')) {
-            //---Only works for 3 Vertices faces---
-            uint32_t v[3] = {};
-            uint32_t t[3] = {};
-            uint32_t n[3] = {};
-            Face newface = {};
-            if (std::sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
-                            &v[0], &t[0], &n[0],
-                            &v[1], &t[1], &n[1],
-                            &v[2], &t[2], &n[2]) == 9) {
-                newface = {
-                    Index{ v[0] - 1, t[0], n[0] },
-                    Index{ v[1] - 1, t[1], n[1] },
-                    Index{ v[2] - 1, t[2], n[2] }
-                };
-                faces.emplace_back(newface);
-            } else if (std::sscanf(line.c_str(), "f %d//%d %d//%d %d//%d",
-                                   &v[0], &n[0],
-                                   &v[1], &n[1],
-                                   &v[2], &n[2]) == 6) {
-                newface = {
-                    Index{ v[0] - 1, 0, n[0] },
-                    Index{ v[1] - 1, 0, n[1] },
-                    Index{ v[2] - 1, 0, n[2] }
-                };
-                faces.emplace_back(newface);
-            } else {
-                LOG_ERROR(("Unsupported face format :" + filename + "\n"));
-                return {};
-            }
-        }
-
-        while ((*ptr != '\0') && *ptr != '\n')
-            ptr++;
-        if (*ptr == '\n')
-            ptr++;
-    }
-    Mesh mesh = { vertices, normals, texture, faces };
-    mesh.material.color = color;
-    mesh.material.specular = specular;
-    mesh.material.reflectiveness = reflectiveness;
-    mesh.initTriangles();
-    timer.Stop();
-    LOG_SUCCESS("Loaded " << filename << ":" << timer.dtms << "ms");
-    return mesh;
-}
 Vector canvasToViewport(float x, float y) {
     return { x * (vpWidth / canvas.x), y * (vpHeight / canvas.y), d };
 }
@@ -804,103 +715,6 @@ std::vector<Triangle> clipTriangle(const Triangle &tri) {
     }
     return { triangles };
 }
-void FXAAthr(int threadNum, int threadCount, float edgeThreshold) {
-    int yCount = (renderState.height - 2) / threadCount;
-    int ymin = (threadNum * yCount) + 1;
-    int ymax = ymin + yCount;
-    for (int y = ymin; y < ymax; y++) {
-        for (uint32_t x = 1; x < renderState.width - 1; x++) {
-            Colour colorCenter = getPixel(x, y);
-            Colour colorTop = getPixel(x, y - 1);
-            Colour colorBottom = getPixel(x, y + 1);
-            Colour colorLeft = getPixel(x - 1, y);
-            Colour colorRight = getPixel(x + 1, y);
-
-            float topLuma = colorTop.luminance();
-            float bottomLuma = colorBottom.luminance();
-            float leftLuma = colorLeft.luminance();
-            float rightLuma = colorRight.luminance();
-
-            float edgeHorizontal = std::abs(leftLuma - rightLuma);
-            float edgeVertical = std::abs(topLuma - bottomLuma);
-
-            bool isHorizontal = (edgeHorizontal >= edgeVertical);
-
-            Colour blendColour;
-            if (isHorizontal) {
-                blendColour.R = ((colorTop.R + colorBottom.R) * 0.5f);
-                blendColour.G = ((colorTop.G + colorBottom.G) * 0.5f);
-                blendColour.B = ((colorTop.B + colorBottom.B) * 0.5f);
-            } else {
-                blendColour.R = ((colorLeft.R + colorRight.R) * 0.5f);
-                blendColour.G = ((colorLeft.G + colorRight.G) * 0.5f);
-                blendColour.B = ((colorLeft.B + colorRight.B) * 0.5f);
-            }
-
-            bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
-
-            if (isEdge) {
-                putPixelD(x, y, blendColour);
-            } else {
-                putPixelD(x, y, colorCenter);
-            }
-        }
-    }
-}
-void FXAA(bool multiThread) {
-    float edgeThreshold = 0.f;
-    if (!multiThread) {
-        // Single Threaded FXAA
-        for (uint32_t y = 1; y < (renderState.height - 1); y++) {
-            for (uint32_t x = 1; x < (renderState.width - 1); x++) {
-                Colour colorCenter = getPixel(x, y);
-                Colour colorTop = getPixel(x, y - 1);
-                Colour colorBottom = getPixel(x, y + 1);
-                Colour colorLeft = getPixel(x - 1, y);
-                Colour colorRight = getPixel(x + 1, y);
-
-                float topLuma = colorTop.luminance();
-                float bottomLuma = colorBottom.luminance();
-                float leftLuma = colorLeft.luminance();
-                float rightLuma = colorRight.luminance();
-
-                float edgeHorizontal = std::abs(leftLuma - rightLuma);
-                float edgeVertical = std::abs(topLuma - bottomLuma);
-
-                bool isHorizontal = (edgeHorizontal >= edgeVertical);
-
-                Colour blendColour;
-                if (isHorizontal) {
-                    blendColour.R = ((colorTop.R + colorBottom.R) * 0.5f);
-                    blendColour.G = ((colorTop.G + colorBottom.G) * 0.5f);
-                    blendColour.B = ((colorTop.B + colorBottom.B) * 0.5f);
-                } else {
-                    blendColour.R = ((colorLeft.R + colorRight.R) * 0.5f);
-                    blendColour.G = ((colorLeft.G + colorRight.G) * 0.5f);
-                    blendColour.B = ((colorLeft.B + colorRight.B) * 0.5f);
-                }
-
-                bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
-
-                if (isEdge) {
-                    putPixelD(x, y, blendColour);
-                } else {
-                    putPixelD(x, y, colorCenter);
-                }
-            }
-        }
-    } else {
-        // Multi-Threaded FXAA
-        int threadCount = 12;
-        std::vector<std::thread> tObjs(threadCount);
-        for (int i = 0; i < threadCount; i++) {
-            tObjs[i] = std::thread(FXAAthr, i, threadCount, 0.f);
-        }
-        for (int i = 0; i < threadCount; i++) {
-            tObjs[i].join();
-        }
-    }
-}
 void modelSpaceToDrawable(const Vector p[3], const Transform &transform, std::vector<Vector> &outTris) {
     Vector moved[3];
     // Model space to world space
@@ -1131,7 +945,7 @@ void renderScene() {
     }
     // Apply AA
     if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
-        FXAA();
+        PostProcess::FXAA();
     }
     if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX) {
         // Draw Bounding boxes
@@ -1143,80 +957,5 @@ void renderScene() {
             drawBox(box, ttf);
         }
     }
-}
-void renderAO() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    const uint32_t SAMPLE_COUNT = 20;
-    const uint32_t SAMPLE_RADIUS = 10;
-    std::uniform_int_distribution<> dist(-SAMPLE_RADIUS, SAMPLE_RADIUS);
-    FS::Vector2 samplesLoc[SAMPLE_COUNT];
-    for (uint32_t y = 0; y < renderState.height; y++) {
-        for (uint32_t x = 0; x < renderState.width; x++) {
-            for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
-                samplesLoc[i] = FS::Vector2{ float(dist(gen)) + x, float(dist(gen)) + y };
-                clamp(samplesLoc[i].x,0.f,float(renderState.width));
-                clamp(samplesLoc[i].y,0.f,float(renderState.height));
-            }
-            int occlusionFactor = 0;
-            uint32_t pixelIndex = (y * renderState.width) + x;
-            float pixelDepth = ((float *)depthBuffer)[pixelIndex];
-            for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
-                if (!isIn(uint32_t(samplesLoc[i].x), 0u, renderState.width) || !isIn(uint32_t(samplesLoc[i].y), 0u, renderState.height)) {
-                    continue;
-                }
-                uint32_t sampleIndex = (samplesLoc[i].y * renderState.width) + samplesLoc[i].x;
-                float sampleDepth = ((float *)depthBuffer)[sampleIndex];
-                // float threshold = 0.001f;
-                if ((sampleDepth > pixelDepth) && (pixelDepth != 0.f)) {
-                    occlusionFactor++;
-                }
-            }
-            Colour color = { 255, 255, 255 }; // getPixel(x, y);
-            putPixelD(x, y, color * (1 - float(occlusionFactor) / SAMPLE_COUNT));
-            renderState.ambientOcclusion[pixelIndex] = (float(occlusionFactor) / SAMPLE_COUNT);
-        }
-    }
-    boxBlur();
-}
-void boxBlur() {
-    uint32_t *buffer = (uint32_t *)malloc(renderState.width * renderState.height * sizeof(uint32_t));
-    memcpy(buffer, renderState.memory, renderState.width * renderState.height * sizeof(uint32_t));
-    for (uint32_t y = 1; y < renderState.height - 1; y++) {
-        for (uint32_t x = 1; x < renderState.width - 1; x++) {
-            Colour grid[9] = {
-                getPixel(x - 1, y - 1),
-                getPixel(x, y - 1),
-                getPixel(x + 1, y - 1),
-
-                getPixel(x - 1, y),
-                getPixel(x, y),
-                getPixel(x + 1, y),
-
-                getPixel(x - 1, y + 1),
-                getPixel(x, y + 1),
-                getPixel(x + 1, y + 1)
-            };
-
-            int totalR = 0;
-            int totalG = 0;
-            int totalB = 0;
-
-            for (int i = 0; i < 9; i++) {
-                totalR += grid[i].R;
-                totalG += grid[i].G;
-                totalB += grid[i].B;
-            }
-
-            uint8_t R = totalR / 9;
-            uint8_t G = totalG / 9;
-            uint8_t B = totalB / 9;
-
-            uint32_t index = (y * renderState.width) + x;
-            buffer[index] = rgbtoHex({ R, G, B });
-        }
-    }
-    memcpy(renderState.memory, buffer, renderState.width * renderState.height * sizeof(uint32_t));
-    free(buffer);
 }
 }; // namespace Renderer

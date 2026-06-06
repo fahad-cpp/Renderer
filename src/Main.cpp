@@ -7,6 +7,7 @@
 #include "SceneSettings.h"
 #include "Timer.h"
 #include <thread>
+#include "PostProcess.h"
 
 // TODO(Fahad):
 /*
@@ -203,7 +204,7 @@ void handleInput(const Input &input) {
 }
 void init() {
     // ZoneScopedN("init");
-    static Mesh model = Renderer::loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, -1);
+    static Mesh model = loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, -1);
 
     // static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
     Vector p[3] = {
@@ -284,7 +285,7 @@ void update(const Input &input) {
             rtThreads[i].join();
         }
         if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
-            Renderer::FXAA();
+            PostProcess::FXAA();
         }
         timer.Stop();
         // LOG_INFO("RayTracing this frame took : "+std::to_string(timer.dtms)+"ms\n");
@@ -292,8 +293,8 @@ void update(const Input &input) {
     } else if (change) {
         // Rasterizer
         Renderer::renderScene();
-        if (sceneSettings.renderMode == RenderMode::RM_AO) {
-            Renderer::renderAO();
+        if ((sceneSettings.renderMode == RenderMode::RM_AO) && (sceneSettings.debugState == DebugState::DS_OFF)) {
+            PostProcess::renderAO();
         } else if (sceneSettings.renderMode == RenderMode::RM_DEPTH) {
             Renderer::renderDepthBuffer();
         }

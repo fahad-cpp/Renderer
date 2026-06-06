@@ -17,7 +17,6 @@ void drawNoise();
 void printPPM(const std::string &filename);
 void exportToPPM(const std::string &filename, uint32_t *buffer, int width, int height);
 void drawLine(Vector a, Vector b, const Colour &color);
-Mesh loadOBJ(const std::string &filename, const Colour &color = { 0, 0, 0 }, float reflectiveness = 0, float specular = -1);
 Vector canvasToViewport(float x, float y);
 std::pair<float, float> viewportToCanvas(float x, float y);
 Vector projectVertex(const Vector &v);
@@ -33,8 +32,6 @@ float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bo
 float planeIntersection(Plane &plane, Vector &point);
 float edgePlaneIntersection(Plane &plane, const Vector &A, const Vector &B);
 std::vector<Triangle> clipTriangle(const Triangle &);
-void FXAAthr(int threadNum, int threadCount, float edgeThreshold = 0.f);
-void FXAA(bool multiThread = true);
 void modelSpaceToDrawable(const Vector p[3], const Transform &transform, std::vector<Vector> &outTris);
 void modelSpaceToDrawableThr(const std::vector<Vector> &inTris, const Transform &transform, std::vector<Vector> &outTris, uint32_t start, uint32_t end);
 void getDrawableTriangles(const std::vector<Vector> &inTris, const Transform &transform, std::vector<Vector> &outTris, bool multithread = true);
@@ -45,6 +42,4 @@ Colour traceRay(const Vector &O, const Vector &D, float tMin, float tMax, int re
 void rayTraceThr(const int threadNum, const int threadCount);
 void rayTrace();
 void renderScene();
-void renderAO();
-void boxBlur();
 }; // namespace Renderer

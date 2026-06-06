@@ -1,5 +1,10 @@
 #include "Object.h"
+#include "Logging.h"
+#include "Timer.h"
+
+#include <fstream>
 #include <vector>
+
 
 // Sphere
 bool operator==(const Sphere &sphere1, const Sphere &sphere2) {
@@ -111,4 +116,95 @@ void Mesh::getTriangles() {
         triangles.push_back(p[1]);
         triangles.push_back(p[2]);
     }
+}
+
+Mesh loadOBJ(const std::string &filename, const Colour &color, float reflectiveness, float specular) {
+    Timer timer;
+    LOG_INFO("Loading " << filename);
+    std::vector<Vector> vertices = {};
+    std::vector<Vector> normals = {};
+    std::vector<Texture> texture = {};
+    std::vector<Face> faces = {};
+
+    std::ifstream OBJFile(filename, std::ios::binary | std::ios::ate);
+    if (!OBJFile) {
+        LOG_ERROR("Cannot open file " << filename << "\n");
+        return {};
+    }
+
+    size_t size = OBJFile.tellg();
+    OBJFile.seekg(0);
+
+    std::vector<char> buffer(size + 1);
+    OBJFile.read(buffer.data(), size);
+    buffer[size] = '\0';
+    OBJFile.close();
+
+    const char *ptr = buffer.data();
+    std::string line;
+    while (*ptr != '\0') {
+        const char *end = ptr;
+        while ((*end != '\0') && *end != '\n')
+            end++;
+        line = std::string(ptr, end - ptr);
+
+        if (ptr[0] == 'v' && (ptr[1] == ' ' || ptr[1] == '\t')) {
+            float x = 0, y = 0, z = 0;
+            std::sscanf(line.c_str(), "v %f %f %f", &x, &y, &z);
+            vertices.emplace_back(x, y, z);
+        } else if (ptr[0] == 'v' && ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
+            float u, v, w;
+            std::sscanf(line.c_str(), "vt %f %f %f", &u, &v, &w);
+            Texture newtext({ u, v, w });
+            texture.emplace_back(newtext);
+        } else if (ptr[0] == 'v' && ptr[1] == 'n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
+            float x, y, z;
+            std::sscanf(line.c_str(), "vn %f %f %f", &x, &y, &z);
+            Vector newnorm(x, y, z);
+            normals.emplace_back(newnorm);
+        } else if (ptr[0] == 'f' && (ptr[1] == ' ' || ptr[1] == '\t')) {
+            //---Only works for 3 Vertices faces---
+            uint32_t v[3] = {};
+            uint32_t t[3] = {};
+            uint32_t n[3] = {};
+            Face newface = {};
+            if (std::sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
+                            &v[0], &t[0], &n[0],
+                            &v[1], &t[1], &n[1],
+                            &v[2], &t[2], &n[2]) == 9) {
+                newface = {
+                    Index{ v[0] - 1, t[0], n[0] },
+                    Index{ v[1] - 1, t[1], n[1] },
+                    Index{ v[2] - 1, t[2], n[2] }
+                };
+                faces.emplace_back(newface);
+            } else if (std::sscanf(line.c_str(), "f %d//%d %d//%d %d//%d",
+                                   &v[0], &n[0],
+                                   &v[1], &n[1],
+                                   &v[2], &n[2]) == 6) {
+                newface = {
+                    Index{ v[0] - 1, 0, n[0] },
+                    Index{ v[1] - 1, 0, n[1] },
+                    Index{ v[2] - 1, 0, n[2] }
+                };
+                faces.emplace_back(newface);
+            } else {
+                LOG_ERROR(("Unsupported face format :" + filename + "\n"));
+                return {};
+            }
+        }
+
+        while ((*ptr != '\0') && *ptr != '\n')
+            ptr++;
+        if (*ptr == '\n')
+            ptr++;
+    }
+    Mesh mesh = { vertices, normals, texture, faces };
+    mesh.material.color = color;
+    mesh.material.specular = specular;
+    mesh.material.reflectiveness = reflectiveness;
+    mesh.initTriangles();
+    timer.Stop();
+    LOG_SUCCESS("Loaded " << filename << ":" << timer.dtms << "ms");
+    return mesh;
 }
