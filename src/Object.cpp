@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "Object.h"
 #include "Logging.h"
 #include "Timer.h"

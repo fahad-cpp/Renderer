@@ -1,5 +1,5 @@
-#pragma once
-#define _CRT_SECURE_NO_WARNINGS
+#ifndef RENDERER_H
+#define RENDERER_H
 #include "Object.h"
 #include "Transform.h"
 #include <cassert>
@@ -43,3 +43,4 @@ void rayTraceThr(const int threadNum, const int threadCount);
 void rayTrace();
 void renderScene();
 }; // namespace Renderer
+#endif

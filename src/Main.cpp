@@ -1,13 +1,13 @@
-#include "Main.h"
 #include "Colour.h"
 #include "Globals.h"
 #include "Logging.h"
+#include "Main.h"
 #include "Object.h"
+#include "PostProcess.h"
 #include "Renderer.h"
 #include "SceneSettings.h"
 #include "Timer.h"
 #include <thread>
-#include "PostProcess.h"
 
 // TODO(Fahad):
 /*
@@ -145,12 +145,14 @@ void handleInput(const Input &input) {
             LOG_INFO("Backface culling turned off\n");
         change = true;
     }
+
     // Reset camera Position and rotation
     if (pressed(BUTTON_Q)) {
         camera.rotation = { 0, 0, 0 };
         camera.position = { 0, 0, 0 };
         change = true;
     }
+
     // Slow down time
     fdt = 0.06;
     if (isDown(MOUSE_BUTTON_LEFT)) {
@@ -158,12 +160,14 @@ void handleInput(const Input &input) {
     }
     if (isDown(MOUSE_BUTTON_RIGHT)) {
         Transform tf = { { 0, 0, 0 }, 1, { 0, float(100 * fdt), 0 } };
-        if (scene.instances.size())
+        if (scene.instances.size()){
             scene.instances[0].applyTransform(tf);
+        }
         change = true;
     }
+
+    // Toggle Anti aliasing
     if (pressed(BUTTON_F)) {
-        // Toggle Anti aliasing
         sceneSettings.antiAliasing = !sceneSettings.antiAliasing;
         if (sceneSettings.antiAliasing) {
             LOG_INFO("Anti aliasing turned on.\n");
@@ -172,6 +176,7 @@ void handleInput(const Input &input) {
         }
         change = true;
     }
+    // Lock / Unlock mouse
     if (pressed(BUTTON_G)) {
         ShowCursor(sceneSettings.lockMouse);
         sceneSettings.lockMouse = !sceneSettings.lockMouse;
@@ -186,14 +191,19 @@ void handleInput(const Input &input) {
         change = true;
     }
 
+    // Change lighting modes
     if (pressed(BUTTON_X)) {
-        sceneSettings.lightingMode = LightingMode::LIGHT_SHADOWS;
-    } else if (pressed(BUTTON_Z)) {
-        sceneSettings.lightingMode = LightingMode::NO_LIGHT;
-    } else if (pressed(BUTTON_Y)) {
-        sceneSettings.lightingMode = LightingMode::LIGHT_ONLY;
+        LightingMode mode = sceneSettings.lightingMode;
+        uint8_t modenumber = static_cast<uint8_t>(mode);
+        modenumber++;
+        if (modenumber >= static_cast<uint8_t>(LightingMode::MAX_ENUM)) {
+            modenumber = 0;
+        }
+        mode = static_cast<LightingMode>(modenumber);
+        sceneSettings.lightingMode = mode;
     }
 
+    // Ambient Occlusion
     if (pressed(BUTTON_O)) {
         if (sceneSettings.renderMode == RenderMode::RM_AO) {
             sceneSettings.renderMode = RenderMode::RM_COLOR;

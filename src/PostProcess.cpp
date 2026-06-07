@@ -2,7 +2,7 @@
 #include "Globals.h"
 #include "Renderer.h"
 #include "Utility.h"
-#include "Vector2.h"
+#include <FSWindow.h>
 #include <random>
 
 namespace PostProcess {
@@ -106,8 +106,8 @@ void FXAA(bool multiThread) {
 void renderAO() {
     std::random_device rd;
     std::mt19937 gen(rd());
-    const uint32_t SAMPLE_COUNT = 5;
-    const uint32_t SAMPLE_RADIUS = 3;
+    const int SAMPLE_COUNT = 5;
+    const int SAMPLE_RADIUS = 3;
     std::uniform_int_distribution<> dist(-SAMPLE_RADIUS, SAMPLE_RADIUS);
     FS::Vector2 samplesLoc[SAMPLE_COUNT];
     for (uint32_t y = 0; y < renderState.height; y++) {
@@ -136,7 +136,7 @@ void renderAO() {
             renderState.ambientOcclusion[pixelIndex] = (float(occlusionFactor) / SAMPLE_COUNT);
         }
     }
-    // boxBlur();
+    boxBlur();
 }
 void boxBlur() {
     uint32_t *buffer = (uint32_t *)malloc(renderState.width * renderState.height * sizeof(uint32_t));

@@ -1,9 +1,9 @@
-#define _CRT_SECURE_NO_WARNINGS
 /*
  * ------------------------------------------------------------------
  * This file handles all the windowing and windows api specific tasks
  * ------------------------------------------------------------------
  */
+#define _CRT_SECURE_NO_WARNINGS
 #define NOMINMAX
 
 #include "Window.h"
