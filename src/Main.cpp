@@ -214,36 +214,36 @@ void handleInput(const Input &input) {
 }
 void init() {
     // ZoneScopedN("init");
-    static Mesh model = loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, 16.f);
-
-    // static Mesh floor = Renderer::loadOBJ("res/Models/surface.obj", { 255,255,255 }, 0.f, 1.f);
+    const float shininess = 1.f;
+    static Mesh model = loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, shininess);
+    //static Mesh floor = loadOBJ("res/Models/surface.obj", { 233,234,231 }, 0.f, shininess);
     Vector p[3] = {
         { -1.f, 0.f, 1.f },
         { 0.f, 2.f, 1.f },
         { 1.f, 0.f, 1.f },
     };
-    Triangle tri(p, { 0, 0, 0 }, Material{ { 255, 0, 0 }, -1, 0.f });
+    Triangle tri(p, { 0, 0, 0 }, Material{ { 255, 0, 0 }, -1, shininess });
     scene = {
         .spheres = std::vector<Sphere>{
             {
                 .center = Vector{ 0, 0, -3 },
                 .radius = 1.f,
                 .color = Colour{ 255, 0, 0 },
-                .specular = 100.f,
+                .specular = shininess,
                 .reflectiveness = 0.4f,
             },
             {
                 .center = Vector{ -1, 0, -4 },
                 .radius = 1.f,
                 .color = Colour{ 0, 255, 0 },
-                .specular = 100.f,
+                .specular = shininess,
                 .reflectiveness = 0.4f,
             },
             {
                 .center = Vector{ 1, 0, -4 },
                 .radius = 1.f,
                 .color = Colour{ 0, 0, 255 },
-                .specular = 100.f,
+                .specular = shininess,
                 .reflectiveness = 0.4f,
             },
             /*{
@@ -260,14 +260,14 @@ void init() {
         },
         .instances = std::vector<Instance>{
             { .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = .1f, .rotation = { 0, 0, 0 } } },
-            /*{
-                .mesh = &floor,
-                .transform = {
-                    .position = {0,-10.f,0},
-                    .scale = 10.f,
-                    .rotation = {0,0,0}
-                }
-            }*/
+            //{
+            //    .mesh = &floor,
+            //    .transform = {
+            //        .position = {0,-1.f,0},
+            //        .scale = 1.f,
+            //        .rotation = {0,0,0}
+            //    }
+            //}
         },
         .lights = std::vector<Light>{
             { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.2f },
