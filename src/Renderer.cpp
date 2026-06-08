@@ -594,11 +594,18 @@ float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bo
             }
             // specular reflection
             if (s != -1) {
-                Vector R = reflectRay(L, N);
-                float vDotR = dot(V, R);
-                if (vDotR > 0) {
-                    i += light.intensity * pow((vDotR / (length(R) * length(V))), s);
-                }
+                //PHONG
+                //Vector R = reflectRay(L, N);
+                //float vDotR = dot(V, R);
+                //if (vDotR > 0) {
+                //    i += light.intensity * pow((vDotR / (length(R) * length(V))), s);
+                //}
+                
+                //Blinn - Phong
+                Vector H = L + V;
+                H = H / length(H);
+                float specular = std::pow(getMax(dot(N, H), 0.f), s);
+                i += light.intensity * specular;
             }
         }
     }
