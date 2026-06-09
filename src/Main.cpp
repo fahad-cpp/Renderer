@@ -1,13 +1,14 @@
+#include "Main.h"
 #include "Colour.h"
 #include "Globals.h"
 #include "Logging.h"
-#include "Main.h"
 #include "Object.h"
 #include "PostProcess.h"
 #include "Renderer.h"
 #include "SceneSettings.h"
 #include "Timer.h"
 #include <thread>
+
 
 // TODO(Fahad):
 /*
@@ -160,7 +161,7 @@ void handleInput(const Input &input) {
     }
     if (isDown(MOUSE_BUTTON_RIGHT)) {
         Transform tf = { { 0, 0, 0 }, 1, { 0, float(100 * fdt), 0 } };
-        if (scene.instances.size()){
+        if (scene.instances.size()) {
             scene.instances[0].applyTransform(tf);
         }
         change = true;
@@ -214,15 +215,15 @@ void handleInput(const Input &input) {
 }
 void init() {
     // ZoneScopedN("init");
-    const float shininess = 1.f;
+    const float shininess = 64.f;
     static Mesh model = loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, shininess);
-    //static Mesh floor = loadOBJ("res/Models/surface.obj", { 233,234,231 }, 0.f, shininess);
+    // static Mesh floor = loadOBJ("res/Models/surface.obj", { 233,234,231 }, 0.f, shininess);
     Vector p[3] = {
         { -1.f, 0.f, 1.f },
         { 0.f, 2.f, 1.f },
         { 1.f, 0.f, 1.f },
     };
-    Triangle tri(p, { 0, 0, 0 }, Material{ { 255, 0, 0 }, -1, shininess });
+    Triangle tri(p, { 0, 0, 0 }, Material{ { 255, 0, 0 }, shininess, 0.f });
     scene = {
         .spheres = std::vector<Sphere>{
             {
@@ -271,8 +272,8 @@ void init() {
         },
         .lights = std::vector<Light>{
             { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.2f },
-            { .type = LT_POINT, .pos = { 2, 1, 0 }, .direction = { 1, 2, 0 }, .intensity = 0.6f },
-            { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.2f },
+            { .type = LT_POINT, .pos = { 2, 1, 0 }, .direction = { 1, 2, 0 }, .intensity = 0.4f },
+            { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.5f },
         }
     };
     for (Instance &ins : scene.instances) {

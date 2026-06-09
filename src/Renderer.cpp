@@ -5,6 +5,7 @@
 #include "Logging.h"
 #include "Object.h"
 #include "PostProcess.h"
+#include "Scene.h"
 #include "Timer.h"
 #include "Transform.h"
 #include "Utility.h"
@@ -20,7 +21,6 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
-
 
 namespace Renderer {
 void clearScreen(uint32_t color) {
@@ -311,7 +311,7 @@ void drawVerticesTriangle(const Vector p[3], const Material &material, bool wire
             Vector point = canvasToViewport(x * z / d, y * z / d);
             point.z = z;
             point = transformVertex(point, camera, RotateOrder::RO_XYZ);
-            Vector direction = point - camera.position;
+            Vector direction = camera.position - point;
             direction = direction / length(direction);
 
             Colour color = material.color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
@@ -568,18 +568,19 @@ float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bo
     for (const Light &light : scene.lights) {
         // L = direction of the light
         Vector L = {};
-        float tMax = 0;
+        float distance = 0;
+        float radius = light.intensity * 256;
         if (light.type == LT_AMBIENT) {
             i += light.intensity;
         } else {
             if (light.type == LT_DIRECTIONAL) {
                 L = -light.direction;
-                tMax = INT_MAX;
+                distance = INT_MAX;
             } else if (light.type == LT_POINT) {
                 L = (light.pos - P);
-                tMax = length(L);
+                distance = length(L);
             }
-            float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, tMax).intersection : INT_MAX;
+            float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, distance).intersection : INT_MAX;
             if (shadowT > 1) {
                 shadowT = INT_MAX;
             }
@@ -589,29 +590,32 @@ float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bo
             }
             // Diffuse reflection
             float nDotL = dot(N, L);
+            float diffuse = 0;
             if (nDotL > 0) {
-                i += (light.intensity * nDotL / (length(N) * length(L)));
+                diffuse = nDotL / (length(N) * length(L));
             }
             // specular reflection
-            if (s != -1) {
-                #if 0
+            float specular = 0;
+            if (s != -1 && light.type == LT_POINT) {
+#if 0
                 //Phong
                 Vector R = reflectRay(L, N);
                 float vDotR = dot(V, R);
                 if (vDotR > 0) {
                     i += light.intensity * pow((vDotR / (length(R) * length(V))), s);
                 }
-                #else
-                
-                //Blinn - Phong
+#else
+
+                // Blinn - Phong
                 Vector Nn = normalize(N);
                 Vector Ln = normalize(L);
                 Vector Vn = normalize(V);
                 Vector H = normalize(Ln + Vn);
-                float specular = pow(getMax(dot(Nn, H), 0.f), s*4);
-                i += light.intensity * specular;
-                #endif
+                specular = pow(getMax(dot(Nn, H), 0.f), s);
+#endif
             }
+            float attinuation = (light.type == LT_POINT) ? clampv(1 - distance / radius, 0.f, 1.f) : 1.f;
+            i += (specular + diffuse) * light.intensity * attinuation;
         }
     }
     return i;

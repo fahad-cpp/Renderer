@@ -6,7 +6,6 @@
 #include <fstream>
 #include <vector>
 
-
 // Sphere
 bool operator==(const Sphere &sphere1, const Sphere &sphere2) {
     return ((sphere1.color == sphere2.color) && (sphere1.specular == sphere2.specular) && (sphere1.reflectiveness == sphere2.reflectiveness));
