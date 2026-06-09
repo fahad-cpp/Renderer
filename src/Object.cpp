@@ -17,33 +17,6 @@ bool operator==(const Box &box2, const Box &box) {
 }
 
 // Triangle
-Triangle::Triangle() {
-    p[0] = {};
-    p[1] = {};
-    p[2] = {};
-    material.color = { 255, 0, 0 };
-    material.reflectiveness = 0;
-    material.specular = -1;
-}
-
-Triangle::Triangle(const Vector _p[3], Vector _normal, Colour color, float specular, float reflectiveness) {
-    this->p[0] = _p[0];
-    this->p[1] = _p[1];
-    this->p[2] = _p[2];
-    this->material.color = color;
-    this->material.specular = specular;
-    this->material.reflectiveness = reflectiveness;
-    this->normal = (_normal == Vector{ 0, 0, 0 }) ? cross((p[1] - p[0]), (p[2] - p[0])) : _normal;
-}
-
-Triangle::Triangle(const Vector _p[3], Vector _normal, Material _material) {
-    this->p[0] = _p[0];
-    this->p[1] = _p[1];
-    this->p[2] = _p[2];
-    this->material = _material;
-    this->normal = (_normal == Vector{ 0, 0, 0 }) ? cross((p[1] - p[0]), (p[2] - p[0])) : normal;
-}
-
 Vector Triangle::calculateNormal() {
     // anti clockwise
     normal = cross((p[1] - p[0]), (p[2] - p[0]));
@@ -173,9 +146,9 @@ Mesh loadOBJ(const std::string &filename, const Colour &color, float reflectiven
                             &v[1], &t[1], &n[1],
                             &v[2], &t[2], &n[2]) == 9) {
                 newface = {
-                    Index{ v[0] - 1, t[0], n[0] },
-                    Index{ v[1] - 1, t[1], n[1] },
-                    Index{ v[2] - 1, t[2], n[2] }
+                    Index{ v[0] - 1, t[0] - 1, n[0] - 1 },
+                    Index{ v[1] - 1, t[1] - 1, n[1] - 1 },
+                    Index{ v[2] - 1, t[2] - 1, n[2] - 1 }
                 };
                 faces.emplace_back(newface);
             } else if (std::sscanf(line.c_str(), "f %d//%d %d//%d %d//%d",
@@ -183,9 +156,9 @@ Mesh loadOBJ(const std::string &filename, const Colour &color, float reflectiven
                                    &v[1], &n[1],
                                    &v[2], &n[2]) == 6) {
                 newface = {
-                    Index{ v[0] - 1, 0, n[0] },
-                    Index{ v[1] - 1, 0, n[1] },
-                    Index{ v[2] - 1, 0, n[2] }
+                    Index{ v[0] - 1, 0, n[0] - 1},
+                    Index{ v[1] - 1, 0, n[1] - 1},
+                    Index{ v[2] - 1, 0, n[2] - 1}
                 };
                 faces.emplace_back(newface);
             } else {

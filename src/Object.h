@@ -30,10 +30,6 @@ struct Triangle {
     Vector p[3];
     Vector normal;
     Material material;
-
-    Triangle();
-    Triangle(const Vector _p[3], Vector _normal = { 0, 0, 0 }, Colour color = { 0, 0, 0 }, float specular = -1, float reflectiveness = 0);
-    Triangle(const Vector _p[3], Vector _normal = { 0, 0, 0 }, Material _material = { Colour{ 0, 0, 0 }, -1.f, 0.f });
     Vector calculateNormal();
     Vector getCentroid();
 };

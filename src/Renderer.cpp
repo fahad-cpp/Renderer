@@ -369,7 +369,10 @@ void drawBox(const Box &box, const Transform &tf, bool inTriangle) {
         std::vector<Vector> inTris = {};
         inTris.reserve(12 * 3);
         for (int i = 0; i < 12; i++) {
-            Triangle tri(tris[i], { 0, 0, 0 }, Material{});
+            Triangle tri({}, { 0, 0, 0 }, Material{});
+            tri.p[0] = tris[i][0];
+            tri.p[1] = tris[i][1];
+            tri.p[2] = tris[i][2];
             std::vector<Triangle> clippedTris = clipTriangle(tri);
             for (const Triangle &ct : clippedTris) {
                 triangles.push_back(ct.p[0]);
@@ -547,7 +550,10 @@ HitData closestIntersection(const Vector &O, const Vector &D, float tMin, float 
                 transformVertex(triangles[i + 1], instance.transform),
                 transformVertex(triangles[i + 2], instance.transform),
             };
-            Triangle tri(p, { 0, 0, 0 }, Material{});
+            Triangle tri({}, { 0, 0, 0 }, Material{});
+            tri.p[0] = p[0];
+            tri.p[1] = p[1];
+            tri.p[2] = p[2];
 
             float triangleInt = intersectRayTriangle(O, D, tri);
             if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
@@ -697,7 +703,10 @@ std::vector<Triangle> clipTriangle(const Triangle &tri) {
                 p[invec[0]] = A;
                 p[outvec[0]] = B;
                 p[outvec[1]] = C;
-                Triangle newTri(p, (t.normal / length(t.normal)), t.material);
+                Triangle newTri({}, (t.normal / length(t.normal)), t.material);
+                newTri.p[0] = p[0];
+                newTri.p[1] = p[1];
+                newTri.p[2] = p[2];
                 planeClipped.push_back(newTri);
             } else if (inCount == 2) {
                 Vector A, B, C;
@@ -719,8 +728,14 @@ std::vector<Triangle> clipTriangle(const Triangle &tri) {
                 p2[invec[0]] = newB;
                 p2[invec[1]] = C;
                 p2[outvec[0]] = A;
-                Triangle newTri1(p1, (t.normal / length(t.normal)), t.material);
-                Triangle newTri2(p2, (t.normal / length(t.normal)), t.material);
+                Triangle newTri1({}, (t.normal / length(t.normal)), t.material);
+                newTri1.p[0] = p1[0];
+                newTri1.p[1] = p1[1];
+                newTri1.p[2] = p1[2];
+                Triangle newTri2({}, (t.normal / length(t.normal)), t.material);
+                newTri2.p[0] = p2[0];
+                newTri2.p[1] = p2[1];
+                newTri2.p[2] = p2[2];
                 planeClipped.push_back(newTri1);
                 planeClipped.push_back(newTri2);
             }

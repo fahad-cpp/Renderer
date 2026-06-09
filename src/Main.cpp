@@ -217,13 +217,13 @@ void init() {
     // ZoneScopedN("init");
     const float shininess = 64.f;
     static Mesh model = loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, shininess);
-    // static Mesh floor = loadOBJ("res/Models/surface.obj", { 233,234,231 }, 0.f, shininess);
+    //static Mesh floor = loadOBJ("res/Models/surface.obj", { 233,234,231 }, 0.f, shininess);
     Vector p[3] = {
         { -1.f, 0.f, 1.f },
         { 0.f, 2.f, 1.f },
         { 1.f, 0.f, 1.f },
     };
-    Triangle tri(p, { 0, 0, 0 }, Material{ { 255, 0, 0 }, shininess, 0.f });
+    Triangle tri{ { p[0], p[1], p[2] }, { 0, 0, 0 }, { {255,0,0},shininess,0.f } };
     scene = {
         .spheres = std::vector<Sphere>{
             {
@@ -261,14 +261,7 @@ void init() {
         },
         .instances = std::vector<Instance>{
             { .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = .1f, .rotation = { 0, 0, 0 } } },
-            //{
-            //    .mesh = &floor,
-            //    .transform = {
-            //        .position = {0,-1.f,0},
-            //        .scale = 1.f,
-            //        .rotation = {0,0,0}
-            //    }
-            //}
+            //{ .mesh = &floor, .transform = { .position = { 0, -1.f, 0 }, .scale = 1.f, .rotation = { 0, 0, 0 } } },
         },
         .lights = std::vector<Light>{
             { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.2f },
