@@ -4,8 +4,8 @@
 #include <numbers>
 struct Transform {
     Vector position = { 0, 0, 0 };
-    float scale = 0.f;
-    Vector rotation = 0;
+    float scale = 1.f;
+    Vector rotation = {0,0,0};
 };
 enum class RotateOrder {
     RO_YXZ = 0,

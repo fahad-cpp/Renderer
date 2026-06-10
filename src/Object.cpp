@@ -33,7 +33,7 @@ Mesh::Mesh() {
     normals = {};
     texture = {};
     faces = {};
-    triangles = {};
+    triangleData = {};
     boundingBox = {};
     material = {};
 }
@@ -74,20 +74,28 @@ void Mesh::initTriangles() {
 }
 
 void Mesh::getTriangles() {
-    if (triangles.size()) {
+    if (triangleData.vertices.size()) {
         return;
     }
-    triangles.clear();
-    triangles.reserve(faces.size() * 3);
+    triangleData.vertices.clear();
+    triangleData.vertices.reserve(faces.size() * 3);
     for (const Face &face : faces) {
         Vector p[3] = {
             vertices[face.index[0].vert],
             vertices[face.index[1].vert],
             vertices[face.index[2].vert]
         };
-        triangles.push_back(p[0]);
-        triangles.push_back(p[1]);
-        triangles.push_back(p[2]);
+        Vector n[3] = {
+            normals[face.index[0].norm],
+            normals[face.index[1].norm],
+            normals[face.index[2].norm],
+        };
+        triangleData.vertices.push_back(p[0]);
+        triangleData.vertices.push_back(p[1]);
+        triangleData.vertices.push_back(p[2]);
+        triangleData.normals.push_back(n[0]);
+        triangleData.normals.push_back(n[1]);
+        triangleData.normals.push_back(n[2]);
     }
 }
 

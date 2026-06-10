@@ -56,12 +56,16 @@ struct Box {
     Vector lowest;
     friend bool operator==(const Box &box2, const Box &box);
 };
+struct TriangleData {
+    std::vector<Vector> vertices;
+    std::vector<Vector> normals;
+};
 struct Mesh {
     std::vector<Vector> vertices;
     std::vector<Vector> normals;
     std::vector<Texture> texture;
     std::vector<Face> faces;
-    std::vector<Vector> triangles;
+    TriangleData triangleData;
     Box boundingBox;
     Material material;
     Mesh();
