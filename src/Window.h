@@ -11,6 +11,7 @@ struct RenderState {
     uint32_t height;
     float *ambientOcclusion;
     void *memory;
+    Vector *normalBuffer;
     uint32_t width;
 };
 struct Window {

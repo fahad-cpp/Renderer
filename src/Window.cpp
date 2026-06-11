@@ -55,6 +55,9 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             VirtualFree(depthBuffer, 0, MEM_RELEASE);
         if (renderState.ambientOcclusion)
             VirtualFree(renderState.ambientOcclusion, 0, MEM_RELEASE);
+        if (renderState.normalBuffer) {
+            VirtualFree(renderState.normalBuffer, 0, MEM_RELEASE);
+        }
         running = false;
         FreeConsole();
         std::fclose(stdout);
@@ -69,21 +72,30 @@ LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
         int screenRes = renderState.width * renderState.height;
         // Screen backbuffer
-        if (renderState.memory)
+        if (renderState.memory) {
             VirtualFree(renderState.memory, 0, MEM_RELEASE);
+        }
         renderState.memory = VirtualAlloc(0, screenRes * sizeof(uint32_t), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         // Depth buffer
-        if (depthBuffer)
+        if (depthBuffer) {
             VirtualFree(depthBuffer, 0, MEM_RELEASE);
+        }
         depthBuffer = VirtualAlloc(0, screenRes * sizeof(float), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         // AO buffer
-        if (renderState.ambientOcclusion)
+        if (renderState.ambientOcclusion) {
             VirtualFree(renderState.ambientOcclusion, 0, MEM_RELEASE);
+        }
         renderState.ambientOcclusion = static_cast<float *>(VirtualAlloc(0, screenRes * sizeof(float), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
         // pixelLock buffer
-        if (pixelLocks)
+        if (pixelLocks) {
             VirtualFree(pixelLocks, 0, MEM_RELEASE);
+        }
         pixelLocks = static_cast<std::mutex *>(VirtualAlloc(0, screenRes * (sizeof(std::mutex)), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        // Normal Buffer
+        if (renderState.normalBuffer) {
+            VirtualFree(renderState.normalBuffer, 0, MEM_RELEASE);
+        }
+        renderState.normalBuffer = static_cast<Vector *>(VirtualAlloc(0, screenRes * sizeof(Vector), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
         renderState.bitmapinfo.bmiHeader.biSize = sizeof(renderState.bitmapinfo.bmiHeader);
         renderState.bitmapinfo.bmiHeader.biWidth = renderState.width;

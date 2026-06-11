@@ -163,6 +163,20 @@ Vector projectVertex(const Vector &v) {
     std::pair<float, float> result = viewportToCanvas(((v.x * d) / v.z), ((v.y * d) / v.z));
     return { result.first, result.second, d };
 }
+// void interpolate(float x0, float y0, float x1, float y1, std::vector<float> &arr) {
+//     float dx = x1 - x0;
+//     float dy = y1 - y0;
+//     float aspectratio = (dy != 0) ? (dx / dy) : 0.00001;
+//     float x = x0;
+//
+//     size_t size = abs(int(y1) - int(y0));
+//     int idx = 0;
+//     for (int y = int(y0); y < int(y1); y++) {
+//         arr.push_back(x);
+//         idx++;
+//         x += aspectratio;
+//     }
+// }
 void interpolate(float x0, float y0, float x1, float y1, std::vector<float> &arr) {
     float dx = x1 - x0;
     float dy = y1 - y0;
@@ -170,17 +184,20 @@ void interpolate(float x0, float y0, float x1, float y1, std::vector<float> &arr
     float x = x0;
 
     size_t size = abs(int(y1) - int(y0));
-    int idx = 0;
+    arr.reserve(size);
     for (int y = int(y0); y < int(y1); y++) {
         arr.push_back(x);
-        idx++;
         x += aspectratio;
     }
 }
-void interpolate(Vector x0,float y0,Vector x1,float y1,std::vector<Vector>& arr) {
-    uint32_t size = abs(int(y1) - int(y0));
-    float distance = abs(y1 - y0);
+void interpolate(Vector x0, float y0, Vector x1, float y1, std::vector<Vector> &arr) {
+    size_t size = abs(int(y1) - int(y0));
     arr.reserve(size);
+    for (int y = int(y0); y < int(y1); y++) {
+        float t = float(y - int(y0)) / float(size);
+        Vector x = lerp(x0, x1, t);
+        arr.push_back(x);
+    }
 }
 void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &material, bool wireframe) {
     Vector projected[3] = {
@@ -192,15 +209,23 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     projected[0].z = p[0].z;
     projected[1].z = p[1].z;
     projected[2].z = p[2].z;
+    Vector norm[3] = {
+        n[0],
+        n[1],
+        n[2]
+    };
 
     if (projected[0].y > projected[1].y) {
         std::swap(projected[0], projected[1]);
+        std::swap(norm[0], norm[1]);
     }
     if (projected[0].y > projected[2].y) {
         std::swap(projected[0], projected[2]);
+        std::swap(norm[0], norm[2]);
     }
     if (projected[1].y > projected[2].y) {
         std::swap(projected[1], projected[2]);
+        std::swap(norm[1], norm[2]);
     }
 
     if (wireframe) {
@@ -227,6 +252,10 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     std::vector<float> z01 = {};
     std::vector<float> z12 = {};
     std::vector<float> z02 = {};
+
+    std::vector<Vector> n01 = {};
+    std::vector<Vector> n12 = {};
+    std::vector<Vector> n02 = {};
     // Reserve space for z01 + z12 because we concatenate later
     z01.reserve(size01 + size12);
     z12.reserve(size12);
@@ -240,6 +269,10 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     interpolate(z1, projected[1].y, z2, projected[2].y, z12);
     interpolate(z0, projected[0].y, z2, projected[2].y, z02);
 
+    interpolate(norm[0], projected[0].y, norm[1], projected[1].y, n01);
+    interpolate(norm[1], projected[1].y, norm[2], projected[2].y, n12);
+    interpolate(norm[0], projected[0].y, norm[2], projected[2].y, n02);
+
     // Concatenate short sides
     for (const float &x : x12) {
         x01.push_back(x);
@@ -249,11 +282,17 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
         z01.push_back(z);
     }
 
+    for (const Vector &nrm : n12) {
+        n01.push_back(nrm);
+    }
+
     uint32_t middle = uint32_t(x02.size() / 2.f);
     std::vector<float> *xleft = nullptr;
     std::vector<float> *xright = nullptr;
     std::vector<float> *zleft = nullptr;
     std::vector<float> *zright = nullptr;
+    std::vector<Vector> *nleft = nullptr;
+    std::vector<Vector> *nright = nullptr;
 
     if ((!x02.size())) {
         return;
@@ -265,22 +304,19 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
 
         zleft = &z02;
         zright = &z01;
+
+        nleft = &n02;
+        nright = &n01;
     } else {
         xleft = &x01;
         xright = &x02;
 
         zleft = &z01;
         zright = &z02;
+
+        nleft = &n01;
+        nright = &n02;
     }
-
-    Vector worldSpace[3] = {
-        transformVertex(p[0], camera, RotateOrder::RO_XYZ),
-        transformVertex(p[1], camera, RotateOrder::RO_XYZ),
-        transformVertex(p[2], camera, RotateOrder::RO_XYZ)
-    };
-
-    Vector normal = cross((worldSpace[1] - worldSpace[0]), (worldSpace[2] - worldSpace[0]));
-    normal = normal / length(normal);
 
     bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
     bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
@@ -290,14 +326,17 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
         float rz = (*zright)[scanline];
         int lx = (*xleft)[scanline];
         int rx = (*xright)[scanline];
+        Vector ln = (*nleft)[scanline];
+        Vector rn = (*nright)[scanline];
 
-        
         // interpolate z
         std::vector<float> zsegment = {};
+        std::vector<Vector> nsegment = {};
         uint32_t zsegmentSize = uint32_t(rx - lx) > renderState.width ? renderState.width : (rx - lx);
+
         zsegment.reserve(zsegmentSize);
         interpolate(lz, float(lx), rz, float(rx), zsegment);
-
+        interpolate(ln, float(lx), rn, float(rx), nsegment);
         for (int x = lx; x < rx; x++) {
             if ((!isIn(float(x), -canvas.x / 2.f, canvas.x / 2.f) || !isIn(float(y), -canvas.y / 2.f, canvas.y / 2.f))) {
                 continue;
@@ -308,6 +347,8 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
             std::lock_guard<std::mutex> lock(pixelLocks[index]);
             float dep = ((float *)depthBuffer)[index];
             float invz = zsegment[x - lx];
+            Vector normal = nsegment[x - lx];
+            normalize(normal);
             float z = 1.f / invz;
             if (invz <= dep) {
                 continue;
@@ -319,7 +360,9 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
             Vector direction = camera.position - point;
             direction = direction / length(direction);
 
-            Colour color = material.color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
+            // Colour color = { uint8_t(normal.x * 255), uint8_t(normal.y * 255), uint8_t(normal.z * 255)  };
+            Colour color = material.color;
+            color = color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
             ((float *)depthBuffer)[index] = invz;
             ((uint32_t *)renderState.memory)[index] = rgbtoHex(color);
         }
@@ -387,7 +430,7 @@ void drawBox(const Box &box, const Transform &tf, bool inTriangle) {
                   normal }
             };
             TriangleData clippedTris = {};
-            clipTriangle(tri,clippedTris);
+            clipTriangle(tri, clippedTris);
             for (const Vector &v : clippedTris.vertices) {
                 vertices.push_back(v);
             }
@@ -646,10 +689,10 @@ float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bo
     return i;
 }
 // returns a signed distance from the point to the plane
-float planeIntersection(Plane &plane, const Vector &point) {
+float planeIntersection(const Plane &plane, const Vector &point) {
     return ((dot(point, plane.normal)) + plane.offset);
 }
-float edgePlaneIntersection(Plane &plane, const Vector &A, const Vector &B) {
+float edgePlaneIntersection(const Plane &plane, const Vector &A, const Vector &B) {
     // P = A + t(B - A)
     // <N,P> + D = 0
     // <N,(A + t(B - A))> + D = 0
@@ -659,175 +702,189 @@ float edgePlaneIntersection(Plane &plane, const Vector &A, const Vector &B) {
     // t = -D - <N,A>/ <N,(B - A)>
     return (-plane.offset - dot(plane.normal, A)) / dot(plane.normal, (B - A));
 }
-void clipTriangle(const TriangleData &in,TriangleData &out) {
-    out.vertices.reserve(in.vertices.size());
-    out.normals.reserve(in.normals.size());
-    out = in;
-    for (int i = 0; i < 6; i++) {
-        TriangleData planeClipped = {};
-        for (int vc = 0; vc < out.vertices.size();vc+=3) {
-            Vector tp[3] = {
-                out.vertices[vc],
-                out.vertices[vc + 1],
-                out.vertices[vc + 2],
-            };
-            Vector tn[3] = {
-                out.normals[vc],
-                out.normals[vc + 1],
-                out.normals[vc + 2],
-            };
-            float d1 = planeIntersection(planes[i], tp[0]);
-            float d2 = planeIntersection(planes[i], tp[1]);
-            float d3 = planeIntersection(planes[i], tp[2]);
-            // All points of a triangle are inside the plane
-            if ((d1 >= 0.f) && (d2 >= 0.f) && (d3 >= 0.f)) {
-                planeClipped.vertices.reserve(3);
-                planeClipped.normals.reserve(3);
-                planeClipped.vertices.push_back(tp[0]);
-                planeClipped.vertices.push_back(tp[1]);
-                planeClipped.vertices.push_back(tp[2]);
-                planeClipped.normals.push_back(tn[0]);
-                planeClipped.normals.push_back(tn[1]);
-                planeClipped.normals.push_back(tn[2]);
-                continue;
-            }
-            // All points of a triangle are outside the plane
-            else if ((d1 < 0.f) && (d2 < 0.f) && (d3 < 0.f)) {
-                continue;
-            }
+void clipPlane(const Plane &plane, const TriangleData &in, TriangleData &out) {
+    for (size_t vc = 0; vc < in.vertices.size(); vc += 3) {
+        Vector tp[3] = {
+            in.vertices[vc],
+            in.vertices[vc + 1],
+            in.vertices[vc + 2],
+        };
+        Vector tn[3] = {
+            in.normals[vc],
+            in.normals[vc + 1],
+            in.normals[vc + 2],
+        };
+        float d1 = planeIntersection(plane, tp[0]);
+        float d2 = planeIntersection(plane, tp[1]);
+        float d3 = planeIntersection(plane, tp[2]);
+        // All points of a triangle are inside the plane
+        if ((d1 >= 0.f) && (d2 >= 0.f) && (d3 >= 0.f)) {
+            out.vertices.push_back(tp[0]);
+            out.vertices.push_back(tp[1]);
+            out.vertices.push_back(tp[2]);
+            out.normals.push_back(tn[0]);
+            out.normals.push_back(tn[1]);
+            out.normals.push_back(tn[2]);
+            continue;
+        }
+        // All points of a triangle are outside the plane
+        else if ((d1 < 0.f) && (d2 < 0.f) && (d3 < 0.f)) {
+            continue;
+        }
 
-            int inCount = 0;
-            bool isin[3] = { false, false, false };
-            if (d1 > 0.f) {
-                inCount++;
-                isin[0] = true;
-            }
-            if (d2 > 0.f) {
-                inCount++;
-                isin[1] = true;
-            }
-            if (d3 > 0.f) {
-                inCount++;
-                isin[2] = true;
-            }
-            int invec[3] = { -1, -1, -1 };
-            int outvec[3] = { -1, -1, -1 };
-            int j = 0, k = 0;
-            for (int v = 0; v < 3; v++) {
-                if (isin[v]) {
-                    invec[j] = v;
-                    j++;
-                } else {
-                    outvec[k] = v;
-                    k++;
-                }
-            }
-
-            if (inCount == 1) {
-                planeClipped.vertices.reserve(3);
-                planeClipped.normals.reserve(3);
-                Vector A, B, C;
-                A = tp[invec[0]];
-                B = tp[outvec[0]];
-                C = tp[outvec[1]];
-
-                Vector AN, BN, CN;
-                AN = tn[invec[0]];
-                BN = tn[outvec[0]];
-                CN = tn[outvec[1]];
-
-                float edgeIntAB = edgePlaneIntersection(planes[i], A, B);
-                float edgeIntAC = edgePlaneIntersection(planes[i], A, C);
-
-                B = A + (edgeIntAB * (B - A));
-                C = A + (edgeIntAC * (C - A));
-
-                BN = AN + (edgeIntAB * (BN - AN));
-                CN = AN + (edgeIntAC * (CN - AN));
-
-                Vector p[3];
-                p[invec[0]] = A;
-                p[outvec[0]] = B;
-                p[outvec[1]] = C;
-
-                Vector n[3];
-                n[invec[0]] = AN;
-                n[outvec[0]] = BN;
-                n[outvec[1]] = CN;
-
-                planeClipped.vertices.push_back(p[0]);
-                planeClipped.vertices.push_back(p[1]);
-                planeClipped.vertices.push_back(p[2]);
-                planeClipped.normals.push_back(n[0]);
-                planeClipped.normals.push_back(n[1]);
-                planeClipped.normals.push_back(n[2]);
-            } else if (inCount == 2) {
-                planeClipped.vertices.reserve(6);
-                planeClipped.normals.reserve(6);
-                Vector A, B, C;
-                A = tp[invec[0]];
-                B = tp[invec[1]];
-                C = tp[outvec[0]];
-
-                 Vector AN, BN, CN;
-                AN = tn[invec[0]];
-                BN = tn[invec[1]];
-                CN = tn[outvec[0]];
-
-                float edgeIntAC = edgePlaneIntersection(planes[i], A, C);
-                float edgeIntBC = edgePlaneIntersection(planes[i], B, C);
-
-                Vector newB;
-                newB = B + (edgeIntBC * (C - B));
-                Vector newBN;
-                newBN = BN + (edgeIntBC * (CN - BN));
-                C = A + (edgeIntAC * (C - A));
-                CN = AN + (edgeIntAC * (CN - AN));
-                Vector p1[3];
-                p1[invec[0]] = A;
-                p1[invec[1]] = B;
-                p1[outvec[0]] = newB;
-                Vector n1[3];
-                n1[invec[0]] = AN;
-                n1[invec[1]] = BN;
-                n1[outvec[0]] = newBN;
-
-                Vector p2[3];
-                p2[invec[0]] = newB;
-                p2[invec[1]] = C;
-                p2[outvec[0]] = A;
-                Vector n2[3];
-                n2[invec[0]] = newBN;
-                n2[invec[1]] = CN;
-                n2[outvec[0]] = AN;
-
-                planeClipped.vertices.push_back(p1[0]);
-                planeClipped.vertices.push_back(p1[1]);
-                planeClipped.vertices.push_back(p1[2]);
-
-                planeClipped.vertices.push_back(p2[0]);
-                planeClipped.vertices.push_back(p2[1]);
-                planeClipped.vertices.push_back(p2[2]);
-
-                planeClipped.normals.push_back(n1[0]);
-                planeClipped.normals.push_back(n1[1]);
-                planeClipped.normals.push_back(n1[2]);
-
-                planeClipped.normals.push_back(n2[0]);
-                planeClipped.normals.push_back(n2[1]);
-                planeClipped.normals.push_back(n2[2]);
+        int inCount = 0;
+        bool isin[3] = { false, false, false };
+        if (d1 > 0.f) {
+            inCount++;
+            isin[0] = true;
+        }
+        if (d2 > 0.f) {
+            inCount++;
+            isin[1] = true;
+        }
+        if (d3 > 0.f) {
+            inCount++;
+            isin[2] = true;
+        }
+        int invec[2] = { -1, -1 };
+        int outvec[2] = { -1, -1 };
+        int j = 0, k = 0;
+        for (int v = 0; v < 3; v++) {
+            if (isin[v]) {
+                invec[j] = v;
+                j++;
+            } else {
+                outvec[k] = v;
+                k++;
             }
         }
-        out = planeClipped;
+
+        if (inCount == 1) {
+            Vector A, B, C;
+            A = tp[invec[0]];
+            B = tp[outvec[0]];
+            C = tp[outvec[1]];
+
+            Vector AN, BN, CN;
+            AN = tn[invec[0]];
+            BN = tn[outvec[0]];
+            CN = tn[outvec[1]];
+
+            float edgeIntAB = edgePlaneIntersection(plane, A, B);
+            float edgeIntAC = edgePlaneIntersection(plane, A, C);
+
+            B = A + (edgeIntAB * (B - A));
+            C = A + (edgeIntAC * (C - A));
+
+            BN = AN + (edgeIntAB * (BN - AN));
+            CN = AN + (edgeIntAC * (CN - AN));
+
+            Vector p[3];
+            p[invec[0]] = A;
+            p[outvec[0]] = B;
+            p[outvec[1]] = C;
+
+            Vector n[3];
+            n[invec[0]] = AN;
+            n[outvec[0]] = BN;
+            n[outvec[1]] = CN;
+
+            out.vertices.push_back(p[0]);
+            out.vertices.push_back(p[1]);
+            out.vertices.push_back(p[2]);
+            out.normals.push_back(n[0]);
+            out.normals.push_back(n[1]);
+            out.normals.push_back(n[2]);
+        } else if (inCount == 2) {
+            Vector A, B, C;
+            A = tp[invec[0]];
+            B = tp[invec[1]];
+            C = tp[outvec[0]];
+
+            Vector AN, BN, CN;
+            AN = tn[invec[0]];
+            BN = tn[invec[1]];
+            CN = tn[outvec[0]];
+
+            float edgeIntAC = edgePlaneIntersection(plane, A, C);
+            float edgeIntBC = edgePlaneIntersection(plane, B, C);
+
+            Vector newB;
+            newB = B + (edgeIntBC * (C - B));
+            Vector newBN;
+            newBN = BN + (edgeIntBC * (CN - BN));
+            C = A + (edgeIntAC * (C - A));
+            CN = AN + (edgeIntAC * (CN - AN));
+            Vector p1[3];
+            p1[invec[0]] = A;
+            p1[invec[1]] = B;
+            p1[outvec[0]] = newB;
+
+            Vector n1[3];
+            n1[invec[0]] = AN;
+            n1[invec[1]] = BN;
+            n1[outvec[0]] = newBN;
+
+            Vector p2[3];
+            p2[invec[0]] = newB;
+            p2[invec[1]] = C;
+            p2[outvec[0]] = A;
+
+            Vector n2[3];
+            n2[invec[0]] = newBN;
+            n2[invec[1]] = CN;
+            n2[outvec[0]] = AN;
+
+            out.vertices.push_back(p1[0]);
+            out.vertices.push_back(p1[1]);
+            out.vertices.push_back(p1[2]);
+
+            out.vertices.push_back(p2[0]);
+            out.vertices.push_back(p2[1]);
+            out.vertices.push_back(p2[2]);
+
+            out.normals.push_back(n1[0]);
+            out.normals.push_back(n1[1]);
+            out.normals.push_back(n1[2]);
+
+            out.normals.push_back(n2[0]);
+            out.normals.push_back(n2[1]);
+            out.normals.push_back(n2[2]);
+        }
     }
+}
+void clipTriangle(const TriangleData &in, TriangleData &out) {
+    out.vertices.reserve(in.vertices.size());
+    out.normals.reserve(in.normals.size());
+    TriangleData clippedBuffer;
+    clippedBuffer = in;
+    for (int i = 0; i < 6; i++) {
+        if (i % 2 == 0) {
+            out.vertices.clear();
+            out.normals.clear();
+            clipPlane(planes[i], clippedBuffer, out);
+        } else {
+            clippedBuffer.vertices.clear();
+            clippedBuffer.normals.clear();
+            clipPlane(planes[i], out, clippedBuffer);
+        }
+    }
+    out = clippedBuffer;
 }
 void modelSpaceToDrawable(const Vector p[3], const Vector n[3], const Transform &transform, TriangleData &outData) {
     Vector vert[3];
     Vector norm[3];
+    norm[0] = n[0];
+    norm[1] = n[1];
+    norm[2] = n[2];
     // Model space to world space
     vert[0] = transformVertex(p[0], transform);
     vert[1] = transformVertex(p[1], transform);
     vert[2] = transformVertex(p[2], transform);
+
+    norm[0] = rotate(norm[0], transform.rotation);
+    norm[1] = rotate(norm[1], transform.rotation);
+    norm[2] = rotate(norm[2], transform.rotation);
 
     // World space to camera space
     vert[0] = vert[0] - camera.position;
@@ -838,9 +895,9 @@ void modelSpaceToDrawable(const Vector p[3], const Vector n[3], const Transform 
     vert[1] = rotate(vert[1], -camera.rotation);
     vert[2] = rotate(vert[2], -camera.rotation);
 
-    norm[0] = rotate(n[0], -camera.rotation);
-    norm[1] = rotate(n[1], -camera.rotation);
-    norm[2] = rotate(n[2], -camera.rotation);
+    // norm[0] = rotate(norm[0], -camera.rotation);
+    // norm[1] = rotate(norm[1], -camera.rotation);
+    // norm[2] = rotate(norm[2], -camera.rotation);
 
     const bool backFaceCulling = sceneSettings.bfc;
     Vector normal = cross(vert[1] - vert[0], vert[2] - vert[0]);
@@ -852,7 +909,7 @@ void modelSpaceToDrawable(const Vector p[3], const Vector n[3], const Transform 
     }
 
     // Frustum culling
-    TriangleData triData{
+    const TriangleData triData{
         {
             vert[0],
             vert[1],
@@ -865,39 +922,37 @@ void modelSpaceToDrawable(const Vector p[3], const Vector n[3], const Transform 
         }
     };
     TriangleData clippedData;
-    clipTriangle(triData,clippedData);
+    clipTriangle(triData, clippedData);
 
-    //if (!clippedData.vertices.size()) {
-    //    return;
-    //}
-
+    outData.vertices.reserve(outData.vertices.size() + clippedData.vertices.size());
+    outData.normals.reserve(outData.normals.size() + clippedData.normals.size());
     for (const Vector &vec : clippedData.vertices) {
         outData.vertices.push_back(vec);
     }
-    for (const Vector &n : clippedData.normals) {
-        outData.normals.push_back(n);
+    for (const Vector &nrm : clippedData.normals) {
+        outData.normals.push_back(nrm);
     }
 }
 void modelSpaceToDrawableThr(const TriangleData &triangleData, const Transform &transform, TriangleData &outData, uint32_t start, uint32_t end) {
-    outData.vertices.reserve((end - start) * 3);
-    outData.normals.reserve((end - start) * 3);
+    outData.vertices.reserve(outData.vertices.size() + ((end - start) * 3));
+    outData.normals.reserve(outData.normals.size() + ((end - start) * 3));
     for (uint32_t i = start; i < end; i++) {
 
         Vector triangle[3] = {
             triangleData.vertices[i * 3],
-            triangleData.vertices[i * 3 + 1],
-            triangleData.vertices[i * 3 + 2]
+            triangleData.vertices[(i * 3) + 1],
+            triangleData.vertices[(i * 3) + 2]
         };
         Vector normals[3] = {
             triangleData.normals[i * 3],
-            triangleData.normals[i * 3 + 1],
-            triangleData.normals[i * 3 + 2]
+            triangleData.normals[(i * 3) + 1],
+            triangleData.normals[(i * 3) + 2]
         };
         modelSpaceToDrawable(triangle, normals, transform, outData);
     }
 }
 
-void getDrawableTriangles(const TriangleData &triangleData, const Transform &transform, TriangleData &outTris, bool multithread) {
+void getDrawableTriangles(const TriangleData &triangleData, const Transform &transform, TriangleData &outData, bool multithread) {
     if (!multithread) {
         for (size_t i = 0; i < triangleData.vertices.size(); i += 3) {
             Vector triangle[3] = {
@@ -910,7 +965,7 @@ void getDrawableTriangles(const TriangleData &triangleData, const Transform &tra
                 triangleData.normals[i + 1],
                 triangleData.normals[i + 2],
             };
-            modelSpaceToDrawable(triangle,normals, transform, outTris);
+            modelSpaceToDrawable(triangle, normals, transform, outData);
         }
     } else {
         const uint32_t threadSize = std::thread::hardware_concurrency();
@@ -928,12 +983,20 @@ void getDrawableTriangles(const TriangleData &triangleData, const Transform &tra
         for (uint32_t i = 0; i < threadSize; i++) {
             triProcessThr[i].join();
         }
+        size_t verticesSize = 0, normalsSize = 0;
+        for (const TriangleData &tris : outTrisArr) {
+            verticesSize += tris.vertices.size();
+            normalsSize += tris.normals.size();
+        }
+
+        outData.vertices.reserve(verticesSize);
+        outData.normals.reserve(normalsSize);
         for (const TriangleData &tris : outTrisArr) {
             for (const Vector &point : tris.vertices) {
-                outTris.vertices.push_back(point);
+                outData.vertices.push_back(point);
             }
             for (const Vector &norm : tris.normals) {
-                outTris.normals.push_back(norm);
+                outData.normals.push_back(norm);
             }
         }
     }
@@ -942,13 +1005,13 @@ void drawVerticesThr(const TriangleData &triangleData, const Material &material,
     for (uint32_t i = start; i < end; i++) {
         Vector p[3] = {
             triangleData.vertices[i * 3],
-            triangleData.vertices[i * 3 + 1],
-            triangleData.vertices[i * 3 + 2],
+            triangleData.vertices[(i * 3) + 1],
+            triangleData.vertices[(i * 3) + 2],
         };
         Vector n[3] = {
             triangleData.normals[i * 3],
-            triangleData.normals[i * 3 + 1],
-            triangleData.normals[i * 3 + 2],
+            triangleData.normals[(i * 3) + 1],
+            triangleData.normals[(i * 3) + 2],
         };
         drawVerticesTriangle(p, n, material, wireframe);
     }
@@ -966,7 +1029,7 @@ void drawVertices(const TriangleData &triangleData, const Material &material, bo
                 triangleData.normals[i + 1],
                 triangleData.normals[i + 2],
             };
-            drawVerticesTriangle(p,n, material, wireframe);
+            drawVerticesTriangle(p, n, material, wireframe);
         }
     } else {
         const uint32_t threadSize = std::thread::hardware_concurrency();
@@ -1085,9 +1148,9 @@ void renderScene() {
             striangle.normal,
             striangle.normal,
         };
-        modelSpaceToDrawable(points,normals, { { 0, 0, 0 }, 1.f, { 0, 0, 0 } }, drawableTris);
+        modelSpaceToDrawable(points, normals, { { 0, 0, 0 }, 1.f, { 0, 0, 0 } }, drawableTris);
 
-        drawVertices(drawableTris, striangle.material, isWireframe,false);
+        drawVertices(drawableTris, striangle.material, isWireframe, false);
     }
     // Apply AA
     if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {

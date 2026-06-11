@@ -79,6 +79,8 @@ void Mesh::getTriangles() {
     }
     triangleData.vertices.clear();
     triangleData.vertices.reserve(faces.size() * 3);
+    triangleData.normals.clear();
+    triangleData.normals.reserve(faces.size() * 3);
     for (const Face &face : faces) {
         Vector p[3] = {
             vertices[face.index[0].vert],
@@ -164,9 +166,9 @@ Mesh loadOBJ(const std::string &filename, const Colour &color, float reflectiven
                                    &v[1], &n[1],
                                    &v[2], &n[2]) == 6) {
                 newface = {
-                    Index{ v[0] - 1, 0, n[0] - 1},
-                    Index{ v[1] - 1, 0, n[1] - 1},
-                    Index{ v[2] - 1, 0, n[2] - 1}
+                    Index{ v[0] - 1, 0, n[0] - 1 },
+                    Index{ v[1] - 1, 0, n[1] - 1 },
+                    Index{ v[2] - 1, 0, n[2] - 1 }
                 };
                 faces.emplace_back(newface);
             } else {
