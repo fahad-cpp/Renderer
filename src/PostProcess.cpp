@@ -106,26 +106,32 @@ void FXAA(bool multiThread) {
 void renderAO() {
     std::random_device rd;
     std::mt19937 gen(rd());
-    const int SAMPLE_COUNT = 5;
-    const int SAMPLE_RADIUS = 3;
+    const int SAMPLE_COUNT = 64;
+    const float SAMPLE_RADIUS = 2.f;
     std::uniform_int_distribution<> dist(-SAMPLE_RADIUS, SAMPLE_RADIUS);
-    FS::Vector2 samplesLoc[SAMPLE_COUNT];
+    Vector samplesLoc[SAMPLE_COUNT];
     for (uint32_t y = 0; y < renderState.height; y++) {
         for (uint32_t x = 0; x < renderState.width; x++) {
-            for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
-                samplesLoc[i] = FS::Vector2{ float(dist(gen)) + x, float(dist(gen)) + y };
-                clamp(samplesLoc[i].x, 0.f, float(renderState.width));
-                clamp(samplesLoc[i].y, 0.f, float(renderState.height));
-            }
-            int occlusionFactor = 0;
             uint32_t pixelIndex = (y * renderState.width) + x;
             float pixelDepth = ((float *)depthBuffer)[pixelIndex];
+            float z = 1.f / pixelDepth;
+            Vector point = Renderer::canvasToViewport(x * z / d, y * z / d);
+            
             for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
-                if (!isIn(uint32_t(samplesLoc[i].x), 0u, renderState.width) || !isIn(uint32_t(samplesLoc[i].y), 0u, renderState.height)) {
-                    continue;
+                samplesLoc[i] = { float(dist(gen)) + point.x, float(dist(gen)) + point.y, float(dist(gen)) + z};
+            }
+            int occlusionFactor = 0;
+            for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
+                //if (!isIn(uint32_t(samplesLoc[i].x), 0u, renderState.width) || !isIn(uint32_t(samplesLoc[i].y), 0u, renderState.height)) {
+                //    continue;
+                //}
+                Vector offset = Renderer::projectVertex(samplesLoc[i]);
+                if (!isIn(uint32_t(offset.x), 0u, renderState.width) || !isIn(uint32_t(offset.y), 0u, renderState.height)) {
+                    clamp(offset.x, 0.f, (float)renderState.width);
+                    clamp(offset.y, 0.f, (float)renderState.height);
                 }
-                uint32_t sampleIndex = (samplesLoc[i].y * renderState.width) + samplesLoc[i].x;
-                float sampleDepth = ((float *)depthBuffer)[sampleIndex];
+                uint32_t offsetIndex = uint32_t(offset.x) + (uint32_t(offset.y) * renderState.width);
+                float sampleDepth = ((float *)depthBuffer)[offsetIndex];
                 // float threshold = 0.001f;
                 if ((sampleDepth > pixelDepth) && (pixelDepth != 0.f)) {
                     occlusionFactor++;
@@ -136,10 +142,13 @@ void renderAO() {
             renderState.ambientOcclusion[pixelIndex] = (float(occlusionFactor) / SAMPLE_COUNT);
         }
     }
-    boxBlur();
+    //boxBlur();
 }
 void boxBlur() {
     uint32_t *buffer = (uint32_t *)malloc(renderState.width * renderState.height * sizeof(uint32_t));
+    if (!buffer) {
+        return;
+    }
     memcpy(buffer, renderState.memory, renderState.width * renderState.height * sizeof(uint32_t));
     for (uint32_t y = 1; y < renderState.height - 1; y++) {
         for (uint32_t x = 1; x < renderState.width - 1; x++) {

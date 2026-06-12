@@ -353,6 +353,7 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
             Colour normalColour = Colour{ (uint8_t)clampv(abs(normal.x * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.y * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.z * 255.f), 0.f, 255.f) };
             Colour color = (sceneSettings.debugState == DebugState::DS_NORMAL) ? normalColour : material.color;
             color = color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
+            renderState.normalBuffer[index] = normal;
             ((float *)depthBuffer)[index] = invz;
             ((uint32_t *)renderState.memory)[index] = rgbtoHex(color);
         }
@@ -619,7 +620,7 @@ float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bo
         // L = direction of the light
         Vector L = {};
         float distance = 0;
-        float radius = light.intensity * 256;
+        float radius = light.intensity * 100;
         if (light.type == LT_AMBIENT) {
             i += light.intensity;
         } else {
@@ -629,6 +630,9 @@ float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bo
             } else if (light.type == LT_POINT) {
                 L = (light.pos - P);
                 distance = length(L);
+                if (distance > radius) {
+                    continue;
+                }
             }
             float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, distance).intersection : INT_MAX;
             if (shadowT > 1) {
