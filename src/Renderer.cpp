@@ -652,7 +652,7 @@ float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bo
                 Vector R = reflectRay(L, N);
                 float vDotR = dot(V, R);
                 if (vDotR > 0) {
-                    i += light.intensity * pow((vDotR / (length(R) * length(V))), s);
+                    specular = pow((vDotR / (length(R) * length(V))), s);
                 }
 #else
 
