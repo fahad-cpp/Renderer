@@ -212,6 +212,11 @@ void handleInput(const Input &input) {
             sceneSettings.renderMode = RenderMode::RM_AO;
         }
     }
+
+    //Normal vis
+    if (pressed(BUTTON_N)) {
+        sceneSettings.debugState = DebugState::DS_NORMAL;
+    }
 }
 void init() {
     // ZoneScopedN("init");

@@ -53,10 +53,10 @@ struct Box {
     Vector lowest;
     friend bool operator==(const Box &box2, const Box &box);
 };
-struct TriangleData {
-    std::vector<Vector> vertices;
-    std::vector<Vector> normals;
-};
+//struct TriangleData {
+//    std::vector<Vector> vertices;
+//    std::vector<Vector> normals;
+//};
 struct Mesh {
     std::vector<Vector> vertices;
     std::vector<Vector> normals;

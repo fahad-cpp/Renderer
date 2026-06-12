@@ -4,6 +4,7 @@ enum class DebugState {
     DS_OFF,
     DS_BOUNDING_BOX,
     DS_TRIANGLE,
+    DS_NORMAL,
 };
 enum class LightingMode : uint8_t {
     NO_LIGHT,

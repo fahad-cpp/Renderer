@@ -350,8 +350,8 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
             Vector direction = camera.position - point;
             direction = direction / length(direction);
 
-            // Colour color = { uint8_t(normal.x * 255), uint8_t(normal.y * 255), uint8_t(normal.z * 255)  };
-            Colour color = material.color;
+            Colour normalColour = Colour{ (uint8_t)clampv(abs(normal.x * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.y * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.z * 255.f), 0.f, 255.f) };
+            Colour color = (sceneSettings.debugState == DebugState::DS_NORMAL) ? normalColour : material.color;
             color = color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
             ((float *)depthBuffer)[index] = invz;
             ((uint32_t *)renderState.memory)[index] = rgbtoHex(color);
@@ -1082,7 +1082,7 @@ void renderScene() {
         };
         modelSpaceToDrawable(points, normals, { { 0, 0, 0 }, 1.f, { 0, 0, 0 } }, drawableTris);
 
-        drawVertices(drawableTris, {}, isWireframe, false);
+        drawVertices(drawableTris, { -1, 0.f, {255,0,0} }, isWireframe, false);
     }
     // Apply AA
     if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
