@@ -15,17 +15,10 @@ bool operator==(const Sphere &sphere1, const Sphere &sphere2) {
 bool operator==(const Box &box2, const Box &box) {
     return ((box.lowest == box2.lowest) && (box.highest == box2.highest));
 }
-
-// Triangle
-Vector Triangle::calculateNormal() {
-    // anti clockwise
-    normal = cross((p[1] - p[0]), (p[2] - p[0]));
-    return normal;
+Vector getTriangleNormal(const Triangle& triangle) {
+    return cross(triangle.points[1] - triangle.points[0],triangle.points[2] - triangle.points[0]);
 }
 
-Vector Triangle::getCentroid() {
-    return ((p[0] + p[1] + p[2]) / 3);
-}
 
 // Mesh
 Mesh::Mesh() {
@@ -74,30 +67,23 @@ void Mesh::initTriangles() {
 }
 
 void Mesh::getTriangles() {
-    if (triangleData.vertices.size()) {
+    if (triangleData.size()) {
         return;
     }
-    triangleData.vertices.clear();
-    triangleData.vertices.reserve(faces.size() * 3);
-    triangleData.normals.clear();
-    triangleData.normals.reserve(faces.size() * 3);
+    triangleData.clear();
+    triangleData.reserve(faces.size());
     for (const Face &face : faces) {
-        Vector p[3] = {
+        const Vector p[3] = {
             vertices[face.index[0].vert],
             vertices[face.index[1].vert],
             vertices[face.index[2].vert]
         };
-        Vector n[3] = {
+        const Vector n[3] = {
             normals[face.index[0].norm],
             normals[face.index[1].norm],
             normals[face.index[2].norm],
         };
-        triangleData.vertices.push_back(p[0]);
-        triangleData.vertices.push_back(p[1]);
-        triangleData.vertices.push_back(p[2]);
-        triangleData.normals.push_back(n[0]);
-        triangleData.normals.push_back(n[1]);
-        triangleData.normals.push_back(n[2]);
+        triangleData.emplace_back(Triangle{ { p[0], p[1], p[2] }, { n[0], n[1], n[2] } });
     }
 }
 

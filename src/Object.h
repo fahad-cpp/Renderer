@@ -7,9 +7,9 @@
 #include <vector>
 
 struct Material {
-    Colour color = { 0, 0, 0 };
     float specular = -1.f;
     float reflectiveness = 0.f;
+    Colour color = { 0, 0, 0 };
 };
 struct HitData {
     float intersection = float(INFINITY);
@@ -19,21 +19,18 @@ struct HitData {
 struct Sphere {
     Vector center = { 0, 0, 0 };
     float radius = 0.f;
-    Colour color = { 0, 0, 0 };
     float specular = -1.f;
     float reflectiveness = 0.f;
+    Colour color = { 0, 0, 0 };
 
     friend bool operator==(const Sphere &sphere1, const Sphere &sphere2);
 };
 
 struct Triangle {
-    Vector p[3];
-    Vector normal;
-    Material material;
-    Vector calculateNormal();
-    Vector getCentroid();
+    Vector points[3];
+    Vector normals[3];
 };
-
+Vector getTriangleNormal(const Triangle& triangle);
 struct Plane {
     Vector normal;
     float offset;
@@ -65,7 +62,7 @@ struct Mesh {
     std::vector<Vector> normals;
     std::vector<Texture> texture;
     std::vector<Face> faces;
-    TriangleData triangleData;
+    std::vector<Triangle> triangleData;
     Box boundingBox;
     Material material;
     Mesh();

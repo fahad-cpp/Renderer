@@ -223,36 +223,41 @@ void init() {
         { 0.f, 2.f, 1.f },
         { 1.f, 0.f, 1.f },
     };
-    Triangle tri{ { p[0], p[1], p[2] }, { 0, 0, 0 }, { {255,0,0},shininess,0.f } };
+    Vector n[3] = {
+        { 0, 0, -1 },
+        { 0, 0, -1 },
+        { 0, 0, -1 },
+    };
+    Triangle tri{ { p[0], p[1], p[2] }, { n[0], n[1], n[2] } };
     scene = {
         .spheres = std::vector<Sphere>{
             {
                 .center = Vector{ 0, 0, -3 },
                 .radius = 1.f,
-                .color = Colour{ 255, 0, 0 },
                 .specular = shininess,
                 .reflectiveness = 0.4f,
+                .color = Colour{ 255, 0, 0 },
             },
             {
                 .center = Vector{ -1, 0, -4 },
                 .radius = 1.f,
-                .color = Colour{ 0, 255, 0 },
                 .specular = shininess,
                 .reflectiveness = 0.4f,
+                .color = Colour{ 0, 255, 0 },
             },
             {
                 .center = Vector{ 1, 0, -4 },
                 .radius = 1.f,
-                .color = Colour{ 0, 0, 255 },
                 .specular = shininess,
                 .reflectiveness = 0.4f,
+                .color = Colour{ 0, 0, 255 },
             },
             /*{
                 .center = Vector{2,1,0},
                 .radius = .1f,
-                .color = Colour{0,0,255},
                 .specular = 100.f,
                 .reflectiveness = 0.4f,
+                .color = Colour{0,0,255},
             }*/
         },
         .triangles = std::vector<Triangle>{
