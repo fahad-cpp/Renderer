@@ -122,9 +122,6 @@ void renderAO() {
             }
             int occlusionFactor = 0;
             for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
-                //if (!isIn(uint32_t(samplesLoc[i].x), 0u, renderState.width) || !isIn(uint32_t(samplesLoc[i].y), 0u, renderState.height)) {
-                //    continue;
-                //}
                 Vector offset = Renderer::projectVertex(samplesLoc[i]);
                 if (!isIn(uint32_t(offset.x), 0u, renderState.width) || !isIn(uint32_t(offset.y), 0u, renderState.height)) {
                     clamp(offset.x, 0.f, (float)renderState.width);

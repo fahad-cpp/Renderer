@@ -155,33 +155,20 @@ void drawLine(Vector a, Vector b, const Colour &color) {
 Vector canvasToViewport(float x, float y) {
     return { x * (vpWidth / canvas.x), y * (vpHeight / canvas.y), d };
 }
-std::pair<float, float> viewportToCanvas(float x, float y) {
-    return { x * (canvas.x / vpWidth), y * (canvas.y / vpHeight) };
+Vector viewportToCanvas(float x, float y) {
+    return { x * (canvas.x / vpWidth), y * (canvas.y / vpHeight),d };
 }
 Vector projectVertex(const Vector &v) {
     // Perspective Projection
-    std::pair<float, float> result = viewportToCanvas(((v.x * d) / v.z), ((v.y * d) / v.z));
-    return { result.first, result.second, d };
+    return viewportToCanvas(((v.x * d) / v.z), ((v.y * d) / v.z));
 }
-void interpolate(float x0, float y0, float x1, float y1, std::vector<float> &arr) {
-    float dx = x1 - x0;
-    float dy = y1 - y0;
-    float aspectratio = (dy != 0) ? (dx / dy) : 0.00001;
-    float x = x0;
-
-    size_t size = abs(int(y1) - int(y0));
-    arr.reserve(size);
-    for (int y = int(y0); y < int(y1); y++) {
-        arr.push_back(x);
-        x += aspectratio;
-    }
-}
-void interpolate(Vector x0, float y0, Vector x1, float y1, std::vector<Vector> &arr) {
+template<typename T>
+void interpolate(T x0, float y0, T x1, float y1, std::vector<T> &arr) {
     size_t size = abs(int(y1) - int(y0));
     arr.reserve(size);
     for (int y = int(y0); y < int(y1); y++) {
         float t = float(y - int(y0)) / float(size);
-        Vector x = lerp(x0, x1, t);
+        T x = lerp(x0, x1, t);
         arr.push_back(x);
     }
 }
@@ -227,21 +214,22 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     size_t size12 = uint32_t(projected[2].y - projected[1].y);
     size_t size02 = uint32_t(projected[2].y - projected[0].y);
 
-    std::vector<float> x01 = {};
-    std::vector<float> x12 = {};
-    std::vector<float> x02 = {};
+    std::vector<float> x01;
+    std::vector<float> x12;
+    std::vector<float> x02;
+
     // Reserve space for x01 + x12 because we concatenate later
     x01.reserve(size01 + size12);
     x12.reserve(size12);
     x02.reserve(size02);
 
-    std::vector<float> z01 = {};
-    std::vector<float> z12 = {};
-    std::vector<float> z02 = {};
+    std::vector<float> z01;
+    std::vector<float> z12;
+    std::vector<float> z02;
 
-    std::vector<Vector> n01 = {};
-    std::vector<Vector> n12 = {};
-    std::vector<Vector> n02 = {};
+    std::vector<Vector> n01;
+    std::vector<Vector> n12;
+    std::vector<Vector> n02;
     // Reserve space for z01 + z12 because we concatenate later
     z01.reserve(size01 + size12);
     z12.reserve(size12);
@@ -754,11 +742,11 @@ void clipPlane(const Plane &plane, const std::vector<Triangle> &in, std::vector<
             float edgeIntAB = edgePlaneIntersection(plane, A, B);
             float edgeIntAC = edgePlaneIntersection(plane, A, C);
 
-            B = A + (edgeIntAB * (B - A));
-            C = A + (edgeIntAC * (C - A));
+            B = lerp(A,B,edgeIntAB);
+            C = lerp(A,C,edgeIntAC);
 
-            BN = AN + (edgeIntAB * (BN - AN));
-            CN = AN + (edgeIntAC * (CN - AN));
+            BN = lerp(AN,BN,edgeIntAB);
+            CN = lerp(AN,CN,edgeIntAC);
 
             Vector p[3];
             p[invec[0]] = A;
@@ -785,12 +773,14 @@ void clipPlane(const Plane &plane, const std::vector<Triangle> &in, std::vector<
             float edgeIntAC = edgePlaneIntersection(plane, A, C);
             float edgeIntBC = edgePlaneIntersection(plane, B, C);
 
-            Vector newB;
-            newB = B + (edgeIntBC * (C - B));
-            Vector newBN;
-            newBN = BN + (edgeIntBC * (CN - BN));
-            C = A + (edgeIntAC * (C - A));
-            CN = AN + (edgeIntAC * (CN - AN));
+            Vector newB, newBN;
+
+            newB = lerp(B,C,edgeIntBC);
+            newBN = lerp(BN,CN,edgeIntBC);
+
+            C = lerp(A,C,edgeIntAC);
+            CN = lerp(AN,CN,edgeIntAC);
+
             Vector p1[3];
             p1[invec[0]] = A;
             p1[invec[1]] = B;
