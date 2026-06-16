@@ -30,14 +30,12 @@ Mesh::Mesh() {
     boundingBox = {};
     material = {};
 }
-Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<Texture> text, std::vector<Face> face, Colour color, float reflectiveness, float specular) {
+Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<Texture> text, std::vector<Face> face, Material material) {
     vertices = vertex;
     normals = normal;
     texture = text;
     faces = face;
-    material.color = color;
-    material.reflectiveness = reflectiveness;
-    material.specular = specular;
+    this->material = material;
 }
 void Mesh::initTriangles() {
     Vector lowest, highest;
@@ -87,7 +85,7 @@ void Mesh::getTriangles() {
     }
 }
 
-Mesh loadOBJ(const std::string &filename, const Colour &color, float reflectiveness, float specular) {
+Mesh loadOBJ(const std::string &filename, const Material& material) {
     Timer timer;
     LOG_INFO("Loading " << filename);
     std::vector<Vector> vertices = {};
@@ -169,9 +167,7 @@ Mesh loadOBJ(const std::string &filename, const Colour &color, float reflectiven
             ptr++;
     }
     Mesh mesh = { vertices, normals, texture, faces };
-    mesh.material.color = color;
-    mesh.material.specular = specular;
-    mesh.material.reflectiveness = reflectiveness;
+    mesh.material = material;
     mesh.initTriangles();
     timer.Stop();
     LOG_SUCCESS("Loaded " << filename << ":" << timer.dtms << "ms");

@@ -221,7 +221,7 @@ void handleInput(const Input &input) {
 void init() {
     // ZoneScopedN("init");
     const float shininess = 64.f;
-    static Mesh model = loadOBJ("res/Models/sponza.obj", { 255, 255, 255 }, 0.f, shininess);
+    static Mesh model = loadOBJ("res/Models/sponza.obj", {shininess, 0.f ,  { 255, 255, 255 }});
     //static Mesh floor = loadOBJ("res/Models/surface.obj", { 233,234,231 }, 0.f, shininess);
     Vector p[3] = {
         { -1.f, 0.f, 1.f },

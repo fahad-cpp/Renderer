@@ -115,8 +115,8 @@ void exportToPPM(const std::string &filename, uint32_t *buffer, int width, int h
 }
 
 void drawLine(Vector a, Vector b, const Colour &color) {
-    float dy = b.y - a.y;
-    float dx = b.x - a.x;
+    const float dy = b.y - a.y;
+    const float dx = b.x - a.x;
     if (abs(dx) > abs(dy)) {
         if (a.x > b.x) {
             swap(a, b);
@@ -265,6 +265,7 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     }
 
     uint32_t middle = uint32_t(x02.size() / 2.f);
+
     std::vector<float> *xleft = nullptr;
     std::vector<float> *xright = nullptr;
     std::vector<float> *zleft = nullptr;
@@ -275,6 +276,7 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     if ((!x02.size())) {
         return;
     }
+
     // Find left and right
     if (x02[middle] < x01[middle]) {
         xleft = &x02;
@@ -296,21 +298,21 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
         nright = &n02;
     }
 
-    bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
-    bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
+    const bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
+    const bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
     for (int y = int(projected[0].y); y < int(projected[2].y); y++) {
-        uint32_t scanline = uint32_t(y - int(projected[0].y));
-        float lz = (*zleft)[scanline];
-        float rz = (*zright)[scanline];
-        int lx = (*xleft)[scanline];
-        int rx = (*xright)[scanline];
-        Vector ln = (*nleft)[scanline];
-        Vector rn = (*nright)[scanline];
+        const uint32_t& scanline = uint32_t(y - int(projected[0].y));
+        const float& lz = (*zleft)[scanline];
+        const float& rz = (*zright)[scanline];
+        const int& lx = (*xleft)[scanline];
+        const int& rx = (*xright)[scanline];
+        const Vector& ln = (*nleft)[scanline];
+        const Vector& rn = (*nright)[scanline];
 
         // interpolate z
         std::vector<float> zsegment = {};
         std::vector<Vector> nsegment = {};
-        uint32_t zsegmentSize = uint32_t(rx - lx) > renderState.width ? renderState.width : (rx - lx);
+        const uint32_t zsegmentSize = uint32_t(rx - lx) > renderState.width ? renderState.width : (rx - lx);
 
         zsegment.reserve(zsegmentSize);
         interpolate(lz, float(lx), rz, float(rx), zsegment);
@@ -325,12 +327,12 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
             std::lock_guard<std::mutex> lock(pixelLocks[index]);
             float dep = ((float *)depthBuffer)[index];
             float invz = zsegment[x - lx];
-            Vector normal = nsegment[x - lx];
-            normalize(normal);
             float z = 1.f / invz;
             if (invz <= dep) {
                 continue;
             }
+            Vector normal = nsegment[x - lx];
+            normalize(normal);
 
             Vector point = canvasToViewport(x * z / d, y * z / d);
             point.z = z;
@@ -903,8 +905,8 @@ void getDrawableTriangles(const std::vector<Triangle> &triangleData, const Trans
         uint32_t triSize = triangleData.size();
         uint32_t triPerThread = triSize / threadSize;
         uint32_t remainingTris = triSize % threadSize;
-        std::vector<std::thread> triProcessThr(threadSize);
-        std::vector<std::vector<Triangle>> outTrisArr(threadSize);
+        static std::vector<std::thread> triProcessThr(threadSize);
+        static std::vector<std::vector<Triangle>> outTrisArr(threadSize);
         uint32_t start = 0;
         for (uint32_t i = 0; i < threadSize; i++) {
             uint32_t end = start + triPerThread + ((i < remainingTris) ? 1 : 0);
@@ -920,10 +922,11 @@ void getDrawableTriangles(const std::vector<Triangle> &triangleData, const Trans
         }
 
         outData.reserve(triangleVectorSize);
-        for (const std::vector<Triangle> &tris : outTrisArr) {
+        for (std::vector<Triangle> &tris : outTrisArr) {
             for (const Triangle &tri : tris) {
                 outData.push_back(tri);
             }
+            tris.clear();
         }
     }
 }
@@ -959,10 +962,10 @@ void drawVertices(const std::vector<Triangle> &triangleData, const Material &mat
         }
     } else {
         const uint32_t threadSize = std::thread::hardware_concurrency();
-        uint32_t triSize = triangleData.size();
-        uint32_t triPerThread = triSize / threadSize;
-        uint32_t remainingTris = triSize % threadSize;
-        std::vector<std::thread> drawVerticesThr(threadSize);
+        const uint32_t triSize = triangleData.size();
+        const uint32_t triPerThread = triSize / threadSize;
+        const uint32_t remainingTris = triSize % threadSize;
+        static std::vector<std::thread> drawVerticesThr(threadSize);
         uint32_t start = 0;
         for (uint32_t i = 0; i < threadSize; i++) {
             uint32_t end = start + triPerThread + ((i < remainingTris) ? 1 : 0);
@@ -975,7 +978,8 @@ void drawVertices(const std::vector<Triangle> &triangleData, const Material &mat
     }
 }
 void renderMesh(const Mesh &mesh, const Transform &transform, bool multithread) {
-    std::vector<Triangle> triData = {};
+    static std::vector<Triangle> triData = {};
+    triData.clear();
     getDrawableTriangles(mesh.triangleData, transform, triData, multithread);
 
     sceneSettings.triSeenCount += triData.size();
@@ -1049,7 +1053,7 @@ void renderScene() {
         Mesh sphereM = {};
         // cache spheres if not already
         if (sphereMeshCache.find(sphere) == sphereMeshCache.end()) {
-            sphereM = loadOBJ("res/Models/Sphere.obj", sphere.color, sphere.reflectiveness, sphere.specular);
+            sphereM = loadOBJ("res/Models/Sphere.obj", { sphere.specular,sphere.reflectiveness,sphere.color });
             sphereMeshCache[sphere] = sphereM;
         } else {
             sphereM = sphereMeshCache[sphere];

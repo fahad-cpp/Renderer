@@ -66,9 +66,9 @@ struct Mesh {
     Box boundingBox;
     Material material;
     Mesh();
-    Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, Colour color = { 0, 0, 0 }, float reflectiveness = 0.f, float specular = -1);
+    Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, Material material = {});
     void initTriangles();
     void getTriangles();
 };
 
-Mesh loadOBJ(const std::string &filename, const Colour &color = { 255, 255, 255 }, float reflectiveness = 0, float specular = -1);
+Mesh loadOBJ(const std::string &filename, const Material& material);

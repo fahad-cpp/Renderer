@@ -12,12 +12,11 @@ enum class RotateOrder {
     RO_XYZ
 };
 static Vector rotate(const Vector &vec, const Vector &rotationP, const RotateOrder &ro = RotateOrder::RO_YXZ) {
-
-    float sinx, siny, sinz, cosx, cosy, cosz;
-
     if (rotationP == Vector{ 0, 0, 0 }) {
         return vec;
     }
+
+    float sinx, siny, sinz, cosx, cosy, cosz;
     Vector rotation = { float(rotationP.x * (std::numbers::pi * 2)) / 360.f, float(rotationP.y * (std::numbers::pi * 2)) / 360.f, float(rotationP.z * (std::numbers::pi * 2)) / 360.f };
 
     sinx = std::sin(rotation.x);
