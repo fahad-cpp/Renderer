@@ -24,7 +24,6 @@ extern std::mutex *pixelLocks;
 // less = more FOV , more = lesser FOV
 const float d = 0.52f;
 const float farDist = 1000.f;
-extern Vector D;
 extern float vpWidth;
 extern float vpHeight;
 // only rendering when frame change to make sure my cpu doesn't explode
