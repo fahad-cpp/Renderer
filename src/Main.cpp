@@ -1,5 +1,6 @@
 #include "Main.h"
 #include "Colour.h"
+#include "FSWindow.h"
 #include "Globals.h"
 #include "Logging.h"
 #include "Object.h"
@@ -7,6 +8,8 @@
 #include "Renderer.h"
 #include "SceneSettings.h"
 #include "Timer.h"
+#include "Window.h"
+#include <Input.h>
 #include <thread>
 
 
@@ -32,35 +35,37 @@ int frameCount = 0;
 const float defSpeed = 2.f;
 float speed = defSpeed;
 const float boostSpeed = (5 * defSpeed);
-void handleInput(const Input &input) {
+void handleInput(FS::Window& window) {
+    const FS::Input& input = window.getInput();
+    FS::RenderState& renderState = window.getRenderState();
     const float sensitivity = 1.2f;
-    Vector mouseDiff = sceneSettings.lockMouse ? getMouseDiff() : 0;
+    FS::Vector2 mouseDiff = sceneSettings.lockMouse ? getMouseDiff(window) : 0;
     mouseDiff = mouseDiff * sensitivity;
     Vector velocity = { 0.f, 0.f, 0.f };
-    if (isDown(BUTTON_ESC)) {
+    if (isDown(FS::Buttons::BUTTON_ESC)) {
         running = false;
     }
     // Movement events
-    if (isDown(BUTTON_W)) {
+    if (isDown(FS::Buttons::BUTTON_W)) {
         velocity = velocity + Vector{ 0, 0, 1.f };
     }
-    if (isDown(BUTTON_A)) {
+    if (isDown(FS::Buttons::BUTTON_A)) {
         velocity = velocity + Vector{ -1.f, 0, 0 };
     }
-    if (isDown(BUTTON_S)) {
+    if (isDown(FS::Buttons::BUTTON_S)) {
         velocity = velocity + Vector{ 0, 0, -1.f };
     }
-    if (isDown(BUTTON_D)) {
+    if (isDown(FS::Buttons::BUTTON_D)) {
         velocity = velocity + Vector{ 1.f, 0, 0 };
     }
-    if (isDown(BUTTON_CTRL)) {
+    if (isDown(FS::Buttons::BUTTON_CTRL)) {
         velocity = velocity + Vector{ 0, -1.f, 0 };
     }
-    if (isDown(BUTTON_SPACE)) {
+    if (isDown(FS::Buttons::BUTTON_SPACE)) {
         velocity = velocity + Vector{ 0, 1.f, 0 };
     }
 
-    if (isDown(BUTTON_SHIFT)) {
+    if (isDown(FS::Buttons::BUTTON_SHIFT)) {
         speed += 10 * fdt;
         if (speed > boostSpeed) {
             speed = boostSpeed;
@@ -81,7 +86,7 @@ void handleInput(const Input &input) {
         velocity = rotate(velocity, { 0, camera.rotation.y, 0 });
         camera.position = camera.position + (velocity * fdt);
     }
-    if (pressed(BUTTON_L)) {
+    if (pressed(FS::Buttons::BUTTON_L)) {
         LOG_INFO("STATS:\n");
         LOG_INFO("Position : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n");
         LOG_INFO("Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n");
@@ -103,28 +108,28 @@ void handleInput(const Input &input) {
     }
 
     // Show triangles of the mesh
-    if (pressed(BUTTON_T)) {
+    if (pressed(FS::Buttons::BUTTON_T)) {
         if (sceneSettings.debugState != DebugState::DS_TRIANGLE)
             LOG_INFO("Debug state set to wireframe triangle\n");
         sceneSettings.debugState = DebugState::DS_TRIANGLE;
         change = true;
     }
     // Show bounding box of the mesh
-    if (pressed(BUTTON_B)) {
+    if (pressed(FS::Buttons::BUTTON_B)) {
         if (sceneSettings.debugState != DebugState::DS_BOUNDING_BOX)
             LOG_INFO("Debug state set to bounding box\n");
         sceneSettings.debugState = DebugState::DS_BOUNDING_BOX;
         change = true;
     }
     // Turn off Debug view
-    if (pressed(BUTTON_V)) {
+    if (pressed(FS::Buttons::BUTTON_V)) {
         if (sceneSettings.debugState != DebugState::DS_OFF)
             LOG_INFO("Visual debugging off\n");
         sceneSettings.debugState = DebugState::DS_OFF;
         change = true;
     }
     // Change ray tracing to rasterization and vise versa
-    if (pressed(BUTTON_R)) {
+    if (pressed(FS::Buttons::BUTTON_R)) {
         sceneSettings.rayTraceMode = !sceneSettings.rayTraceMode;
         if (sceneSettings.rayTraceMode) {
             LOG_INFO("Ray tracing turned on\n");
@@ -134,11 +139,11 @@ void handleInput(const Input &input) {
         change = true;
     }
     // Exporting an image
-    if (pressed(BUTTON_P)) {
-        Renderer::printPPM("Image.ppm");
+    if (pressed(FS::Buttons::BUTTON_P)) {
+        Renderer::printPPM("Image.ppm",renderState);
     }
     // Backface culling toggle
-    if (pressed(BUTTON_C)) {
+    if (pressed(FS::Buttons::BUTTON_C)) {
         sceneSettings.bfc = !sceneSettings.bfc;
         if (sceneSettings.bfc) {
             LOG_INFO("Backface culling turned on\n");
@@ -148,7 +153,7 @@ void handleInput(const Input &input) {
     }
 
     // Reset camera Position and rotation
-    if (pressed(BUTTON_Q)) {
+    if (pressed(FS::Buttons::BUTTON_Q)) {
         camera.rotation = { 0, 0, 0 };
         camera.position = { 0, 0, 0 };
         change = true;
@@ -156,10 +161,10 @@ void handleInput(const Input &input) {
 
     // Slow down time
     fdt = 0.06;
-    if (isDown(MOUSE_BUTTON_LEFT)) {
+    if (isDown(FS::Buttons::MOUSE_BUTTON_LEFT)) {
         fdt = 0.001;
     }
-    if (isDown(MOUSE_BUTTON_RIGHT)) {
+    if (isDown(FS::Buttons::MOUSE_BUTTON_RIGHT)) {
         Transform tf = { { 0, 0, 0 }, 1, { 0, float(100 * fdt), 0 } };
         if (scene.instances.size()) {
             scene.instances[0].applyTransform(tf);
@@ -168,7 +173,7 @@ void handleInput(const Input &input) {
     }
 
     // Toggle Anti aliasing
-    if (pressed(BUTTON_F)) {
+    if (pressed(FS::Buttons::BUTTON_F)) {
         sceneSettings.antiAliasing = !sceneSettings.antiAliasing;
         if (sceneSettings.antiAliasing) {
             LOG_INFO("Anti aliasing turned on.\n");
@@ -178,22 +183,22 @@ void handleInput(const Input &input) {
         change = true;
     }
     // Lock / Unlock mouse
-    if (pressed(BUTTON_G)) {
-        ShowCursor(sceneSettings.lockMouse);
+    if (pressed(FS::Buttons::BUTTON_G)) {
+        window.showCursor(sceneSettings.lockMouse);
         sceneSettings.lockMouse = !sceneSettings.lockMouse;
     }
-    if (pressed(BUTTON_M)) {
+    if (pressed(FS::Buttons::BUTTON_M)) {
         sceneSettings.renderMode = ((sceneSettings.renderMode == RenderMode::RM_DEPTH) ? RenderMode::RM_COLOR : RenderMode::RM_DEPTH);
     }
     // Move according to mouse difference
-    if (mouseDiff != Vector{ 0, 0, 0 }) {
+    if (mouseDiff != FS::Vector2{ 0, 0 }) {
         camera.rotation.y -= mouseDiff.x * fdt;
         camera.rotation.x += mouseDiff.y * fdt;
         change = true;
     }
 
     // Change lighting modes
-    if (pressed(BUTTON_X)) {
+    if (pressed(FS::Buttons::BUTTON_X)) {
         LightingMode mode = sceneSettings.lightingMode;
         uint8_t modenumber = static_cast<uint8_t>(mode);
         modenumber++;
@@ -205,7 +210,7 @@ void handleInput(const Input &input) {
     }
 
     // Ambient Occlusion
-    if (pressed(BUTTON_O)) {
+    if (pressed(FS::Buttons::BUTTON_O)) {
         if (sceneSettings.renderMode == RenderMode::RM_AO) {
             sceneSettings.renderMode = RenderMode::RM_COLOR;
         } else {
@@ -213,16 +218,16 @@ void handleInput(const Input &input) {
         }
     }
 
-    //Normal vis
-    if (pressed(BUTTON_N)) {
+    // Normal vis
+    if (pressed(FS::Buttons::BUTTON_N)) {
         sceneSettings.debugState = DebugState::DS_NORMAL;
     }
 }
 void init() {
     // ZoneScopedN("init");
     const float shininess = 64.f;
-    static Mesh model = loadOBJ("res/Models/sponza.obj", {shininess, 0.f ,  { 255, 255, 255 }});
-    //static Mesh floor = loadOBJ("res/Models/surface.obj", { 233,234,231 }, 0.f, shininess);
+    static Mesh model = loadOBJ("res/Models/sponza.obj", { shininess, 0.f, { 255, 255, 255 } });
+    // static Mesh floor = loadOBJ("res/Models/surface.obj", { 233,234,231 }, 0.f, shininess);
     Vector p[3] = {
         { -1.f, 0.f, 1.f },
         { 0.f, 2.f, 1.f },
@@ -285,34 +290,35 @@ void init() {
         ins.getBoundingBox();
     }
 }
-void update(const Input &input) {
+void update(FS::Window& window) {
     // Start counting frame time
     Timer timer;
-    handleInput(input);
+    handleInput(window);
+    FS::RenderState& renderState = window.getRenderState();
     if (sceneSettings.rayTraceMode && change) {
-        Renderer::clearScreen(0x000000);
+        Renderer::clearScreen(0x000000,renderState);
         // Ray tracing multithreaded
         static size_t threadCount = std::thread::hardware_concurrency();
         static std::vector<std::thread> rtThreads(threadCount);
         for (size_t i = 0; i < threadCount; i++) {
-            rtThreads[i] = std::thread(Renderer::rayTraceThr, i, threadCount);
+            rtThreads[i] = std::thread(Renderer::rayTraceThr, i, threadCount,std::ref(renderState));
         }
         for (size_t i = 0; i < rtThreads.size(); i++) {
             rtThreads[i].join();
         }
         if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
-            PostProcess::FXAA();
+            PostProcess::FXAA(renderState);
         }
         timer.Stop();
         // LOG_INFO("RayTracing this frame took : "+std::to_string(timer.dtms)+"ms\n");
         change = false;
     } else if (change) {
         // Rasterizer
-        Renderer::renderScene();
+        Renderer::renderScene(renderState);
         if ((sceneSettings.renderMode == RenderMode::RM_AO) && (sceneSettings.debugState == DebugState::DS_OFF)) {
-            PostProcess::renderAO();
+            PostProcess::renderAO(renderState);
         } else if (sceneSettings.renderMode == RenderMode::RM_DEPTH) {
-            Renderer::renderDepthBuffer();
+            Renderer::renderDepthBuffer(renderState);
         }
         timer.Stop();
     }

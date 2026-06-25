@@ -1,4 +1,5 @@
 #pragma once
-#include "Platform_common.h"
+#include "FSWindow.h"
+#include <Input.h>
 void init();
-void update(const Input &);
+void update(FS::Window& window);

@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Colour.h"
+#include "FSWindow.h"
 #include "Globals.h"
 #include "Hash.h"
 #include "Logging.h"
@@ -10,7 +11,6 @@
 #include "Transform.h"
 #include "Utility.h"
 #include "Vector.h"
-#include "Window.h"
 #include <Windows.h>
 #include <cstdint>
 #include <cstdio>
@@ -21,11 +21,12 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <stdint.h>
 
 namespace Renderer {
-void clearScreen(uint32_t color) {
-    uint32_t *pixel = (uint32_t *)renderState.memory;
-    float *dep = (float *)depthBuffer;
+void clearScreen(uint32_t color, FS::RenderState &renderState) {
+    uint32_t *pixel = (uint32_t *)renderState.screenBuffer;
+    float *dep = renderState.depthBuffer;
     int bufferSize = renderState.width * renderState.height;
     for (int i = 0; i < bufferSize; i++) {
         *pixel++ = color;
@@ -34,58 +35,58 @@ void clearScreen(uint32_t color) {
 }
 // Put pixel (x and y specify viewport coordinates)
 // this means x=0,y=0 will be on center
-void putPixel(const int x, const int y, const Colour &color) {
+void putPixel(const int x, const int y, const Colour &color, FS::RenderState &renderState) {
     const uint32_t hexColor = rgbtoHex(color);
     const uint32_t idx = (x + renderState.width / 2) + (((renderState.height / 2) - y) * renderState.width);
     std::lock_guard<std::mutex> lock(pixelLocks[idx]);
-    ((uint32_t *)renderState.memory)[idx] = hexColor;
+    ((uint32_t *)renderState.screenBuffer)[idx] = hexColor;
 }
 // put pixel Direct (x and y specify buffer value)
 // x=0,y=0 will be on top left
-void putPixelD(const int x, const int y, const Colour &color) {
+void putPixelD(const int x, const int y, const Colour &color, FS::RenderState &renderState) {
     uint32_t hexColor = rgbtoHex(color);
     uint32_t idx = x + (y * renderState.width);
     std::lock_guard<std::mutex> lock(pixelLocks[idx]);
-    ((uint32_t *)renderState.memory)[idx] = hexColor;
+    ((uint32_t *)renderState.screenBuffer)[idx] = hexColor;
 }
-void renderDepthBuffer() {
-    for (uint32_t y = 0; y < renderState.height; y++) {
-        for (uint32_t x = 0; x < renderState.width; x++) {
+void renderDepthBuffer(FS::RenderState &renderState) {
+    for (int y = 0; y < renderState.height; y++) {
+        for (int x = 0; x < renderState.width; x++) {
             uint32_t index = x + (y * renderState.width);
-            float value = ((float *)depthBuffer)[index];
+            float value = renderState.depthBuffer[index];
             clamp(value, 0.f, 1.f);
             Colour color = { (uint8_t)((value) * 255.f), (uint8_t)((value) * 255.f), (uint8_t)((value) * 255.f) };
-            putPixelD(x, y, color);
+            putPixelD(x, y, color, renderState);
         }
     }
 }
-Colour getPixel(const int x, const int y) {
-    uint32_t *pixel = (uint32_t *)renderState.memory + x + (y * renderState.width);
+Colour getPixel(const int x, const int y, FS::RenderState &renderState) {
+    uint32_t *pixel = (uint32_t *)renderState.screenBuffer + x + (y * renderState.width);
     Colour result = hexToRGB(*pixel);
     return result;
 }
-void drawSquare(float x, float y, int size, Colour color) {
+void drawSquare(float x, float y, int size, Colour color, FS::RenderState &renderState) {
     x -= size * 0.5f;
     y -= size * 0.5f;
     for (int i = int(y); i < y + size; i++) {
         for (int j = int(x); j < x + size; j++) {
-            putPixel(j, i, color);
+            putPixel(j, i, color, renderState);
         }
     }
 }
-void drawNoise() {
+void drawNoise(FS::RenderState &renderState) {
     for (int y = -(canvas.y / 2.f); y < (canvas.y / 2.f); y++) {
         for (int x = -(canvas.x / 2.f); x < (canvas.x / 2.f); x++) {
             Colour color = { uint8_t(rand() % 256), uint8_t(rand() % 256), uint8_t(rand() % 256) };
-            putPixel(x, y, color);
+            putPixel(x, y, color, renderState);
         }
     }
 }
-void printPPM(const std::string &filename) {
+void printPPM(const std::string &filename, FS::RenderState &renderState) {
     uint32_t sbsize = (renderState.width * renderState.height) * sizeof(uint32_t);
     uint32_t *buffer = (uint32_t *)malloc(sbsize);
     if (buffer) {
-        memcpy((void *)buffer, renderState.memory, sbsize);
+        memcpy((void *)buffer, renderState.screenBuffer, sbsize);
         ppmThreads.push_back(std::thread(Renderer::exportToPPM, filename, buffer, renderState.width, renderState.height));
     } else {
         LOG_WARN("Failed to allocate a buffer");
@@ -114,7 +115,7 @@ void exportToPPM(const std::string &filename, uint32_t *buffer, int width, int h
     LOG_SUCCESS(("Exported to " + filename + " took:" + std::to_string(timer.dtms) + "ms\n"));
 }
 
-void drawLine(Vector a, Vector b, const Colour &color) {
+void drawLine(Vector a, Vector b, const Colour &color, FS::RenderState &renderState) {
     const float dy = b.y - a.y;
     const float dx = b.x - a.x;
     if (abs(dx) > abs(dy)) {
@@ -129,7 +130,7 @@ void drawLine(Vector a, Vector b, const Colour &color) {
             if (x >= (canvas.x / 2) || x <= -(canvas.x / 2) || y >= (canvas.y / 2) || y <= -(canvas.y / 2)) {
                 y += aspectRatio;
             } else {
-                putPixel(x, y, color);
+                putPixel(x, y, color, renderState);
                 y += aspectRatio;
             }
         }
@@ -145,7 +146,7 @@ void drawLine(Vector a, Vector b, const Colour &color) {
             if (x >= (canvas.x / 2) || x <= -(canvas.x / 2) || y >= (canvas.y / 2) || y <= -(canvas.y / 2)) {
                 x += aspectRatio;
             } else {
-                putPixel(x, y, color);
+                putPixel(x, y, color, renderState);
                 x += aspectRatio;
             }
         }
@@ -156,13 +157,13 @@ Vector canvasToViewport(float x, float y) {
     return { x * (vpWidth / canvas.x), y * (vpHeight / canvas.y), d };
 }
 Vector viewportToCanvas(float x, float y) {
-    return { x * (canvas.x / vpWidth), y * (canvas.y / vpHeight),d };
+    return { x * (canvas.x / vpWidth), y * (canvas.y / vpHeight), d };
 }
 Vector projectVertex(const Vector &v) {
     // Perspective Projection
     return viewportToCanvas(((v.x * d) / v.z), ((v.y * d) / v.z));
 }
-template<typename T>
+template <typename T>
 void interpolate(T x0, float y0, T x1, float y1, std::vector<T> &arr) {
     size_t size = abs(int(y1) - int(y0));
     arr.reserve(size);
@@ -172,7 +173,7 @@ void interpolate(T x0, float y0, T x1, float y1, std::vector<T> &arr) {
         arr.push_back(x);
     }
 }
-void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &material, bool wireframe) {
+void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &material, bool wireframe, FS::RenderState &renderState) {
     Vector projected[3] = {
         projectVertex(p[0]),
         projectVertex(p[1]),
@@ -202,9 +203,9 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     }
 
     if (wireframe) {
-        drawLine(projected[0], projected[1], material.color);
-        drawLine(projected[1], projected[2], material.color);
-        drawLine(projected[0], projected[2], material.color);
+        drawLine(projected[0], projected[1], material.color,renderState);
+        drawLine(projected[1], projected[2], material.color,renderState);
+        drawLine(projected[0], projected[2], material.color,renderState);
         return;
     }
 
@@ -301,18 +302,18 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     const bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
     const bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
     for (int y = int(projected[0].y); y < int(projected[2].y); y++) {
-        const uint32_t& scanline = uint32_t(y - int(projected[0].y));
-        const float& lz = (*zleft)[scanline];
-        const float& rz = (*zright)[scanline];
-        const int& lx = (*xleft)[scanline];
-        const int& rx = (*xright)[scanline];
-        const Vector& ln = (*nleft)[scanline];
-        const Vector& rn = (*nright)[scanline];
+        const uint32_t &scanline = uint32_t(y - int(projected[0].y));
+        const float &lz = (*zleft)[scanline];
+        const float &rz = (*zright)[scanline];
+        const int &lx = (*xleft)[scanline];
+        const int &rx = (*xright)[scanline];
+        const Vector &ln = (*nleft)[scanline];
+        const Vector &rn = (*nright)[scanline];
 
         // interpolate z
         std::vector<float> zsegment = {};
         std::vector<Vector> nsegment = {};
-        const uint32_t zsegmentSize = uint32_t(rx - lx) > renderState.width ? renderState.width : (rx - lx);
+        const uint32_t zsegmentSize = (rx - lx) > renderState.width ? renderState.width : (rx - lx);
 
         zsegment.reserve(zsegmentSize);
         interpolate(lz, float(lx), rz, float(rx), zsegment);
@@ -325,7 +326,7 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
             int screeny = (renderState.height / 2) - y;
             uint32_t index = (screeny * renderState.width) + screenx;
             std::lock_guard<std::mutex> lock(pixelLocks[index]);
-            float dep = ((float *)depthBuffer)[index];
+            float dep = renderState.depthBuffer[index];
             float invz = zsegment[x - lx];
             float z = 1.f / invz;
             if (invz < dep) {
@@ -343,13 +344,13 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
             Colour normalColour = Colour{ (uint8_t)clampv(abs(normal.x * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.y * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.z * 255.f), 0.f, 255.f) };
             Colour color = (sceneSettings.debugState == DebugState::DS_NORMAL) ? normalColour : material.color;
             color = color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
-            renderState.normalBuffer[index] = normal;
-            ((float *)depthBuffer)[index] = invz;
-            ((uint32_t *)renderState.memory)[index] = rgbtoHex(color);
+            // renderState.normalBuffer[index] = normal;
+            renderState.depthBuffer[index] = invz;
+            ((uint32_t *)renderState.screenBuffer)[index] = rgbtoHex(color);
         }
     }
 }
-void drawTriangleDepth(const Vector p[3]) {
+void drawTriangleDepth(const Vector p[3], FS::RenderState &renderState) {
     Vector projected[3] = {
         projectVertex(p[0]),
         projectVertex(p[1]),
@@ -446,7 +447,7 @@ void drawTriangleDepth(const Vector p[3]) {
         // interpolate z
         std::vector<float> zsegment = {};
         std::vector<Vector> nsegment = {};
-        const uint32_t zsegmentSize = uint32_t(rx - lx) > renderState.width ? renderState.width : (rx - lx);
+        const uint32_t zsegmentSize = (rx - lx) > renderState.width ? renderState.width : (rx - lx);
         zsegment.reserve(zsegmentSize);
         interpolate(lz, float(lx), rz, float(rx), zsegment);
         for (int x = lx; x < rx; x++) {
@@ -457,17 +458,16 @@ void drawTriangleDepth(const Vector p[3]) {
             int screeny = (renderState.height / 2) - y;
             uint32_t index = (screeny * renderState.width) + screenx;
             std::lock_guard<std::mutex> lock(pixelLocks[index]);
-            float dep = ((float *)depthBuffer)[index];
+            float dep = renderState.depthBuffer[index];
             float invz = zsegment[x - lx];
-            float z = 1.f / invz;
             if (invz < dep) {
                 continue;
             }
-            ((float *)depthBuffer)[index] = invz;
+            renderState.depthBuffer[index] = invz;
         }
     }
 }
-void drawBox(const Box &box, const Transform &tf, bool inTriangle) {
+void drawBox(const Box &box, const Transform &tf, bool inTriangle, FS::RenderState &renderState) {
     // The tf transform is inverse camera tranform to convert world space box into
     // camera space box
     const Colour red = { 255, 0, 0 };
@@ -518,14 +518,14 @@ void drawBox(const Box &box, const Transform &tf, bool inTriangle) {
         for (int i = 0; i < 12; i++) {
             Vector normal = cross((tris[i][1] - tris[i][0]), (tris[i][2] - tris[i][0]));
             std::vector<Triangle> tri{
-                {
-                    tris[i][0],
-                    tris[i][1],
-                    tris[i][2],
-                },
-                { normal,
-                  normal,
-                  normal }
+                Triangle{
+                    .points = {
+                        tris[i][0],
+                        tris[i][1],
+                        tris[i][2],
+                    },
+                    .normals = { normal, normal, normal },
+                }
             };
             std::vector<Triangle> clippedTris = {};
             clipTriangle(tri, clippedTris);
@@ -533,24 +533,24 @@ void drawBox(const Box &box, const Transform &tf, bool inTriangle) {
                 boxTriangles.push_back(triangle);
             }
         }
-        drawVertices(boxTriangles, Material{ -1, 0.f,red }, true, false);
+        drawVertices(boxTriangles, Material{ -1, 0.f, red }, true, false,renderState);
         return;
     }
     // Front lines
-    drawLine(projected[0], projected[1], red);
-    drawLine(projected[1], projected[2], red);
-    drawLine(projected[2], projected[3], red);
-    drawLine(projected[3], projected[0], red);
+    drawLine(projected[0], projected[1], red,renderState);
+    drawLine(projected[1], projected[2], red,renderState);
+    drawLine(projected[2], projected[3], red,renderState);
+    drawLine(projected[3], projected[0], red,renderState);
     // Back lines
-    drawLine(projected[4], projected[5], red);
-    drawLine(projected[5], projected[6], red);
-    drawLine(projected[6], projected[7], red);
-    drawLine(projected[7], projected[4], red);
+    drawLine(projected[4], projected[5], red,renderState);
+    drawLine(projected[5], projected[6], red,renderState);
+    drawLine(projected[6], projected[7], red,renderState);
+    drawLine(projected[7], projected[4], red,renderState);
     // Side lines
-    drawLine(projected[0], projected[4], red);
-    drawLine(projected[1], projected[5], red);
-    drawLine(projected[2], projected[6], red);
-    drawLine(projected[3], projected[7], red);
+    drawLine(projected[0], projected[4], red,renderState);
+    drawLine(projected[1], projected[5], red,renderState);
+    drawLine(projected[2], projected[6], red,renderState);
+    drawLine(projected[3], projected[7], red,renderState);
 }
 
 float intersectRaySphere(const Vector &O, const Vector &D, const Sphere &sphere) {
@@ -678,7 +678,7 @@ HitData closestIntersection(const Vector &O, const Vector &D, float tMin, float 
         if (isIn(triangleInt, tMin, tMax) && triangleInt < hitData.intersection) {
             hitData.intersection = triangleInt;
             hitData.normal = triangle.normals[0];
-            hitData.material = Material{ -1, 0.f, {255,0,0} };
+            hitData.material = Material{ -1, 0.f, { 255, 0, 0 } };
         }
     }
     // Mesh
@@ -862,11 +862,11 @@ void clipPlane(const Plane &plane, const std::vector<Triangle> &in, std::vector<
             float edgeIntAB = edgePlaneIntersection(plane, A, B);
             float edgeIntAC = edgePlaneIntersection(plane, A, C);
 
-            B = lerp(A,B,edgeIntAB);
-            C = lerp(A,C,edgeIntAC);
+            B = lerp(A, B, edgeIntAB);
+            C = lerp(A, C, edgeIntAC);
 
-            BN = lerp(AN,BN,edgeIntAB);
-            CN = lerp(AN,CN,edgeIntAC);
+            BN = lerp(AN, BN, edgeIntAB);
+            CN = lerp(AN, CN, edgeIntAC);
 
             Vector p[3];
             p[invec[0]] = A;
@@ -895,11 +895,11 @@ void clipPlane(const Plane &plane, const std::vector<Triangle> &in, std::vector<
 
             Vector newB, newBN;
 
-            newB = lerp(B,C,edgeIntBC);
-            newBN = lerp(BN,CN,edgeIntBC);
+            newB = lerp(B, C, edgeIntBC);
+            newBN = lerp(BN, CN, edgeIntBC);
 
-            C = lerp(A,C,edgeIntAC);
-            CN = lerp(AN,CN,edgeIntAC);
+            C = lerp(A, C, edgeIntAC);
+            CN = lerp(AN, CN, edgeIntAC);
 
             Vector p1[3];
             p1[invec[0]] = A;
@@ -965,7 +965,6 @@ void modelSpaceToDrawable(const Vector p[3], const Vector n[3], const Transform 
     vert[1] = rotate(vert[1], -camera.rotation);
     vert[2] = rotate(vert[2], -camera.rotation);
 
-
     const bool backFaceCulling = sceneSettings.bfc;
     Vector normal = cross(vert[1] - vert[0], vert[2] - vert[0]);
     Vector PO = -vert[0];
@@ -976,7 +975,12 @@ void modelSpaceToDrawable(const Vector p[3], const Vector n[3], const Transform 
     }
 
     // Frustum culling
-    const std::vector<Triangle> triData = { Triangle{ vert[0], vert[1], vert[2], norm[0], norm[1], norm[2] } };
+    const std::vector<Triangle> triData = {
+        Triangle{
+            .points = { vert[0], vert[1], vert[2] },
+            .normals = { norm[0], norm[1], norm[2] },
+        }
+    };
     std::vector<Triangle> clippedData;
     clipTriangle(triData, clippedData);
 
@@ -1034,7 +1038,7 @@ void getDrawableTriangles(const std::vector<Triangle> &triangleData, const Trans
         for (uint32_t i = 0; i < threadSize; i++) {
             triProcessThr[i].join();
         }
-        size_t triangleVectorSize=0;
+        size_t triangleVectorSize = 0;
         for (const std::vector<Triangle> &tris : outTrisArr) {
             triangleVectorSize += tris.size();
         }
@@ -1048,7 +1052,7 @@ void getDrawableTriangles(const std::vector<Triangle> &triangleData, const Trans
         }
     }
 }
-void drawVerticesThr(const std::vector<Triangle> &triangleData, const Material &material, bool wireframe, uint32_t start, uint32_t end) {
+void drawVerticesThr(const std::vector<Triangle> &triangleData, const Material &material, bool wireframe,FS::RenderState& renderState, uint32_t start, uint32_t end) {
     for (uint32_t i = start; i < end; i++) {
         Vector p[3] = {
             triangleData[i].points[0],
@@ -1060,20 +1064,20 @@ void drawVerticesThr(const std::vector<Triangle> &triangleData, const Material &
             triangleData[i].normals[1],
             triangleData[i].normals[2],
         };
-        drawVerticesTriangle(p, n, material, wireframe);
+        drawVerticesTriangle(p, n, material, wireframe,renderState);
     }
 }
-void drawVerticesDepthThr(const std::vector<Triangle> &triangleData, uint32_t start, uint32_t end) {
+void drawVerticesDepthThr(const std::vector<Triangle> &triangleData, FS::RenderState &renderState, uint32_t start, uint32_t end) {
     for (uint32_t i = start; i < end; i++) {
         Vector p[3] = {
             triangleData[i].points[0],
             triangleData[i].points[1],
             triangleData[i].points[2],
         };
-        drawTriangleDepth(p);
+        drawTriangleDepth(p, renderState);
     }
 }
-void drawVertices(const std::vector<Triangle> &triangleData, const Material &material, bool wireframe, bool multithread) {
+void drawVertices(const std::vector<Triangle> &triangleData, const Material &material, bool wireframe, bool multithread, FS::RenderState &renderState) {
     if (!multithread) {
         for (size_t i = 0; i < triangleData.size(); i++) {
             Vector p[3] = {
@@ -1086,7 +1090,7 @@ void drawVertices(const std::vector<Triangle> &triangleData, const Material &mat
                 triangleData[i].normals[1],
                 triangleData[i].normals[2],
             };
-            drawVerticesTriangle(p, n, material, wireframe);
+            drawVerticesTriangle(p, n, material, wireframe, renderState);
         }
     } else {
         const uint32_t threadSize = std::thread::hardware_concurrency();
@@ -1097,7 +1101,7 @@ void drawVertices(const std::vector<Triangle> &triangleData, const Material &mat
         uint32_t start = 0;
         for (uint32_t i = 0; i < threadSize; i++) {
             uint32_t end = start + triPerThread + ((i < remainingTris) ? 1 : 0);
-            drawVerticesThr[i] = std::thread(Renderer::drawVerticesThr, std::cref(triangleData), std::cref(material), wireframe, start, end);
+            drawVerticesThr[i] = std::thread(Renderer::drawVerticesThr, std::cref(triangleData), std::cref(material), wireframe, std::ref(renderState), start, end);
             start = end;
         }
         for (uint32_t i = 0; i < threadSize; i++) {
@@ -1105,7 +1109,7 @@ void drawVertices(const std::vector<Triangle> &triangleData, const Material &mat
         }
     }
 }
-void drawVerticesDepth(const std::vector<Triangle> &triangleData, bool multithread) {
+void drawVerticesDepth(const std::vector<Triangle> &triangleData, FS::RenderState &renderState, bool multithread) {
     if (!multithread) {
         for (size_t i = 0; i < triangleData.size(); i++) {
             Vector p[3] = {
@@ -1113,7 +1117,7 @@ void drawVerticesDepth(const std::vector<Triangle> &triangleData, bool multithre
                 triangleData[i].points[1],
                 triangleData[i].points[2]
             };
-            drawTriangleDepth(p);
+            drawTriangleDepth(p, renderState);
         }
     } else {
         const uint32_t threadSize = std::thread::hardware_concurrency();
@@ -1124,7 +1128,7 @@ void drawVerticesDepth(const std::vector<Triangle> &triangleData, bool multithre
         uint32_t start = 0;
         for (uint32_t i = 0; i < threadSize; i++) {
             uint32_t end = start + triPerThread + ((i < remainingTris) ? 1 : 0);
-            drawVerticesThr[i] = std::thread(Renderer::drawVerticesDepthThr, std::cref(triangleData), start, end);
+            drawVerticesThr[i] = std::thread(Renderer::drawVerticesDepthThr, std::cref(triangleData), std::ref(renderState), start, end);
             start = end;
         }
         for (uint32_t i = 0; i < threadSize; i++) {
@@ -1132,15 +1136,15 @@ void drawVerticesDepth(const std::vector<Triangle> &triangleData, bool multithre
         }
     }
 }
-void renderMesh(const Mesh &mesh, const Transform &transform, bool multithread) {
+void renderMesh(const Mesh &mesh, const Transform &transform, bool multithread, FS::RenderState &renderState) {
     static std::vector<Triangle> triData = {};
     triData.clear();
     getDrawableTriangles(mesh.triangleData, transform, triData, multithread);
 
     sceneSettings.triSeenCount += triData.size();
     bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
-    //drawVerticesDepth(triData, multithread);
-    drawVertices(triData, mesh.material, drawWireframe, multithread);
+    // drawVerticesDepth(triData, multithread);
+    drawVertices(triData, mesh.material, drawWireframe, multithread, renderState);
 }
 Colour traceRay(const Vector &O, const Vector &D, float tMin, float tMax, int recursionLimit) {
     HitData hitData = closestIntersection(O, D, tMin, tMax);
@@ -1168,7 +1172,7 @@ Colour traceRay(const Vector &O, const Vector &D, float tMin, float tMax, int re
 
     return (localColor * (1.f - r)) + (reflectedColor * r);
 }
-void rayTraceThr(const int threadNum, const int threadCount) {
+void rayTraceThr(const int threadNum, const int threadCount, FS::RenderState &renderState) {
     float ycount = (canvas.y / threadCount);
     float ymin = ycount * threadNum;
     float ymax = ymin + ycount;
@@ -1178,12 +1182,12 @@ void rayTraceThr(const int threadNum, const int threadCount) {
             direction = rotate(direction, camera.rotation, RotateOrder::RO_XYZ);
             direction = direction / length(direction);
             Colour result = traceRay(camera.position, direction, 1, INT_MAX, 3);
-            putPixelD(x, y, result);
+            putPixelD(x, y, result, renderState);
         }
     }
 }
-void rayTrace() {
-    clearScreen(0x000000);
+void rayTrace(FS::RenderState &renderState) {
+    clearScreen(0x000000, renderState);
     for (float y = 0; y < renderState.height; y++) {
         int scanlineDone = y + 1;
         LOG_INFO("\rScanlines Done:" << scanlineDone << '/' << (renderState.width) << ':' << int((scanlineDone / (renderState.width)) * 100) << "%" << std::flush);
@@ -1192,24 +1196,24 @@ void rayTrace() {
             D = rotate(D, camera.rotation, RotateOrder::RO_XYZ);
             D = D / length(D);
             Colour result = traceRay(camera.position, D, 1, INT_MAX, 3);
-            putPixelD(x, y, result);
+            putPixelD(x, y, result, renderState);
         }
     }
 }
-void renderScene() {
-    clearScreen(0x646464);
+void renderScene(FS::RenderState &renderState) {
+    clearScreen(0x646464, renderState);
     static std::unordered_map<Sphere, Mesh> sphereMeshCache = {};
     sceneSettings.triSeenCount = 0;
     // Render meshes
     for (const Instance &ins : scene.instances) {
-        renderMesh(*ins.mesh, ins.transform);
+        renderMesh(*ins.mesh, ins.transform, true, renderState);
     }
     // Render spheres
     for (const Sphere &sphere : scene.spheres) {
         static Mesh sphereM = {};
         // cache spheres if not already
         if (sphereMeshCache.find(sphere) == sphereMeshCache.end()) {
-            sphereM = loadOBJ("res/Models/Sphere.obj", { sphere.specular,sphere.reflectiveness,sphere.color });
+            sphereM = loadOBJ("res/Models/Sphere.obj", { sphere.specular, sphere.reflectiveness, sphere.color });
             sphereMeshCache[sphere] = sphereM;
         } else {
             sphereM = sphereMeshCache[sphere];
@@ -1218,7 +1222,7 @@ void renderScene() {
         float scale = 0.4f;
         Transform transform = { (sphere.center + offset), sphere.radius * scale };
         Instance sphereIns{ &sphereM, transform };
-        renderMesh(*sphereIns.mesh, sphereIns.transform);
+        renderMesh(*sphereIns.mesh, sphereIns.transform, true, renderState);
     }
     // Render scene triangles
     bool isWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
@@ -1237,11 +1241,11 @@ void renderScene() {
         };
         modelSpaceToDrawable(points, normals, { { 0, 0, 0 }, 1.f, { 0, 0, 0 } }, drawableTris);
 
-        drawVertices(drawableTris, { -1, 0.f, {255,0,0} }, isWireframe, false);
+        drawVertices(drawableTris, { -1, 0.f, { 255, 0, 0 } }, isWireframe, false, renderState);
     }
     // Apply AA
     if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
-        PostProcess::FXAA();
+        PostProcess::FXAA(renderState);
     }
     if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX) {
         // Draw Bounding boxes
@@ -1250,7 +1254,7 @@ void renderScene() {
             box.highest = box.highest - camera.position;
             box.lowest = box.lowest - camera.position;
             Transform ttf = { { 0, 0, 0 }, 1, -camera.rotation };
-            drawBox(box, ttf);
+            drawBox(box, ttf, true, renderState);
         }
     }
 }

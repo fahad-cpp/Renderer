@@ -6,17 +6,17 @@
 #include <random>
 
 namespace PostProcess {
-void FXAAthr(int threadNum, int threadCount, float edgeThreshold) {
+void FXAAthr(int threadNum, int threadCount, FS::RenderState &renderState, float edgeThreshold) {
     int yCount = (renderState.height - 2) / threadCount;
     int ymin = (threadNum * yCount) + 1;
     int ymax = ymin + yCount;
     for (int y = ymin; y < ymax; y++) {
-        for (uint32_t x = 1; x < renderState.width - 1; x++) {
-            Colour colorCenter = Renderer::getPixel(x, y);
-            Colour colorTop = Renderer::getPixel(x, y - 1);
-            Colour colorBottom = Renderer::getPixel(x, y + 1);
-            Colour colorLeft = Renderer::getPixel(x - 1, y);
-            Colour colorRight = Renderer::getPixel(x + 1, y);
+        for (int x = 1; x < renderState.width - 1; x++) {
+            Colour colorCenter = Renderer::getPixel(x, y, renderState);
+            Colour colorTop = Renderer::getPixel(x, y - 1, renderState);
+            Colour colorBottom = Renderer::getPixel(x, y + 1, renderState);
+            Colour colorLeft = Renderer::getPixel(x - 1, y, renderState);
+            Colour colorRight = Renderer::getPixel(x + 1, y, renderState);
 
             float topLuma = colorTop.luminance();
             float bottomLuma = colorBottom.luminance();
@@ -42,24 +42,24 @@ void FXAAthr(int threadNum, int threadCount, float edgeThreshold) {
             bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
 
             if (isEdge) {
-                Renderer::putPixelD(x, y, blendColour);
+                Renderer::putPixelD(x, y, blendColour, renderState);
             } else {
-                Renderer::putPixelD(x, y, colorCenter);
+                Renderer::putPixelD(x, y, colorCenter, renderState);
             }
         }
     }
 }
-void FXAA(bool multiThread) {
+void FXAA(FS::RenderState &renderState, bool multiThread) {
     float edgeThreshold = 0.f;
     if (!multiThread) {
         // Single Threaded FXAA
-        for (uint32_t y = 1; y < (renderState.height - 1); y++) {
-            for (uint32_t x = 1; x < (renderState.width - 1); x++) {
-                Colour colorCenter = Renderer::getPixel(x, y);
-                Colour colorTop = Renderer::getPixel(x, y - 1);
-                Colour colorBottom = Renderer::getPixel(x, y + 1);
-                Colour colorLeft = Renderer::getPixel(x - 1, y);
-                Colour colorRight = Renderer::getPixel(x + 1, y);
+        for (int y = 1; y < (renderState.height - 1); y++) {
+            for (int x = 1; x < (renderState.width - 1); x++) {
+                Colour colorCenter = Renderer::getPixel(x, y, renderState);
+                Colour colorTop = Renderer::getPixel(x, y - 1, renderState);
+                Colour colorBottom = Renderer::getPixel(x, y + 1, renderState);
+                Colour colorLeft = Renderer::getPixel(x - 1, y, renderState);
+                Colour colorRight = Renderer::getPixel(x + 1, y, renderState);
 
                 float topLuma = colorTop.luminance();
                 float bottomLuma = colorBottom.luminance();
@@ -85,9 +85,9 @@ void FXAA(bool multiThread) {
                 bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
 
                 if (isEdge) {
-                    Renderer::putPixelD(x, y, blendColour);
+                    Renderer::putPixelD(x, y, blendColour, renderState);
                 } else {
-                    Renderer::putPixelD(x, y, colorCenter);
+                    Renderer::putPixelD(x, y, colorCenter, renderState);
                 }
             }
         }
@@ -96,71 +96,71 @@ void FXAA(bool multiThread) {
         int threadCount = 12;
         std::vector<std::thread> tObjs(threadCount);
         for (int i = 0; i < threadCount; i++) {
-            tObjs[i] = std::thread(FXAAthr, i, threadCount, 0.f);
+            tObjs[i] = std::thread(FXAAthr, i, threadCount, std::ref(renderState), 0.f);
         }
         for (int i = 0; i < threadCount; i++) {
             tObjs[i].join();
         }
     }
 }
-void renderAO() {
+void renderAO(FS::RenderState &renderState) {
     std::random_device rd;
     std::mt19937 gen(rd());
     const int SAMPLE_COUNT = 64;
     const float SAMPLE_RADIUS = 2.f;
     std::uniform_int_distribution<> dist(-SAMPLE_RADIUS, SAMPLE_RADIUS);
     Vector samplesLoc[SAMPLE_COUNT];
-    for (uint32_t y = 0; y < renderState.height; y++) {
-        for (uint32_t x = 0; x < renderState.width; x++) {
+    for (int y = 0; y < renderState.height; y++) {
+        for (int x = 0; x < renderState.width; x++) {
             uint32_t pixelIndex = (y * renderState.width) + x;
-            float pixelDepth = ((float *)depthBuffer)[pixelIndex];
+            float pixelDepth = renderState.depthBuffer[pixelIndex];
             float z = 1.f / pixelDepth;
             Vector point = Renderer::canvasToViewport(x * z / d, y * z / d);
-            
+
             for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
-                samplesLoc[i] = { float(dist(gen)) + point.x, float(dist(gen)) + point.y, float(dist(gen)) + z};
+                samplesLoc[i] = { float(dist(gen)) + point.x, float(dist(gen)) + point.y, float(dist(gen)) + z };
             }
             int occlusionFactor = 0;
             for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
                 Vector offset = Renderer::projectVertex(samplesLoc[i]);
-                if (!isIn(uint32_t(offset.x), 0u, renderState.width) || !isIn(uint32_t(offset.y), 0u, renderState.height)) {
+                if (!isIn(int(offset.x), 0, renderState.width) || !isIn(int(offset.y), 0, renderState.height)) {
                     clamp(offset.x, 0.f, (float)renderState.width);
                     clamp(offset.y, 0.f, (float)renderState.height);
                 }
                 uint32_t offsetIndex = uint32_t(offset.x) + (uint32_t(offset.y) * renderState.width);
-                float sampleDepth = ((float *)depthBuffer)[offsetIndex];
+                float sampleDepth = renderState.depthBuffer[offsetIndex];
                 // float threshold = 0.001f;
                 if ((sampleDepth > pixelDepth) && (pixelDepth != 0.f)) {
                     occlusionFactor++;
                 }
             }
             Colour color = { 255, 255, 255 }; // Renderer::getPixel(x, y);
-            Renderer::putPixelD(x, y, color * (1 - float(occlusionFactor) / SAMPLE_COUNT));
-            renderState.ambientOcclusion[pixelIndex] = (float(occlusionFactor) / SAMPLE_COUNT);
+            Renderer::putPixelD(x, y, color * (1 - float(occlusionFactor) / SAMPLE_COUNT), renderState);
+            // renderState.ambientOcclusion[pixelIndex] = (float(occlusionFactor) / SAMPLE_COUNT);
         }
     }
-    //boxBlur();
+    // boxBlur();
 }
-void boxBlur() {
+void boxBlur(FS::RenderState &renderState) {
     uint32_t *buffer = (uint32_t *)malloc(renderState.width * renderState.height * sizeof(uint32_t));
     if (!buffer) {
         return;
     }
-    memcpy(buffer, renderState.memory, renderState.width * renderState.height * sizeof(uint32_t));
-    for (uint32_t y = 1; y < renderState.height - 1; y++) {
-        for (uint32_t x = 1; x < renderState.width - 1; x++) {
+    memcpy(buffer, renderState.screenBuffer, renderState.width * renderState.height * sizeof(uint32_t));
+    for (int y = 1; y < renderState.height - 1; y++) {
+        for (int x = 1; x < renderState.width - 1; x++) {
             Colour grid[9] = {
-                Renderer::getPixel(x - 1, y - 1),
-                Renderer::getPixel(x, y - 1),
-                Renderer::getPixel(x + 1, y - 1),
+                Renderer::getPixel(x - 1, y - 1, renderState),
+                Renderer::getPixel(x, y - 1, renderState),
+                Renderer::getPixel(x + 1, y - 1, renderState),
 
-                Renderer::getPixel(x - 1, y),
-                Renderer::getPixel(x, y),
-                Renderer::getPixel(x + 1, y),
+                Renderer::getPixel(x - 1, y, renderState),
+                Renderer::getPixel(x, y, renderState),
+                Renderer::getPixel(x + 1, y, renderState),
 
-                Renderer::getPixel(x - 1, y + 1),
-                Renderer::getPixel(x, y + 1),
-                Renderer::getPixel(x + 1, y + 1)
+                Renderer::getPixel(x - 1, y + 1, renderState),
+                Renderer::getPixel(x, y + 1, renderState),
+                Renderer::getPixel(x + 1, y + 1, renderState)
             };
 
             int totalR = 0;
@@ -181,7 +181,7 @@ void boxBlur() {
             buffer[index] = rgbtoHex({ R, G, B });
         }
     }
-    memcpy(renderState.memory, buffer, renderState.width * renderState.height * sizeof(uint32_t));
+    memcpy(renderState.screenBuffer, buffer, renderState.width * renderState.height * sizeof(uint32_t));
     free(buffer);
 }
 } // namespace PostProcess

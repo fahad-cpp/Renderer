@@ -8,14 +8,13 @@
 #include "Scene.h"
 #include "SceneSettings.h"
 #include "Transform.h"
-#include "Window.h"
 #include <math.h>
 #include <mutex>
 #include <thread>
 
-extern Window window;
-extern void *depthBuffer;
-extern RenderState renderState;
+//extern Window window;
+// extern void *depthBuffer;
+// extern RenderState renderState;
 extern bool running;
 extern SceneSettings sceneSettings;
 extern Vector canvas;

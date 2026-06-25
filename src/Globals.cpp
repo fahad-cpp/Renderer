@@ -1,8 +1,7 @@
 #include "Globals.h"
 
-Window window = {};
-void *depthBuffer = nullptr;
-RenderState renderState;
+//Window window = {};
+// void *depthBuffer = nullptr;
 std::vector<std::thread> ppmThreads;
 std::mutex *pixelLocks;
 bool running = true;
