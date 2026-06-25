@@ -3,6 +3,8 @@
  * This file handles all the windowing and windows api specific tasks
  * ------------------------------------------------------------------
  */
+#include "Timer.h"
+#include "Logging.h"
 #include <iostream>
 #define _CRT_SECURE_NO_WARNINGS
 // #define NOMINMAX
@@ -33,6 +35,7 @@ FS::Vector2 getMouseDiff(FS::Window &window) {
     }
     FS::Vector2 mouseNow = { float(mousePoint.x) - windowX, float(mousePoint.y) - windowY };
     FS::Vector2 mouseDiff = mouseNow - mousePrev;
+    
     return mouseDiff;
 }
 // LRESULT CALLBACK window_callback(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -241,8 +244,8 @@ FS::Vector2 getMouseDiff(FS::Window &window) {
 
 int main() {
     // Random seed
-    //Timer timer;
     srand(uint32_t(time(NULL)));
+    Timer timer;
     FS::Window window("Renderer!", 720, 720);
     FS::RenderState &renderState = window.getRenderState();
     window.showCursor(false);
@@ -250,16 +253,16 @@ int main() {
     float aspectratio = float(renderState.width) / float(renderState.height);
     vpWidth = aspectratio;
     vpHeight = 1;
-    size_t mutexSize = renderState.width * (renderState.height+1) * sizeof(std::mutex);
+    //Hack : TODO:reconstruct on resize
+    size_t mutexSize = 1920 * 1080 * sizeof(std::mutex);
     pixelLocks = (std::mutex *)malloc(mutexSize);
-    //timer.Stop();
-    //LOG_INFO("Initialization took " << timer.dtms << " ms\n");
+    timer.Stop();
+    LOG_INFO("Initialization took " << timer.dtms << " ms\n");
     init();
     try {
         while (running) {
             // Update Loop
             update(window);
-            // Swap buffers
             window.processMessages();
             window.swapBuffers();
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
