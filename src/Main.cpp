@@ -88,6 +88,19 @@ void handleInput(FS::Window& window) {
         velocity = rotate(velocity, { 0, camera.rotation.y, 0 });
         camera.position = camera.position + (velocity * fdt);
     }
+
+    if(isDown(FS::Buttons::BUTTON_LEFT)){
+        mouseDiff.x -= 100.f * fdt * sensitivity;
+    }
+    if(isDown(FS::Buttons::BUTTON_RIGHT)){
+        mouseDiff.x += 100.f * fdt * sensitivity;
+    }
+    if(isDown(FS::Buttons::BUTTON_UP)){
+        mouseDiff.y -= 100.f * fdt * sensitivity;
+    }
+    if(isDown(FS::Buttons::BUTTON_DOWN)){
+        mouseDiff.y += 100.f * fdt * sensitivity;
+    }
     if (pressed(FS::Buttons::BUTTON_L)) {
         LOG_INFO("STATS:\n");
         LOG_INFO("Position : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n");
