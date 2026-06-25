@@ -11,12 +11,11 @@
 #include "Transform.h"
 #include "Utility.h"
 #include "Vector.h"
-#include <Windows.h>
+#include <climits>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <minmax.h>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
@@ -95,8 +94,7 @@ void printPPM(const std::string &filename, FS::RenderState &renderState) {
 
 void exportToPPM(const std::string &filename, uint32_t *buffer, int width, int height) {
     Timer timer;
-    FILE *file;
-    fopen_s(&file, filename.c_str(), "w");
+    FILE *file = std::fopen( filename.c_str(), "w");
     if (!file) {
         LOG_ERROR("Failed to open file : " << filename << "\n");
         return;

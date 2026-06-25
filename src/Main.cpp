@@ -10,6 +10,8 @@
 #include "Timer.h"
 #include "Window.h"
 #include <Input.h>
+#include <chrono>
+#include <ratio>
 #include <thread>
 
 
@@ -324,7 +326,7 @@ void update(FS::Window& window) {
     }
     // Limit frame rate to 144
     if (timer.dtms < frameLimit) {
-        Sleep(frameLimit - timer.dtms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(int(frameLimit - timer.dtms)));
         timer.dtms += (frameLimit - timer.dtms);
     }
     fdt = timer.dtms / 90;

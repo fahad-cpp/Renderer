@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Utility.h"
 #include <FSWindow.h>
+#include <cstring>
 #include <random>
 
 namespace PostProcess {
@@ -146,7 +147,7 @@ void boxBlur(FS::RenderState &renderState) {
     if (!buffer) {
         return;
     }
-    memcpy(buffer, renderState.screenBuffer, renderState.width * renderState.height * sizeof(uint32_t));
+    std::memcpy(buffer, renderState.screenBuffer, renderState.width * renderState.height * sizeof(uint32_t));
     for (int y = 1; y < renderState.height - 1; y++) {
         for (int x = 1; x < renderState.width - 1; x++) {
             Colour grid[9] = {

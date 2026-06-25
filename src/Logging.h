@@ -1,7 +1,8 @@
 #pragma once
-#include <Windows.h>
-#include <iostream>
 #define APPNAME "Renderer"
+#include <iostream>
+#ifdef _WIN32
+#include <Windows.h>
 inline void setConsoleAttribute(WORD attribute) {
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(handle, attribute);
@@ -28,6 +29,28 @@ inline void printLive(const std::string &message) {
     std::cout << "\r" << message << std::string(pad, ' ') << std::flush;
     lastLine = message;
 }
+#else
+inline void setConsoleAttribute(int attribute) {
+}
+inline std::ostream &red(std::ostream &os) {
+    return os;
+}
+inline std::ostream &yellow(std::ostream &os) {
+    return os;
+}
+inline std::ostream &white(std::ostream &os) {
+    return os;
+}
+inline std::ostream &green(std::ostream &os) {
+    return os;
+}
+inline void printLive(const std::string &message) {
+    static std::string lastLine;
+    int pad = std::max<int>(0, lastLine.size() - message.size());
+    std::cout << "\r" << message << std::string(pad, ' ') << std::flush;
+    lastLine = message;
+}
+#endif
 #define CLEARLINE "\r" << std::string(100, ' ') << "\r"
 #define LOG_INFO(x) std::cout << CLEARLINE << "[" << APPNAME << "]:" << x;
 #define LOG_WARN(x) std::cout << CLEARLINE << yellow << "[" << APPNAME << "]:[WARN]:" << x << white << "\n";
