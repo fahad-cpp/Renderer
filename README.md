@@ -97,6 +97,3 @@ cd bin
 
 - **Single Colour**: Same model rendered in single colour with multiple light soources.
 -  ![DemonSkullLightBr](https://github.com/user-attachments/assets/8087e7b8-26d6-40c9-92ab-f3ff4738c997)
-
-## Acknowledgments
-- **Gabriel Gambetta**: For inspiration through *Computer Graphics From Scratch*.
