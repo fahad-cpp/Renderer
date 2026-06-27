@@ -3,24 +3,6 @@
 
 **Renderer** is a C++ application for rendering 3D models using either a **ray tracer** or a **rasterizer**, a project to learn the graphics pipeline and Windows API. It supports rendering OBJ files, with basic lighting and includes features for visualization and debugging.
 
-This project is inspired by Gabriel Gambetta's *Computer Graphics From Scratch* and includes custom implementations.
-
-## Features
-
-### Rendering Modes
-- **Ray Tracing**: Provides high-quality rendering but is slow for high-poly models.
-- **Rasterization**: Optimized for real-time rendering with support for various visual debugging features.
-
-### Supported File Formats
-- **OBJ**: 3D models (Material/MTL support planned for future updates).
-
-### Visual Features
-- **Lighting**: Simple light rendering.
-- **Wireframe Mode**: Toggle for edge-based rendering.
-- **Anti-Aliasing**: FXAA for smoother edges.
-- **Bounding Boxes**: Visualize object bounds.
-- **Backface Culling**: Toggle to improve performance by discarding non-visible polygons.
-
 ### Controls
 - **W, A, S, D**: Move the camera.
 - **Space/CTRL**: Move the camera up/down.
@@ -28,8 +10,12 @@ This project is inspired by Gabriel Gambetta's *Computer Graphics From Scratch* 
 - **Mouse**: Rotate the camera.
 - **Key Bindings**:
   - `R`: Toggle ray tracing/rasterization.
+  - `X`: Change lighting modes
   - `G`: Lock/unlock the mouse.
-  - `V`: Toggle wireframe mode.
+  - `N`: set debugstate to normal mode
+  - `T`: set debugstate to wireframe mode
+  - `V`: disable debugstate.
+  - `M`: set debugstate to depth mode
   - `B`: Show/hide bounding boxes.
   - `C`: Toggle backface culling.
   - `P`: Export the current frame to a PPM file.
@@ -41,14 +27,24 @@ This project is inspired by Gabriel Gambetta's *Computer Graphics From Scratch* 
 ## Installation
 
 ### Prerequisites
-- **Operating System**: Windows (other platforms not yet supported).
-- **Dependencies**:
-  - C++ compiler and/or CMake
+- **Operating System**: Windows / Linux.
+- **Installing Dependencies**:
+  - clang, cmake, ninja and lld
+  - for linux :
+    ```bash
+    sudo pacman -S cmake ninja clang lld
+    ```
+  - for Windows :
+    ```batch
+    winget install KitWare.CMake
+    winget install Ninja-build.Ninja
+    winget install LLVM.LLVM
+    ```
 
 ### Build Instructions
-Clone the repository:
+Clone the repository recursively:
 ```batch
-git clone https://github.com/fahad-cpp/Renderer.git
+git clone --recursive https://github.com/fahad-cpp/Renderer.git
 cd Renderer
 ```
 #### Using Cmake
@@ -67,16 +63,20 @@ Release\Renderer.exe
 ```
 #### Or run the script
 ```batch
-build.bat
+build.bat 
 
+```
+OR
+```bash
+chmod +x build.sh
+./build.sh
 ```
 
 ### Running the Application
 After building, run the executable from the `bin` directory:
 ```bash
 cd bin
-Renderer.exe
-
+./Renderer
 ```
 
 ## Sample Outputs
@@ -97,20 +97,6 @@ Renderer.exe
 
 - **Single Colour**: Same model rendered in single colour with multiple light soources.
 -  ![DemonSkullLightBr](https://github.com/user-attachments/assets/8087e7b8-26d6-40c9-92ab-f3ff4738c997)
-
-
-## Planned Features
-- **Material and Texture Support**: Import and render MTL files.
-- **Performance Optimizations**: Acceleration structures (e.g., BVH) for ray tracing.
-- **Cross-Platform Support**: Expand compatibility to Linux and macOS.
-
-## Contributing
-Contributions are welcome! To get started:
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-name`).
-3. Commit changes (`git commit -m "Description"`).
-4. Push to the branch (`git push origin feature-name`).
-5. Open a pull request.
 
 ## Acknowledgments
 - **Gabriel Gambetta**: For inspiration through *Computer Graphics From Scratch*.
