@@ -11,7 +11,6 @@
 #include "Window.h"
 #include <Input.h>
 #include <chrono>
-#include <ratio>
 #include <thread>
 
 

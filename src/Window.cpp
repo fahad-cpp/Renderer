@@ -1,14 +1,16 @@
-#include "Timer.h"
 #include "Logging.h"
+#include "Timer.h"
 #include <iostream>
+
 #define _CRT_SECURE_NO_WARNINGS
 // #define NOMINMAX
 
-#include "Window.h"
 #include "Globals.h"
 #include "Main.h"
+#include "Window.h"
 #include "resource.h"
 #include <FSWindow.h>
+
 
 FS::Vector2 getMouseDiff(FS::Window &window) {
     if (!window.isFocused()) {
@@ -30,7 +32,7 @@ FS::Vector2 getMouseDiff(FS::Window &window) {
     }
     FS::Vector2 mouseNow = { float(mousePoint.x) - windowX, float(mousePoint.y) - windowY };
     FS::Vector2 mouseDiff = mouseNow - mousePrev;
-    
+
     return mouseDiff;
 }
 int main() {
@@ -44,23 +46,19 @@ int main() {
     float aspectratio = float(renderState.width) / float(renderState.height);
     vpWidth = aspectratio;
     vpHeight = 1;
-    //Hack : TODO:reconstruct on resize
+    // Hack : TODO:reconstruct on resize
     size_t mutexSize = 1920 * 1080 * sizeof(std::mutex);
     pixelLocks = (std::mutex *)malloc(mutexSize);
     timer.Stop();
     LOG_INFO("Initialization took " << timer.dtms << " ms\n");
     init();
-    try {
-        while (running) {
-            // Update Loop
-            update(window);
-            window.processMessages();
-            window.swapBuffers();
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-    } catch (std::exception &e) {
-        std::cerr << e.what() << "\n";
-        std::cin.get();
+    while (running) {
+        // Update Loop
+        update(window);
+        window.focus();
+        window.processMessages();
+        window.swapBuffers();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     free(pixelLocks);
     return 0;

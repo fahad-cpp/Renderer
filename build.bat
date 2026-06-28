@@ -26,5 +26,5 @@ if errorlevel 1 (
     exit /b 1
 )
 
-if exist bin\%CONFIG%\%EXENAME% start bin\%CONFIG%\%EXENAME%
+bin\%CONFIG%\%EXENAME%
 endlocal

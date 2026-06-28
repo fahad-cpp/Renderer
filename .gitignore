@@ -1,5 +1,9 @@
+resource.rc
+*.vcxproj*
+*.sln
 .cache
+.vs
 .vscode
 bin
+int
 build
-*.vcxproj
