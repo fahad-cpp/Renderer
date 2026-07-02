@@ -2,7 +2,7 @@
 setlocal
 set CONFIG=Release
 set ARCH=x64
-set GENERATOR="Ninja"
+set GENERATOR="Visual Studio 18 2026"
 set EXENAME=Renderer.exe
 
 if not exist build mkdir build
@@ -14,13 +14,13 @@ if errorlevel 1 (
     exit /b 1
 )
 
-cmake -G %GENERATOR% -S . -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_EXPORT_COMPILE_COMMANDS=ON >nul 2>build\error.txt
+cmake -G %GENERATOR% -S . -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_EXPORT_COMPILE_COMMANDS=ON 2>build\error.txt
 if errorlevel 1 (
     echo Failed to generate build files.
     exit /b 1
 )
 
-cmake --build build --config %CONFIG% --parallel >build\error.txt 2>nul
+cmake --build build --config %CONFIG% --parallel >build\error.txt
 if errorlevel 1 (
     echo Failed to build the project.
     exit /b 1

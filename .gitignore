@@ -7,3 +7,4 @@ resource.rc
 bin
 int
 build
+build-vs

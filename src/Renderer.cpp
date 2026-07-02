@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "Renderer.h"
 #include "Colour.h"
 #include "FSWindow.h"
