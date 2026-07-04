@@ -1,7 +1,7 @@
 
 # Renderer
 
-**Renderer** is a C++ application for rendering 3D models using either a **ray tracer** or a **rasterizer**, a project to learn the graphics pipeline and Windows API. It supports rendering OBJ files, with basic lighting and includes features for visualization and debugging.
+This is a CPU Renderer that renders objects using the CPU , you can use either a **ray tracer** or a **rasterizer** to render models, i made this project to learn the graphics pipeline and Windows API , although now it uses FSWindow , a windowing library i made for linux and windows. This project supports rendering OBJ files, with basic lighting (blinn-phong) and includes features for visualization and debugging.
 
 ### Controls
 - **W, A, S, D**: Move the camera.
