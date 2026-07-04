@@ -41,7 +41,6 @@ int main() {
     Timer timer;
     FS::Window window("Renderer!", 720, 720);
     FS::RenderState &renderState = window.getRenderState();
-    window.showCursor(false);
     canvas = { float(renderState.width), float(renderState.height) };
     float aspectratio = float(renderState.width) / float(renderState.height);
     vpWidth = aspectratio;
@@ -52,10 +51,10 @@ int main() {
     timer.Stop();
     LOG_INFO("Initialization took " << timer.dtms << " ms\n");
     init();
+    window.focus();
     while (running) {
         // Update Loop
         update(window);
-        window.focus();
         window.processMessages();
         window.swapBuffers();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
