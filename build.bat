@@ -2,7 +2,7 @@
 setlocal
 set CONFIG=Release
 set ARCH=x64
-set GENERATOR="Visual Studio 18 2026"
+set GENERATOR="Ninja"
 set EXENAME=Renderer.exe
 
 if not exist build mkdir build

@@ -5,7 +5,16 @@
 std::vector<std::thread> ppmThreads;
 std::mutex *pixelLocks;
 bool running = true;
-SceneSettings sceneSettings = { true, false, 0, DebugState::DS_OFF, false, RenderMode::RM_COLOR, false, LightingMode::LIGHT_ONLY };
+SceneSettings sceneSettings = {
+    .bfc = true,
+    .antiAliasing = false,
+    .triSeenCount = 0,
+    .debugState = DebugState::DS_OFF,
+    .lockMouse = false,
+    .renderMode = RenderMode::RM_COLOR,
+    .rayTraceMode = false,
+    .lightingMode = LightingMode::LIGHT_ONLY 
+};
 Vector canvas(720, 720);
 float vpWidth = 1.f;
 float vpHeight = 1.f;

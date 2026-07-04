@@ -89,11 +89,11 @@ cd bin
 ![RayTracerReflection](https://github.com/user-attachments/assets/a848f865-3c41-4b84-8db5-720a3365d647)
 
 ### Rasterization
-- **Surface Normal Coloring**: Visualization of surface normals.
-- ![DemonSkullDepth](https://github.com/user-attachments/assets/39b3cd52-3e36-4013-ad2f-3eac4b3d6e59)
+- **Demon Skull Normals**: Render time : ~8ms <br>
+![DemonSkullDepth](res/showcase/DemonSkullNormal.png)
 
-- **Wireframe Mode**: A triangle-based wireframe view.
-- ![DemonSkullTris](https://github.com/user-attachments/assets/cfa0e260-9c0b-42bb-b6ee-a1fb85195104)
+- **Demon Skull**: Render time : ~8ms <br>
+![DemonSkullLightBr](res/showcase/DemonSkull.png)
 
-- **Single Colour**: Same model rendered in single colour with multiple light soources.
--  ![DemonSkullLightBr](https://github.com/user-attachments/assets/8087e7b8-26d6-40c9-92ab-f3ff4738c997)
+- **Sponza**: Render time : ~40ms <br>
+![DemonSkullLightBr](res/showcase/Sponza.png)
