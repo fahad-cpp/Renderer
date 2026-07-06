@@ -1,5 +1,6 @@
 #include "Logging.h"
 #include "Timer.h"
+#include "Vector2.h"
 #include <iostream>
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -13,27 +14,16 @@
 
 
 FS::Vector2 getMouseDiff(FS::Window &window) {
-    if (!window.isFocused()) {
+    if (!window.isFocused() || !sceneSettings.lockMouse) {
         return { 0.f, 0.f };
     }
-    FS::RenderState &renderState = window.getRenderState();
     static FS::Vector2 prevPoint = { 0, 0 };
-    FS::Vector2 mousePoint;
-    int windowX = window.getWindowPos().x;
-    int windowY = window.getWindowPos().y;
-
-    mousePoint = window.getCursorPos();
-    FS::Vector2 mousePrev = { float(prevPoint.x) - windowX, float(prevPoint.y) - windowY };
-    if (sceneSettings.lockMouse) {
-        prevPoint = { (windowX + (renderState.width * 0.5f)), (windowY + (renderState.height * 0.5f)) };
-        window.setCursorPos((windowX + (renderState.width * 0.5f)), (windowY + (renderState.height * 0.5f)));
-    } else {
-        prevPoint = mousePoint;
-    }
-    FS::Vector2 mouseNow = { float(mousePoint.x) - windowX, float(mousePoint.y) - windowY };
-    FS::Vector2 mouseDiff = mouseNow - mousePrev;
-
-    return mouseDiff;
+    FS::RenderState renderState = window.getRenderState();
+    FS::Vector2 windowPos = window.getWindowPos();
+    FS::Vector2 mousePos = window.getCursorPos();
+    prevPoint = { windowPos.x + (renderState.width * 0.5f),windowPos.y + (renderState.height * 0.5f) };
+    window.setCursorPos(prevPoint.x,prevPoint.y);
+    return mousePos - prevPoint;
 }
 int main() {
     // Random seed
