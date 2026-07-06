@@ -1,6 +1,5 @@
 #include "Logging.h"
 #include "Timer.h"
-#include "Vector2.h"
 #include <iostream>
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -8,23 +7,9 @@
 
 #include "Globals.h"
 #include "Main.h"
-#include "Window.h"
 #include "resource.h"
 #include <FSWindow.h>
 
-
-FS::Vector2 getMouseDiff(FS::Window &window) {
-    if (!window.isFocused() || !sceneSettings.lockMouse) {
-        return { 0.f, 0.f };
-    }
-    static FS::Vector2 prevPoint = { 0, 0 };
-    FS::RenderState renderState = window.getRenderState();
-    FS::Vector2 windowPos = window.getWindowPos();
-    FS::Vector2 mousePos = window.getCursorPos();
-    prevPoint = { windowPos.x + (renderState.width * 0.5f),windowPos.y + (renderState.height * 0.5f) };
-    window.setCursorPos(prevPoint.x,prevPoint.y);
-    return mousePos - prevPoint;
-}
 int main() {
     // Random seed
     srand(uint32_t(time(NULL)));

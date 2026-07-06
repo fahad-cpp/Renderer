@@ -2,17 +2,15 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(WINDOWS_SUBSYTEM "WINDOWS")
-
 
 project(Renderer LANGUAGES CXX)
 
 if(MSVC)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-    message(STATUS "Using Microslop visual studio")
+    message(STATUS "Using Microslop Visual Studio")
 else()
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
-    message(STATUS "Not Using Microslop visual studio")
+    message(STATUS "Not Using Microslop Visual Studio")
 endif()
 
 file(GLOB SOURCES src/*.cpp)

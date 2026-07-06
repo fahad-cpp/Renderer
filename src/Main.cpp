@@ -26,8 +26,9 @@
  *		-Frametime graph
  *		-read and display textures(Rasterizer)
  *	Optimizations:
+ *      -Implement SIMD for Vector operations
+ *		-Implement Occlusion culling(Rasterizer)
  *		-Implement BVH ray tracing(Ray tracer)
- *		-Implement proper Occlusion culling(Rasterizer)
  */
 // frame delta time
 double fdt = 0.06;
@@ -36,6 +37,18 @@ int frameCount = 0;
 const float defSpeed = 2.f;
 float speed = defSpeed;
 const float boostSpeed = (5 * defSpeed);
+static FS::Vector2 getMouseDiff(FS::Window &window) {
+    if (!window.isFocused() || !sceneSettings.lockMouse) {
+        return { 0.f, 0.f };
+    }
+    static FS::Vector2 prevPoint = { 0, 0 };
+    FS::RenderState renderState = window.getRenderState();
+    FS::Vector2 windowPos = window.getWindowPos();
+    FS::Vector2 mousePos = window.getCursorPos();
+    prevPoint = { windowPos.x + (renderState.width * 0.5f),windowPos.y + (renderState.height * 0.5f) };
+    window.setCursorPos(prevPoint.x,prevPoint.y);
+    return mousePos - prevPoint;
+}
 void handleInput(FS::Window& window) {
     const FS::Input& input = window.getInput();
     FS::RenderState& renderState = window.getRenderState();
@@ -276,13 +289,13 @@ void init() {
                 .reflectiveness = 0.4f,
                 .color = Colour{ 0, 0, 255 },
             },
-            /*{
-                .center = Vector{2,1,0},
+            {
+                .center = Vector{0,1,0},
                 .radius = .1f,
                 .specular = 100.f,
                 .reflectiveness = 0.4f,
-                .color = Colour{0,0,255},
-            }*/
+                .color = Colour{255,255,255},
+            }
         },
         .triangles = std::vector<Triangle>{
             tri
