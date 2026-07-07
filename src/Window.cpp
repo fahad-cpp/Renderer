@@ -26,6 +26,7 @@ int main() {
     timer.Stop();
     LOG_INFO("Initialization took " << timer.dtms << " ms\n");
     init();
+    window.showCursor(!sceneSettings.lockMouse);
     window.focus();
     while (running) {
         // Update Loop

@@ -8,6 +8,7 @@
 #include "Renderer.h"
 #include "SceneSettings.h"
 #include "Timer.h"
+#include "Vector2.h"
 #include "Window.h"
 #include <Input.h>
 #include <chrono>
@@ -41,13 +42,14 @@ static FS::Vector2 getMouseDiff(FS::Window &window) {
     if (!window.isFocused() || !sceneSettings.lockMouse) {
         return { 0.f, 0.f };
     }
-    static FS::Vector2 prevPoint = { 0, 0 };
     FS::RenderState renderState = window.getRenderState();
     FS::Vector2 windowPos = window.getWindowPos();
     FS::Vector2 mousePos = window.getCursorPos();
+    static FS::Vector2 prevPoint = mousePos;
     prevPoint = { windowPos.x + (renderState.width * 0.5f),windowPos.y + (renderState.height * 0.5f) };
     window.setCursorPos(prevPoint.x,prevPoint.y);
-    return mousePos - prevPoint;
+    FS::Vector2 diff = mousePos - prevPoint;
+    return diff;
 }
 void handleInput(FS::Window& window) {
     const FS::Input& input = window.getInput();
