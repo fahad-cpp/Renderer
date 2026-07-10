@@ -24,60 +24,42 @@ This is a CPU Renderer that renders objects using the CPU , you can use either a
   - `F`: Toggle FXAA anti-aliasing.
   - `ESC`: Exit the application.
 
-## Installation
-
-### Prerequisites
-- **Operating System**: Windows / Linux.
-- **Installing Dependencies**:
-  - clang, cmake, ninja and lld
-  - for linux :
-    ```bash
-    sudo pacman -S cmake ninja clang lld
-    ```
-  - for Windows :
-    ```batch
-    winget install KitWare.CMake
-    winget install Ninja-build.Ninja
-    winget install LLVM.LLVM
-    ```
-
-### Build Instructions
-Clone the repository recursively:
+## Building from source
+### Windows
+- install a clang, cmake and ninja <br>
 ```batch
-git clone --recursive https://github.com/fahad-cpp/Renderer.git
+winget install cmake
+winget install LLVM.LLVM
+winget install Ninja-build.Ninja
+```
+- clone the repo. <br>
+```batch
+git clone --recursive https://github.com/fahad-cpp/Renderer Renderer
 cd Renderer
 ```
-#### Using Cmake
-##### Generating build files
+- build using cmake with ninja and run <br>
 ```batch
-mkdir build
-cd build
-cmake ..
-
+cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
+cmake --build build --config Release
+build\Renderer.exe
 ```
-##### Building and running
-```batch
-cmake --build . --config Release
-Release\Renderer.exe
-
-```
-#### Or run the script
-```batch
-build.bat 
-
-```
-OR
+### Linux
+- install a clang, cmake and ninja using your package manager <br>
 ```bash
-chmod +x build.sh
-./build.sh
+sudo pacman -S clang ninja cmake lld
 ```
-
-### Running the Application
-After building, run the executable from the `bin` directory:
+- clone the repo
 ```bash
-cd bin
-./Renderer
+git clone --recursive https://github.com/fahad-cpp/Renderer Renderer
+cd Renderer
 ```
+- build using cmake with ninja and run <br>
+```bash
+cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
+cmake --build build --config Release
+./build/Renderer
+```
+> **Note:** <br>on Wayland systems the mouse locking does not work so mouse will go out of window <br> disable mouse lock by pressing G
 
 ## Sample Outputs
 
