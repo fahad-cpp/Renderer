@@ -31,6 +31,7 @@ This is a CPU Renderer that renders objects using the CPU , you can use either a
 winget install cmake
 winget install LLVM.LLVM
 winget install Ninja-build.Ninja
+
 ```
 - clone the repo. <br>
 ```batch
@@ -42,7 +43,7 @@ cd Renderer
 ```batch
 cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
 cmake --build build --config Release
-build\Renderer.exe
+bin\Release\Renderer.exe
 
 ```
 ### Linux
@@ -61,7 +62,7 @@ cd Renderer
 ```bash
 cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
 cmake --build build --config Release
-./build/Renderer
+./bin/Release/Renderer
 
 ```
 > **Note:** <br>on Wayland systems the mouse locking does not work so mouse will go out of window <br> disable mouse lock by pressing G
