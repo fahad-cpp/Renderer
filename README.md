@@ -36,28 +36,33 @@ winget install Ninja-build.Ninja
 ```batch
 git clone --recursive https://github.com/fahad-cpp/Renderer Renderer
 cd Renderer
+
 ```
 - build using cmake with ninja and run <br>
 ```batch
 cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
 cmake --build build --config Release
 build\Renderer.exe
+
 ```
 ### Linux
 - install a clang, cmake and ninja using your package manager <br>
 ```bash
 sudo pacman -S clang ninja cmake lld
+
 ```
 - clone the repo
 ```bash
 git clone --recursive https://github.com/fahad-cpp/Renderer Renderer
 cd Renderer
+
 ```
 - build using cmake with ninja and run <br>
 ```bash
 cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
 cmake --build build --config Release
 ./build/Renderer
+
 ```
 > **Note:** <br>on Wayland systems the mouse locking does not work so mouse will go out of window <br> disable mouse lock by pressing G
 
