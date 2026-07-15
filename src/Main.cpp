@@ -14,7 +14,6 @@
 #include <chrono>
 #include <thread>
 
-
 // TODO(Fahad):
 /*
  *	Software Structure:
@@ -46,14 +45,14 @@ static FS::Vector2 getMouseDiff(FS::Window &window) {
     FS::Vector2 windowPos = window.getWindowPos();
     FS::Vector2 mousePos = window.getCursorPos();
     static FS::Vector2 prevPoint = mousePos;
-    prevPoint = { windowPos.x + (renderState.width * 0.5f),windowPos.y + (renderState.height * 0.5f) };
-    window.setCursorPos(prevPoint.x,prevPoint.y);
+    prevPoint = { windowPos.x + (renderState.width * 0.5f), windowPos.y + (renderState.height * 0.5f) };
+    window.setCursorPos(prevPoint.x, prevPoint.y);
     FS::Vector2 diff = mousePos - prevPoint;
     return diff;
 }
-void handleInput(FS::Window& window) {
-    const FS::Input& input = window.getInput();
-    FS::RenderState& renderState = window.getRenderState();
+void handleInput(FS::Window &window) {
+    const FS::Input &input = window.getInput();
+    FS::RenderState &renderState = window.getRenderState();
     const float sensitivity = 1.2f;
     FS::Vector2 mouseDiff = sceneSettings.lockMouse ? getMouseDiff(window) : 0;
     mouseDiff = mouseDiff * sensitivity;
@@ -103,16 +102,16 @@ void handleInput(FS::Window& window) {
         camera.position = camera.position + (velocity * fdt);
     }
 
-    if(isDown(FS::Buttons::BUTTON_LEFT)){
+    if (isDown(FS::Buttons::BUTTON_LEFT)) {
         mouseDiff.x -= 100.f * fdt * sensitivity;
     }
-    if(isDown(FS::Buttons::BUTTON_RIGHT)){
+    if (isDown(FS::Buttons::BUTTON_RIGHT)) {
         mouseDiff.x += 100.f * fdt * sensitivity;
     }
-    if(isDown(FS::Buttons::BUTTON_UP)){
+    if (isDown(FS::Buttons::BUTTON_UP)) {
         mouseDiff.y -= 100.f * fdt * sensitivity;
     }
-    if(isDown(FS::Buttons::BUTTON_DOWN)){
+    if (isDown(FS::Buttons::BUTTON_DOWN)) {
         mouseDiff.y += 100.f * fdt * sensitivity;
     }
     if (pressed(FS::Buttons::BUTTON_L)) {
@@ -169,7 +168,7 @@ void handleInput(FS::Window& window) {
     }
     // Exporting an image
     if (pressed(FS::Buttons::BUTTON_P)) {
-        Renderer::printPPM("Image.ppm",renderState);
+        Renderer::printPPM("Image.ppm", renderState);
     }
     // Backface culling toggle
     if (pressed(FS::Buttons::BUTTON_C)) {
@@ -292,13 +291,12 @@ void init() {
                 .color = Colour{ 0, 0, 255 },
             },
             {
-                .center = Vector{0,1,0},
+                .center = Vector{ 0, 1, 0 },
                 .radius = .1f,
                 .specular = 100.f,
                 .reflectiveness = 0.4f,
-                .color = Colour{255,255,255},
-            }
-        },
+                .color = Colour{ 255, 255, 255 },
+            } },
         .triangles = std::vector<Triangle>{
             tri
             // empty
@@ -319,18 +317,18 @@ void init() {
         ins.getBoundingBox();
     }
 }
-void update(FS::Window& window) {
+void update(FS::Window &window) {
     // Start counting frame time
     Timer timer;
     handleInput(window);
-    FS::RenderState& renderState = window.getRenderState();
+    FS::RenderState &renderState = window.getRenderState();
     if (sceneSettings.rayTraceMode && change) {
-        Renderer::clearScreen(0x000000,renderState);
+        Renderer::clearScreen(0x000000, renderState);
         // Ray tracing multithreaded
         static size_t threadCount = std::thread::hardware_concurrency();
         static std::vector<std::thread> rtThreads(threadCount);
         for (size_t i = 0; i < threadCount; i++) {
-            rtThreads[i] = std::thread(Renderer::rayTraceThr, i, threadCount,std::ref(renderState));
+            rtThreads[i] = std::thread(Renderer::rayTraceThr, i, threadCount, std::ref(renderState));
         }
         for (size_t i = 0; i < rtThreads.size(); i++) {
             rtThreads[i].join();

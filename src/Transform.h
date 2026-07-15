@@ -5,7 +5,7 @@
 struct Transform {
     Vector position = { 0, 0, 0 };
     float scale = 1.f;
-    Vector rotation = {0,0,0};
+    Vector rotation = { 0, 0, 0 };
 };
 enum class RotateOrder {
     RO_YXZ = 0,
@@ -68,6 +68,6 @@ static Vector rotate(const Vector &vec, const Vector &rotationP, const RotateOrd
     }
     return result;
 }
-inline Vector transformVertex(const Vector& vec, const Transform &tf, RotateOrder ro = RotateOrder::RO_YXZ) {
+inline Vector transformVertex(const Vector &vec, const Transform &tf, RotateOrder ro = RotateOrder::RO_YXZ) {
     return ((rotate(vec, tf.rotation, ro) * tf.scale) + tf.position);
 }

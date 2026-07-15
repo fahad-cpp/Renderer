@@ -18,10 +18,11 @@
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
+#include <stdint.h>
 #include <thread>
 #include <unordered_map>
 #include <vector>
-#include <stdint.h>
+
 
 namespace Renderer {
 void clearScreen(uint32_t color, FS::RenderState &renderState) {
@@ -95,7 +96,7 @@ void printPPM(const std::string &filename, FS::RenderState &renderState) {
 
 void exportToPPM(const std::string &filename, uint32_t *buffer, int width, int height) {
     Timer timer;
-    FILE *file = std::fopen( filename.c_str(), "w");
+    FILE *file = std::fopen(filename.c_str(), "w");
     if (!file) {
         LOG_ERROR("Failed to open file : " << filename << "\n");
         return;
@@ -202,9 +203,9 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     }
 
     if (wireframe) {
-        drawLine(projected[0], projected[1], material.color,renderState);
-        drawLine(projected[1], projected[2], material.color,renderState);
-        drawLine(projected[0], projected[2], material.color,renderState);
+        drawLine(projected[0], projected[1], material.color, renderState);
+        drawLine(projected[1], projected[2], material.color, renderState);
+        drawLine(projected[0], projected[2], material.color, renderState);
         return;
     }
 
@@ -532,24 +533,24 @@ void drawBox(const Box &box, const Transform &tf, bool inTriangle, FS::RenderSta
                 boxTriangles.push_back(triangle);
             }
         }
-        drawVertices(boxTriangles, Material{ -1, 0.f, red }, true, false,renderState);
+        drawVertices(boxTriangles, Material{ -1, 0.f, red }, true, false, renderState);
         return;
     }
     // Front lines
-    drawLine(projected[0], projected[1], red,renderState);
-    drawLine(projected[1], projected[2], red,renderState);
-    drawLine(projected[2], projected[3], red,renderState);
-    drawLine(projected[3], projected[0], red,renderState);
+    drawLine(projected[0], projected[1], red, renderState);
+    drawLine(projected[1], projected[2], red, renderState);
+    drawLine(projected[2], projected[3], red, renderState);
+    drawLine(projected[3], projected[0], red, renderState);
     // Back lines
-    drawLine(projected[4], projected[5], red,renderState);
-    drawLine(projected[5], projected[6], red,renderState);
-    drawLine(projected[6], projected[7], red,renderState);
-    drawLine(projected[7], projected[4], red,renderState);
+    drawLine(projected[4], projected[5], red, renderState);
+    drawLine(projected[5], projected[6], red, renderState);
+    drawLine(projected[6], projected[7], red, renderState);
+    drawLine(projected[7], projected[4], red, renderState);
     // Side lines
-    drawLine(projected[0], projected[4], red,renderState);
-    drawLine(projected[1], projected[5], red,renderState);
-    drawLine(projected[2], projected[6], red,renderState);
-    drawLine(projected[3], projected[7], red,renderState);
+    drawLine(projected[0], projected[4], red, renderState);
+    drawLine(projected[1], projected[5], red, renderState);
+    drawLine(projected[2], projected[6], red, renderState);
+    drawLine(projected[3], projected[7], red, renderState);
 }
 
 float intersectRaySphere(const Vector &O, const Vector &D, const Sphere &sphere) {
@@ -1051,7 +1052,7 @@ void getDrawableTriangles(const std::vector<Triangle> &triangleData, const Trans
         }
     }
 }
-void drawVerticesThr(const std::vector<Triangle> &triangleData, const Material &material, bool wireframe,FS::RenderState& renderState, uint32_t start, uint32_t end) {
+void drawVerticesThr(const std::vector<Triangle> &triangleData, const Material &material, bool wireframe, FS::RenderState &renderState, uint32_t start, uint32_t end) {
     for (uint32_t i = start; i < end; i++) {
         Vector p[3] = {
             triangleData[i].points[0],
@@ -1063,7 +1064,7 @@ void drawVerticesThr(const std::vector<Triangle> &triangleData, const Material &
             triangleData[i].normals[1],
             triangleData[i].normals[2],
         };
-        drawVerticesTriangle(p, n, material, wireframe,renderState);
+        drawVerticesTriangle(p, n, material, wireframe, renderState);
     }
 }
 void drawVerticesDepthThr(const std::vector<Triangle> &triangleData, FS::RenderState &renderState, uint32_t start, uint32_t end) {

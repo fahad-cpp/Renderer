@@ -32,7 +32,7 @@ float intersectRayTriangle(const Vector &O, const Vector &D, Triangle &triangle)
 bool RayIntersectsBox(const Vector &O, const Vector &D, const Box &box);
 HitData closestIntersection(const Vector &O, const Vector &D, float tMin, float tMax);
 Vector reflectRay(const Vector &R, const Vector &N);
-float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bool rtShadows=true);
+float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bool rtShadows = true);
 float planeIntersection(const Plane &plane, const Vector &point);
 float edgePlaneIntersection(const Plane &plane, const Vector &A, const Vector &B);
 void clipPlane(const Plane &plane, const std::vector<Triangle> &in, std::vector<Triangle> &out);

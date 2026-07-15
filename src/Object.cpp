@@ -15,10 +15,9 @@ bool operator==(const Sphere &sphere1, const Sphere &sphere2) {
 bool operator==(const Box &box2, const Box &box) {
     return ((box.lowest == box2.lowest) && (box.highest == box2.highest));
 }
-Vector getTriangleNormal(const Triangle& triangle) {
-    return cross(triangle.points[1] - triangle.points[0],triangle.points[2] - triangle.points[0]);
+Vector getTriangleNormal(const Triangle &triangle) {
+    return cross(triangle.points[1] - triangle.points[0], triangle.points[2] - triangle.points[0]);
 }
-
 
 // Mesh
 Mesh::Mesh() {
@@ -85,7 +84,7 @@ void Mesh::getTriangles() {
     }
 }
 
-Mesh loadOBJ(const std::string &filename, const Material& material) {
+Mesh loadOBJ(const std::string &filename, const Material &material) {
     Timer timer;
     LOG_INFO("Loading " << filename);
     std::vector<Vector> vertices = {};

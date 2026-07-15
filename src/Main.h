@@ -2,4 +2,4 @@
 #include "FSWindow.h"
 #include <Input.h>
 void init();
-void update(FS::Window& window);
+void update(FS::Window &window);

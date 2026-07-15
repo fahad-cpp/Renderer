@@ -30,7 +30,7 @@ struct Triangle {
     Vector points[3];
     Vector normals[3];
 };
-Vector getTriangleNormal(const Triangle& triangle);
+Vector getTriangleNormal(const Triangle &triangle);
 struct Plane {
     Vector normal;
     float offset;
@@ -53,10 +53,10 @@ struct Box {
     Vector lowest;
     friend bool operator==(const Box &box2, const Box &box);
 };
-//struct TriangleData {
-//    std::vector<Vector> vertices;
-//    std::vector<Vector> normals;
-//};
+// struct TriangleData {
+//     std::vector<Vector> vertices;
+//     std::vector<Vector> normals;
+// };
 struct Mesh {
     std::vector<Vector> vertices;
     std::vector<Vector> normals;
@@ -71,4 +71,4 @@ struct Mesh {
     void getTriangles();
 };
 
-Mesh loadOBJ(const std::string &filename, const Material& material);
+Mesh loadOBJ(const std::string &filename, const Material &material);

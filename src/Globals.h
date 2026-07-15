@@ -12,7 +12,7 @@
 #include <mutex>
 #include <thread>
 
-//extern Window window;
+// extern Window window;
 // extern void *depthBuffer;
 // extern RenderState renderState;
 extern bool running;
