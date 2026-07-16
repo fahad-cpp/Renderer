@@ -1142,7 +1142,7 @@ void renderMesh(const Mesh &mesh, const Transform &transform, bool multithread, 
     getDrawableTriangles(mesh.triangleData, transform, triData, multithread);
 
     sceneSettings.triSeenCount += triData.size();
-    bool drawWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
+    bool drawWireframe = (sceneSettings.debugState == DebugState::DS_WIREFRAME);
     // drawVerticesDepth(triData, multithread);
     drawVertices(triData, mesh.material, drawWireframe, multithread, renderState);
 }
@@ -1225,7 +1225,7 @@ void renderScene(FS::RenderState &renderState) {
         renderMesh(*sphereIns.mesh, sphereIns.transform, true, renderState);
     }
     // Render scene triangles
-    bool isWireframe = (sceneSettings.debugState == DebugState::DS_TRIANGLE);
+    bool isWireframe = (sceneSettings.debugState == DebugState::DS_WIREFRAME);
     std::vector<Triangle> drawableTris = {};
     for (const Triangle &striangle : scene.triangles) {
         drawableTris.clear();
@@ -1244,7 +1244,7 @@ void renderScene(FS::RenderState &renderState) {
         drawVertices(drawableTris, { -1, 0.f, { 255, 0, 0 } }, isWireframe, false, renderState);
     }
     // Apply AA
-    if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
+    if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_WIREFRAME)) {
         PostProcess::FXAA(renderState);
     }
     if (sceneSettings.debugState == DebugState::DS_BOUNDING_BOX) {

@@ -137,9 +137,9 @@ void handleInput(FS::Window &window) {
 
     // Show triangles of the mesh
     if (pressed(FS::Buttons::BUTTON_T)) {
-        if (sceneSettings.debugState != DebugState::DS_TRIANGLE)
+        if (sceneSettings.debugState != DebugState::DS_WIREFRAME)
             LOG_INFO("Debug state set to wireframe triangle\n");
-        sceneSettings.debugState = DebugState::DS_TRIANGLE;
+        sceneSettings.debugState = DebugState::DS_WIREFRAME;
         change = true;
     }
     // Show bounding box of the mesh
@@ -333,7 +333,7 @@ void update(FS::Window &window) {
         for (size_t i = 0; i < rtThreads.size(); i++) {
             rtThreads[i].join();
         }
-        if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_TRIANGLE)) {
+        if (sceneSettings.antiAliasing && (sceneSettings.debugState != DebugState::DS_WIREFRAME)) {
             PostProcess::FXAA(renderState);
         }
         timer.Stop();
