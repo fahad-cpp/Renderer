@@ -302,6 +302,9 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     const bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
     const bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
     for (int y = int(projected[0].y); y < int(projected[2].y); y++) {
+        if(y <= -(renderState.height / 2) || y >= (renderState.height / 2)){
+            continue;
+        }
         const uint32_t &scanline = uint32_t(y - int(projected[0].y));
         const float &lz = (*zleft)[scanline];
         const float &rz = (*zright)[scanline];
@@ -319,7 +322,7 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
         interpolate(lz, float(lx), rz, float(rx), zsegment);
         interpolate(ln, float(lx), rn, float(rx), nsegment);
         for (int x = lx; x < rx; x++) {
-            if ((!isIn(float(x), -canvas.x / 2.f, canvas.x / 2.f) || !isIn(float(y), -canvas.y / 2.f, canvas.y / 2.f))) {
+            if (x <= -(renderState.width / 2) || x >= (renderState.width / 2)) {
                 continue;
             }
             int screenx = x + (renderState.width / 2);
