@@ -1,10 +1,7 @@
 #include "Globals.h"
 
-// Window window = {};
-// void *depthBuffer = nullptr;
 std::vector<std::thread> ppmThreads;
 std::mutex *pixelLocks;
-bool running = true;
 SceneSettings sceneSettings = {
     .bfc = true,
     .antiAliasing = false,
@@ -18,8 +15,7 @@ SceneSettings sceneSettings = {
 Vector canvas(720, 720);
 float vpWidth = 1.f;
 float vpHeight = 1.f;
-// only ray tracing when frame change to make sure my cpu doesn't explode
-// Especially for Ray tracer
+// only ray tracing when frame changes to make sure my cpu doesn't explode
 bool change = true;
 // true = raytracer , false = rasterizer
 
@@ -31,8 +27,6 @@ double FOV = 90;
 Transform camera{ Vector{ 80.f, 60.f, -3.6f }, 1, { 0, -270, 0 } };
 // Transform camera{ Vector{ 0, 2.f, 0 }, 1, { 0, 0, 0 } };
 Scene scene = {};
-// temp
-Triangle tempTri;
 Plane planes[6] = {
     // Near
     { { 0, 0, 1 }, -d },

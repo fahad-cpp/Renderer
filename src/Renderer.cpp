@@ -18,11 +18,11 @@
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
+#include <random>
 #include <stdint.h>
 #include <thread>
 #include <unordered_map>
 #include <vector>
-
 
 namespace Renderer {
 void clearScreen(uint32_t color, FS::RenderState &renderState) {
@@ -76,9 +76,12 @@ void drawSquare(float x, float y, int size, Colour color, FS::RenderState &rende
     }
 }
 void drawNoise(FS::RenderState &renderState) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0,256);
     for (int y = -(canvas.y / 2.f); y < (canvas.y / 2.f); y++) {
         for (int x = -(canvas.x / 2.f); x < (canvas.x / 2.f); x++) {
-            Colour color = { uint8_t(rand() % 256), uint8_t(rand() % 256), uint8_t(rand() % 256) };
+            Colour color = { uint8_t(dist(gen)), uint8_t(dist(gen)), uint8_t(dist(gen)) };
             putPixel(x, y, color, renderState);
         }
     }
@@ -302,7 +305,7 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     const bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
     const bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
     for (int y = int(projected[0].y); y < int(projected[2].y); y++) {
-        if(y <= -(renderState.height / 2) || y >= (renderState.height / 2)){
+        if (y <= -(renderState.height / 2) || y >= (renderState.height / 2)) {
             continue;
         }
         const uint32_t &scanline = uint32_t(y - int(projected[0].y));

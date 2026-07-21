@@ -20,7 +20,6 @@
  *		-Seperate Engine and Game
  *	Adding Features:
  *		-Add matrix transformation for renderer
- *		-interpolated normals(Rasterizer)
  *		-render according to material(Rasterizer)
  *		-Add some ui
  *		-Frametime graph
@@ -58,7 +57,7 @@ void handleInput(FS::Window &window) {
     mouseDiff = mouseDiff * sensitivity;
     Vector velocity = { 0.f, 0.f, 0.f };
     if (isDown(FS::Buttons::BUTTON_ESC)) {
-        running = false;
+        window.close();
     }
     // Movement events
     if (isDown(FS::Buttons::BUTTON_W)) {
