@@ -12,9 +12,9 @@ struct Material {
     Colour color = { 0, 0, 0 };
 };
 struct HitData {
-    float intersection = float(INFINITY);
-    Vector normal = { 0, 0, 0 };
     Material material = {};
+    Vector normal = { 0, 0, 0 };
+    float intersection = float(INFINITY);
 };
 struct Sphere {
     Vector center = { 0, 0, 0 };
@@ -53,10 +53,6 @@ struct Box {
     Vector lowest;
     friend bool operator==(const Box &box2, const Box &box);
 };
-// struct TriangleData {
-//     std::vector<Vector> vertices;
-//     std::vector<Vector> normals;
-// };
 struct Mesh {
     std::vector<Vector> vertices;
     std::vector<Vector> normals;
@@ -71,4 +67,4 @@ struct Mesh {
     void getTriangles();
 };
 
-Mesh loadOBJ(const std::string &filename, const Material &material);
+Mesh loadOBJ(const std::string &filename, const Material material);

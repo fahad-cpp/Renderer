@@ -7,7 +7,7 @@ inline void hashCombine(std::size_t &seed, const T &value) {
 }
 template <>
 struct std::hash<Vector> {
-    std::size_t operator()(const Vector &vec) const {
+    std::size_t operator()(const Vector vec) const {
         std::size_t seed = 0;
         hashCombine(seed, vec.x);
         hashCombine(seed, vec.y);
@@ -17,7 +17,7 @@ struct std::hash<Vector> {
 };
 template <>
 struct std::hash<Colour> {
-    std::size_t operator()(const Colour &color) const {
+    std::size_t operator()(const Colour color) const {
         return std::size_t(rgbtoHex(color));
     }
 };

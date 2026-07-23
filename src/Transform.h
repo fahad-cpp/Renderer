@@ -11,7 +11,7 @@ enum class RotateOrder {
     RO_YXZ = 0,
     RO_XYZ
 };
-static Vector rotate(const Vector &vec, const Vector &rotationP, const RotateOrder &ro = RotateOrder::RO_YXZ) {
+static Vector rotate(const Vector vec, const Vector rotationP, const RotateOrder ro = RotateOrder::RO_YXZ) {
     if (rotationP == Vector{ 0, 0, 0 }) {
         return vec;
     }
@@ -68,6 +68,6 @@ static Vector rotate(const Vector &vec, const Vector &rotationP, const RotateOrd
     }
     return result;
 }
-inline Vector transformVertex(const Vector &vec, const Transform &tf, RotateOrder ro = RotateOrder::RO_YXZ) {
+inline Vector transformVertex(const Vector vec, const Transform &tf, RotateOrder ro = RotateOrder::RO_YXZ) {
     return ((rotate(vec, tf.rotation, ro) * tf.scale) + tf.position);
 }

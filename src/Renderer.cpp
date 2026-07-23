@@ -36,7 +36,7 @@ void clearScreen(uint32_t color, FS::RenderState &renderState) {
 }
 // Put pixel (x and y specify viewport coordinates)
 // this means x=0,y=0 will be on center
-void putPixel(const int x, const int y, const Colour &color, FS::RenderState &renderState) {
+void putPixel(const int x, const int y, const Colour color, FS::RenderState &renderState) {
     const uint32_t hexColor = rgbtoHex(color);
     const uint32_t idx = (x + renderState.width / 2) + (((renderState.height / 2) - y) * renderState.width);
     std::lock_guard<std::mutex> lock(pixelLocks[idx]);
@@ -44,7 +44,7 @@ void putPixel(const int x, const int y, const Colour &color, FS::RenderState &re
 }
 // put pixel Direct (x and y specify buffer value)
 // x=0,y=0 will be on top left
-void putPixelD(const int x, const int y, const Colour &color, FS::RenderState &renderState) {
+void putPixelD(const int x, const int y, const Colour color, FS::RenderState &renderState) {
     uint32_t hexColor = rgbtoHex(color);
     uint32_t idx = x + (y * renderState.width);
     std::lock_guard<std::mutex> lock(pixelLocks[idx]);
@@ -78,7 +78,7 @@ void drawSquare(float x, float y, int size, Colour color, FS::RenderState &rende
 void drawNoise(FS::RenderState &renderState) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(0,256);
+    std::uniform_int_distribution<> dist(0, 256);
     for (int y = -(canvas.y / 2.f); y < (canvas.y / 2.f); y++) {
         for (int x = -(canvas.x / 2.f); x < (canvas.x / 2.f); x++) {
             Colour color = { uint8_t(dist(gen)), uint8_t(dist(gen)), uint8_t(dist(gen)) };
@@ -118,7 +118,7 @@ void exportToPPM(const std::string &filename, uint32_t *buffer, int width, int h
     LOG_SUCCESS(("Exported to " + filename + " took:" + std::to_string(timer.dtms) + "ms\n"));
 }
 
-void drawLine(Vector a, Vector b, const Colour &color, FS::RenderState &renderState) {
+void drawLine(Vector a, Vector b, const Colour color, FS::RenderState &renderState) {
     const float dy = b.y - a.y;
     const float dx = b.x - a.x;
     if (abs(dx) > abs(dy)) {
@@ -162,7 +162,7 @@ Vector canvasToViewport(float x, float y) {
 Vector viewportToCanvas(float x, float y) {
     return { x * (canvas.x / vpWidth), y * (canvas.y / vpHeight), d };
 }
-Vector projectVertex(const Vector &v) {
+Vector projectVertex(const Vector v) {
     // Perspective Projection
     return viewportToCanvas(((v.x * d) / v.z), ((v.y * d) / v.z));
 }
@@ -256,15 +256,15 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
     interpolate(norm[0], projected[0].y, norm[2], projected[2].y, n02);
 
     // Concatenate short sides
-    for (const float &x : x12) {
+    for (const float x : x12) {
         x01.push_back(x);
     }
 
-    for (const float &z : z12) {
+    for (const float z : z12) {
         z01.push_back(z);
     }
 
-    for (const Vector &nrm : n12) {
+    for (const Vector nrm : n12) {
         n01.push_back(nrm);
     }
 
@@ -308,13 +308,13 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &
         if (y <= -(renderState.height / 2) || y >= (renderState.height / 2)) {
             continue;
         }
-        const uint32_t &scanline = uint32_t(y - int(projected[0].y));
-        const float &lz = (*zleft)[scanline];
-        const float &rz = (*zright)[scanline];
-        const int &lx = (*xleft)[scanline];
-        const int &rx = (*xright)[scanline];
-        const Vector &ln = (*nleft)[scanline];
-        const Vector &rn = (*nright)[scanline];
+        const uint32_t scanline = uint32_t(y - int(projected[0].y));
+        const float lz = (*zleft)[scanline];
+        const float rz = (*zright)[scanline];
+        const int lx = (*xleft)[scanline];
+        const int rx = (*xright)[scanline];
+        const Vector ln = (*nleft)[scanline];
+        const Vector rn = (*nright)[scanline];
 
         // interpolate z
         std::vector<float> zsegment = {};
@@ -409,11 +409,11 @@ void drawTriangleDepth(const Vector p[3], FS::RenderState &renderState) {
     interpolate(z0, projected[0].y, z2, projected[2].y, z02);
 
     // Concatenate short sides
-    for (const float &x : x12) {
+    for (const float x : x12) {
         x01.push_back(x);
     }
 
-    for (const float &z : z12) {
+    for (const float z : z12) {
         z01.push_back(z);
     }
 
@@ -444,11 +444,11 @@ void drawTriangleDepth(const Vector p[3], FS::RenderState &renderState) {
     }
 
     for (int y = int(projected[0].y); y < int(projected[2].y); y++) {
-        const uint32_t &scanline = uint32_t(y - int(projected[0].y));
-        const float &lz = (*zleft)[scanline];
-        const float &rz = (*zright)[scanline];
-        const int &lx = (*xleft)[scanline];
-        const int &rx = (*xright)[scanline];
+        const uint32_t scanline = uint32_t(y - int(projected[0].y));
+        const float lz = (*zleft)[scanline];
+        const float rz = (*zright)[scanline];
+        const int lx = (*xleft)[scanline];
+        const int rx = (*xright)[scanline];
 
         // interpolate z
         std::vector<float> zsegment = {};
@@ -559,7 +559,7 @@ void drawBox(const Box &box, const Transform &tf, bool inTriangle, FS::RenderSta
     drawLine(projected[3], projected[7], red, renderState);
 }
 
-float intersectRaySphere(const Vector &O, const Vector &D, const Sphere &sphere) {
+float intersectRaySphere(const Vector O, const Vector D, const Sphere &sphere) {
     const float r = sphere.radius;
     const Vector CO = O - sphere.center;
 
@@ -575,7 +575,7 @@ float intersectRaySphere(const Vector &O, const Vector &D, const Sphere &sphere)
     const float t = (-b - sqrt(discriminant)) / (2 * a);
     return t;
 }
-float intersectRayTriangle(const Vector &O, const Vector &D, Triangle &triangle) {
+float intersectRayTriangle(const Vector O, const Vector D, Triangle &triangle) {
     float t = 0;
     Vector N = triangle.normals[0];
     float NdotRay = dot(N, D);
@@ -616,7 +616,7 @@ float intersectRayTriangle(const Vector &O, const Vector &D, Triangle &triangle)
 
     return t;
 }
-bool RayIntersectsBox(const Vector &O, const Vector &D, const Box &box) {
+bool RayIntersectsBox(const Vector O, const Vector D, const Box &box) {
     Vector invDir = 1.0f / D;
     float tmin, tmax, tymin, tymax, tzmin, tzmax;
     if (invDir.x >= 0) {
@@ -663,7 +663,7 @@ bool RayIntersectsBox(const Vector &O, const Vector &D, const Box &box) {
     }
     return true;
 }
-HitData closestIntersection(const Vector &O, const Vector &D, float tMin, float tMax) {
+HitData closestIntersection(const Vector O, const Vector D, float tMin, float tMax) {
     HitData hitData = {};
     hitData.intersection = INT_MAX;
     // Sphere intersection
@@ -725,10 +725,10 @@ HitData closestIntersection(const Vector &O, const Vector &D, float tMin, float 
     }
     return hitData;
 }
-Vector reflectRay(const Vector &R, const Vector &N) {
+Vector reflectRay(const Vector R, const Vector N) {
     return (2 * (N * dot(R, N)) - R);
 }
-float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bool rtShadows) {
+float computeLight(const Vector P, const Vector N, const Vector V, float s, bool rtShadows) {
     float i = 0.f;
     for (const Light &light : scene.lights) {
         // L = direction of the light
@@ -789,10 +789,10 @@ float computeLight(const Vector &P, const Vector &N, const Vector V, float s, bo
     return i;
 }
 // returns a signed distance from the point to the plane
-float planeIntersection(const Plane &plane, const Vector &point) {
+float planeIntersection(const Plane plane, const Vector point) {
     return ((dot(point, plane.normal)) + plane.offset);
 }
-float edgePlaneIntersection(const Plane &plane, const Vector &A, const Vector &B) {
+float edgePlaneIntersection(const Plane plane, const Vector A, const Vector B) {
     // P = A + t(B - A)
     // <N,P> + D = 0
     // <N,(A + t(B - A))> + D = 0
@@ -802,7 +802,7 @@ float edgePlaneIntersection(const Plane &plane, const Vector &A, const Vector &B
     // t = -D - <N,A>/ <N,(B - A)>
     return (-plane.offset - dot(plane.normal, A)) / dot(plane.normal, (B - A));
 }
-void clipPlane(const Plane &plane, const std::vector<Triangle> &in, std::vector<Triangle> &out) {
+void clipPlane(const Plane plane, const std::vector<Triangle> &in, std::vector<Triangle> &out) {
     for (size_t vc = 0; vc < in.size(); vc++) {
         Vector tp[3] = {
             in[vc].points[0],
@@ -1152,7 +1152,7 @@ void renderMesh(const Mesh &mesh, const Transform &transform, bool multithread, 
     // drawVerticesDepth(triData, multithread);
     drawVertices(triData, mesh.material, drawWireframe, multithread, renderState);
 }
-Colour traceRay(const Vector &O, const Vector &D, float tMin, float tMax, int recursionLimit) {
+Colour traceRay(const Vector O, const Vector D, float tMin, float tMax, int recursionLimit) {
     HitData hitData = closestIntersection(O, D, tMin, tMax);
     float closestT = hitData.intersection;
     Colour bgColor = { 100, 100, 100 };

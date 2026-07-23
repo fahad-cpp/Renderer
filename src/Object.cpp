@@ -39,7 +39,7 @@ Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<T
 void Mesh::initTriangles() {
     Vector lowest, highest;
     int count = 0;
-    for (const Vector &vertex : vertices) {
+    for (const Vector vertex : vertices) {
         if (count == 0) {
             lowest = vertex;
             highest = vertex;
@@ -84,7 +84,7 @@ void Mesh::getTriangles() {
     }
 }
 
-Mesh loadOBJ(const std::string &filename, const Material &material) {
+Mesh loadOBJ(const std::string &filename, const Material material) {
     Timer timer;
     LOG_INFO("Loading " << filename);
     std::vector<Vector> vertices = {};

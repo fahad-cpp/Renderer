@@ -24,7 +24,7 @@ void clamp(T &num, T minLimit, T maxLimit) {
 }
 
 template <typename T>
-T clampv(const T &val, T minLimit, T maxLimit) {
+T clampv(const T val, T minLimit, T maxLimit) {
     T num = val;
     if (num < minLimit) {
         num = minLimit;
@@ -45,4 +45,4 @@ T lerp(const T &first, const T &second, float t) {
     return (first + ((second - first) * t));
 }
 
-float getMax(const float &n1, const float &n2);
+float getMax(const float n1, const float n2);
