@@ -51,6 +51,10 @@ if(MSVC)
         >
     )
 
+    target_link_options(Renderer PRIVATE
+        /SUBSYSTEM:CONSOLE
+    )
+
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(Renderer PRIVATE
         -Wall

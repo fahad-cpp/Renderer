@@ -79,7 +79,7 @@ void drawNoise(FS::RenderState &renderState) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(0, 256);
-    for (int y = -(canvas.y / 2.f); y < (canvas.y / 2.f); y++) {
+    for (int y = (canvas.y / 2.f); y > -(canvas.y / 2.f); y--) {
         for (int x = -(canvas.x / 2.f); x < (canvas.x / 2.f); x++) {
             Colour color = { uint8_t(dist(gen)), uint8_t(dist(gen)), uint8_t(dist(gen)) };
             putPixel(x, y, color, renderState);
@@ -176,7 +176,7 @@ void interpolate(T x0, float y0, T x1, float y1, std::vector<T> &arr) {
         arr.push_back(x);
     }
 }
-void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material &material, bool wireframe, FS::RenderState &renderState) {
+void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material material, bool wireframe, FS::RenderState &renderState) {
     Vector projected[3] = {
         projectVertex(p[0]),
         projectVertex(p[1]),
@@ -535,6 +535,7 @@ void drawBox(const Box &box, const Transform &tf, bool inTriangle, FS::RenderSta
             };
             std::vector<Triangle> clippedTris = {};
             clipTriangle(tri, clippedTris);
+            boxTriangles.reserve(clippedTris.size());
             for (const Triangle &triangle : clippedTris) {
                 boxTriangles.push_back(triangle);
             }
@@ -1058,7 +1059,7 @@ void getDrawableTriangles(const std::vector<Triangle> &triangleData, const Trans
         }
     }
 }
-void drawVerticesThr(const std::vector<Triangle> &triangleData, const Material &material, bool wireframe, FS::RenderState &renderState, uint32_t start, uint32_t end) {
+void drawVerticesThr(const std::vector<Triangle> &triangleData, const Material material, bool wireframe, FS::RenderState &renderState, uint32_t start, uint32_t end) {
     for (uint32_t i = start; i < end; i++) {
         Vector p[3] = {
             triangleData[i].points[0],
@@ -1083,7 +1084,7 @@ void drawVerticesDepthThr(const std::vector<Triangle> &triangleData, FS::RenderS
         drawTriangleDepth(p, renderState);
     }
 }
-void drawVertices(const std::vector<Triangle> &triangleData, const Material &material, bool wireframe, bool multithread, FS::RenderState &renderState) {
+void drawVertices(const std::vector<Triangle> &triangleData, const Material material, bool wireframe, bool multithread, FS::RenderState &renderState) {
     if (!multithread) {
         for (size_t i = 0; i < triangleData.size(); i++) {
             Vector p[3] = {
