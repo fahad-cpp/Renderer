@@ -36,6 +36,7 @@ int main() {
         window.swapBuffers();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+    window.close();
     free(pixelLocks);
     return 0;
 }
