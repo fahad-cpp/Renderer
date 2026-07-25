@@ -1,6 +1,5 @@
 #include "Main.h"
 #include "Colour.h"
-#include "FSWindow.h"
 #include "Globals.h"
 #include "Logging.h"
 #include "Object.h"
@@ -8,9 +7,8 @@
 #include "Renderer.h"
 #include "SceneSettings.h"
 #include "Timer.h"
-#include "Vector2.h"
 #include "Window.h"
-#include <Input.h>
+#include <FSWindow.h>
 #include <chrono>
 #include <thread>
 

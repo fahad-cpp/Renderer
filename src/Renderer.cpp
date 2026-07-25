@@ -319,7 +319,7 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         // interpolate z
         std::vector<float> zsegment = {};
         std::vector<Vector> nsegment = {};
-        const uint32_t zsegmentSize = (rx - lx) > renderState.width ? renderState.width : (rx - lx);
+        const uint32_t zsegmentSize = abs(rx - lx) > renderState.width ? renderState.width : abs(rx - lx);
 
         zsegment.reserve(zsegmentSize);
         interpolate(lz, float(lx), rz, float(rx), zsegment);
