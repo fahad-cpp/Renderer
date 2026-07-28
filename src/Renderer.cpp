@@ -26,13 +26,11 @@
 
 namespace Renderer {
 void clearScreen(uint32_t color, FS::RenderState &renderState) {
-    uint32_t *pixel = (uint32_t *)renderState.screenBuffer;
+    uint32_t *pixel = static_cast<uint32_t *>(renderState.screenBuffer);
     float *dep = renderState.depthBuffer;
     int bufferSize = renderState.width * renderState.height;
-    for (int i = 0; i < bufferSize; i++) {
-        *pixel++ = color;
-        *dep++ = 0;
-    }
+    std::fill_n(pixel, bufferSize, color);
+    std::fill_n(dep, bufferSize, 0.f);
 }
 // Put pixel (x and y specify viewport coordinates)
 // this means x=0,y=0 will be on center
@@ -90,7 +88,7 @@ void printPPM(const std::string &filename, FS::RenderState &renderState) {
     uint32_t sbsize = (renderState.width * renderState.height) * sizeof(uint32_t);
     uint32_t *buffer = (uint32_t *)malloc(sbsize);
     if (buffer) {
-        memcpy((void *)buffer, renderState.screenBuffer, sbsize);
+        std::memcpy((void *)buffer, renderState.screenBuffer, sbsize);
         ppmThreads.push_back(std::thread(Renderer::exportToPPM, filename, buffer, renderState.width, renderState.height));
     } else {
         LOG_WARN("Failed to allocate a buffer");
