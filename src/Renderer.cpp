@@ -1,3 +1,4 @@
+#include <cfloat>
 #define _CRT_SECURE_NO_WARNINGS
 #include "Renderer.h"
 #include "Colour.h"
@@ -569,7 +570,7 @@ float intersectRaySphere(const Vector O, const Vector D, const Sphere &sphere) {
     float discriminant = (b * b) - (4 * a * c);
 
     if (discriminant < 0) {
-        return INT_MAX;
+        return FLT_MAX;
     }
     const float t = (-b - sqrt(discriminant)) / (2 * a);
     return t;
@@ -579,11 +580,11 @@ float intersectRayTriangle(const Vector O, const Vector D, Triangle &triangle) {
     Vector N = triangle.normals[0];
     float NdotRay = dot(N, D);
     if (NdotRay > 0)
-        return INT_MAX;
+        return FLT_MAX;
     float d = -dot(N, triangle.points[0]);
     t = -(dot(N, O) + d) / NdotRay;
     if (t < 0)
-        return INT_MAX;
+        return FLT_MAX;
 
     Vector P = O + (t * D);
 
@@ -595,7 +596,7 @@ float intersectRayTriangle(const Vector O, const Vector D, Triangle &triangle) {
     C = cross(edge, pLine);
 
     if (dot(N, C) < 0)
-        return INT_MAX; // Point is outside/Rightside edge 0;
+        return FLT_MAX; // Point is outside/Rightside edge 0;
 
     // edge 1
     edge = triangle.points[2] - triangle.points[1];
@@ -603,7 +604,7 @@ float intersectRayTriangle(const Vector O, const Vector D, Triangle &triangle) {
     C = cross(edge, pLine);
 
     if (dot(N, C) < 0)
-        return INT_MAX; // Point is outside/Rightside edge 1;
+        return FLT_MAX; // Point is outside/Rightside edge 1;
 
     // edge 2
     edge = triangle.points[0] - triangle.points[2];
@@ -611,7 +612,7 @@ float intersectRayTriangle(const Vector O, const Vector D, Triangle &triangle) {
     C = cross(edge, pLine);
 
     if (dot(N, C) < 0)
-        return INT_MAX; // Point is outside/Rightside edge 2;
+        return FLT_MAX; // Point is outside/Rightside edge 2;
 
     return t;
 }
@@ -664,7 +665,7 @@ bool RayIntersectsBox(const Vector O, const Vector D, const Box &box) {
 }
 HitData closestIntersection(const Vector O, const Vector D, float tMin, float tMax) {
     HitData hitData = {};
-    hitData.intersection = INT_MAX;
+    hitData.intersection = FLT_MAX;
     // Sphere intersection
     for (Sphere &sphere : scene.spheres) {
         float sphereInt = intersectRaySphere(O, D, sphere);
@@ -739,7 +740,7 @@ float computeLight(const Vector P, const Vector N, const Vector V, float s, bool
         } else {
             if (light.type == LT_DIRECTIONAL) {
                 L = -light.direction;
-                distance = INT_MAX;
+                distance = FLT_MAX;
             } else if (light.type == LT_POINT) {
                 L = (light.pos - P);
                 distance = length(L);
@@ -747,12 +748,12 @@ float computeLight(const Vector P, const Vector N, const Vector V, float s, bool
                     continue;
                 }
             }
-            float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, distance).intersection : INT_MAX;
+            float shadowT = rtShadows ? closestIntersection(P, L, 0.000001, distance).intersection : FLT_MAX;
             if (shadowT > 1) {
-                shadowT = INT_MAX;
+                shadowT = FLT_MAX;
             }
             // cast a shadow if an object intersected between light and point
-            if (shadowT != INT_MAX) {
+            if (shadowT != FLT_MAX) {
                 continue;
             }
             // Diffuse reflection
@@ -1155,7 +1156,7 @@ Colour traceRay(const Vector O, const Vector D, float tMin, float tMax, int recu
     HitData hitData = closestIntersection(O, D, tMin, tMax);
     float closestT = hitData.intersection;
     Colour bgColor = { 100, 100, 100 };
-    if (closestT == INT_MAX) {
+    if (closestT == FLT_MAX) {
         return bgColor;
     }
 
@@ -1173,7 +1174,7 @@ Colour traceRay(const Vector O, const Vector D, float tMin, float tMax, int recu
     }
 
     Vector R = reflectRay(-D, N);
-    Colour reflectedColor = traceRay(P, R, 0.001, INT_MAX, recursionLimit - 1);
+    Colour reflectedColor = traceRay(P, R, 0.001, FLT_MAX, recursionLimit - 1);
 
     return (localColor * (1.f - r)) + (reflectedColor * r);
 }
@@ -1186,7 +1187,7 @@ void rayTraceThr(const int threadNum, const int threadCount, FS::RenderState &re
             Vector direction = canvasToViewport(x - (canvas.x / 2.f), (canvas.y / 2.f) - y);
             direction = rotate(direction, camera.rotation, RotateOrder::RO_XYZ);
             direction = direction / length(direction);
-            Colour result = traceRay(camera.position, direction, 1, INT_MAX, 3);
+            Colour result = traceRay(camera.position, direction, 1, FLT_MAX, 3);
             putPixelD(x, y, result, renderState);
         }
     }
@@ -1200,7 +1201,7 @@ void rayTrace(FS::RenderState &renderState) {
             Vector D = canvasToViewport(x - (canvas.x / 2), (canvas.y / 2) - y);
             D = rotate(D, camera.rotation, RotateOrder::RO_XYZ);
             D = D / length(D);
-            Colour result = traceRay(camera.position, D, 1, INT_MAX, 3);
+            Colour result = traceRay(camera.position, D, 1, FLT_MAX, 3);
             putPixelD(x, y, result, renderState);
         }
     }

@@ -59,17 +59,17 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(Renderer PRIVATE
         -Wall
         -Wextra
-        -Wpedantic
         -Wshadow
         -Wnon-virtual-dtor
         -Wcast-align
         -Woverloaded-virtual
+        -pedantic-errors
     )
 
     # Optimization & debug info
     target_compile_options(Renderer PRIVATE
         $<$<CONFIG:Release>:
-            -O3
+            -O2
             -march=native
             -flto
             -DNDEBUG
@@ -77,7 +77,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         >
         $<$<CONFIG:Debug>:
             -O0
-            -g
+            -ggdb
             -fno-omit-frame-pointer
         >
     )

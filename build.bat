@@ -20,7 +20,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-cmake --build build --config %CONFIG% --parallel >build\error.txt
+cmake --build build --config %CONFIG% --parallel 2>build\error.txt
 if errorlevel 1 (
     echo Failed to build the project.
     exit /b 1
