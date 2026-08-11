@@ -1,10 +1,9 @@
-#include <cfloat>
 #define _CRT_SECURE_NO_WARNINGS
 #include "Renderer.h"
 #include "Colour.h"
 #include "FSWindow.h"
 #include "Globals.h"
-#include "Hash.h"
+#include "Hash.h" // IWYU pragma: keep
 #include "Logging.h"
 #include "Object.h"
 #include "PostProcess.h"
@@ -13,17 +12,10 @@
 #include "Transform.h"
 #include "Utility.h"
 #include "Vector.h"
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <mutex>
 #include <random>
-#include <stdint.h>
-#include <thread>
 #include <unordered_map>
-#include <vector>
+#include <cfloat>
+#include <cstring>
 
 namespace Renderer {
 void clearScreen(uint32_t color, FS::RenderState &renderState) {
@@ -50,8 +42,8 @@ void putPixelD(const int x, const int y, const Colour color, FS::RenderState &re
     ((uint32_t *)renderState.screenBuffer)[idx] = hexColor;
 }
 void renderDepthBuffer(FS::RenderState &renderState) {
-    for (int y = 0; y < renderState.height; y++) {
-        for (int x = 0; x < renderState.width; x++) {
+    for (uint32_t y = 0; y < renderState.height; y++) {
+        for (uint32_t x = 0; x < renderState.width; x++) {
             uint32_t index = x + (y * renderState.width);
             float value = renderState.depthBuffer[index];
             clamp(value, 0.f, 1.f);
@@ -301,10 +293,12 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         nright = &n02;
     }
 
+    const int halfHeight = static_cast<int>(renderState.height / 2);
+    const int halfWidth = static_cast<int>(renderState.width / 2);
     const bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
     const bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
     for (int y = int(projected[0].y); y < int(projected[2].y); y++) {
-        if (y <= -(renderState.height / 2) || y >= (renderState.height / 2)) {
+        if (y <= -halfHeight || y >= halfHeight) {
             continue;
         }
         const uint32_t scanline = uint32_t(y - int(projected[0].y));
@@ -318,13 +312,13 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         // interpolate z
         std::vector<float> zsegment = {};
         std::vector<Vector> nsegment = {};
-        const uint32_t zsegmentSize = abs(rx - lx) > renderState.width ? renderState.width : abs(rx - lx);
+        const uint32_t zsegmentSize = uint32_t(std::abs(rx - lx)) > renderState.width ? renderState.width : abs(rx - lx);
 
         zsegment.reserve(zsegmentSize);
         interpolate(lz, float(lx), rz, float(rx), zsegment);
         interpolate(ln, float(lx), rn, float(rx), nsegment);
         for (int x = lx; x < rx; x++) {
-            if (x <= -(renderState.width / 2) || x >= (renderState.width / 2)) {
+            if (x <= -halfWidth || x >= halfWidth) {
                 continue;
             }
             int screenx = x + (renderState.width / 2);
@@ -442,7 +436,12 @@ void drawTriangleDepth(const Vector p[3], FS::RenderState &renderState) {
         zright = &z02;
     }
 
+    const int halfHeight = static_cast<int>(renderState.height / 2);
+    const int halfWidth = static_cast<int>(renderState.width / 2);
     for (int y = int(projected[0].y); y < int(projected[2].y); y++) {
+        if (y <= -halfHeight || y >= halfHeight) {
+            continue;
+        }
         const uint32_t scanline = uint32_t(y - int(projected[0].y));
         const float lz = (*zleft)[scanline];
         const float rz = (*zright)[scanline];
@@ -452,11 +451,11 @@ void drawTriangleDepth(const Vector p[3], FS::RenderState &renderState) {
         // interpolate z
         std::vector<float> zsegment = {};
         std::vector<Vector> nsegment = {};
-        const uint32_t zsegmentSize = (rx - lx) > renderState.width ? renderState.width : (rx - lx);
+        const uint32_t zsegmentSize = uint32_t(std::abs(rx - lx)) > renderState.width ? renderState.width : (rx - lx);
         zsegment.reserve(zsegmentSize);
         interpolate(lz, float(lx), rz, float(rx), zsegment);
         for (int x = lx; x < rx; x++) {
-            if ((!isIn(float(x), -canvas.x / 2.f, canvas.x / 2.f) || !isIn(float(y), -canvas.y / 2.f, canvas.y / 2.f))) {
+            if (y <= -halfWidth || y >= halfWidth) {
                 continue;
             }
             int screenx = x + (renderState.width / 2);

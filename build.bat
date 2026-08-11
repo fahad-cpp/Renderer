@@ -1,9 +1,7 @@
 @echo off
 setlocal
-set CONFIG=Release
-set ARCH=x64
-set GENERATOR="Ninja"
-set EXENAME=Renderer.exe
+set "EXENAME=Renderer.exe"
+set "PRESET=clang-release"
 
 if not exist build mkdir build
 if exist bin\%CONFIG%\%EXENAME% del bin\%CONFIG%\%EXENAME%
@@ -14,17 +12,17 @@ if errorlevel 1 (
     exit /b 1
 )
 
-cmake -G %GENERATOR% -S . -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_EXPORT_COMPILE_COMMANDS=ON 2>build\error.txt
+cmake --preset %PRESET%
 if errorlevel 1 (
     echo Failed to generate build files.
     exit /b 1
 )
 
-cmake --build build --config %CONFIG% --parallel 2>build\error.txt
+cmake --build --preset %PRESET%
 if errorlevel 1 (
     echo Failed to build the project.
     exit /b 1
 )
-
+if exist "build\%PRESET%\compile_commands.json" copy /Y "build\%PRESET%\compile_commands.json" "build\compile_commands.json"
 bin\%CONFIG%\%EXENAME%
 endlocal

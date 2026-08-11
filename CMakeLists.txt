@@ -5,19 +5,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(Renderer LANGUAGES CXX)
 
-if(MSVC)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-    message(STATUS "Using Microslop Visual Studio")
-else()
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
-    message(STATUS "Not Using Microslop Visual Studio")
-endif()
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 file(GLOB SOURCES src/*.cpp)
 add_subdirectory(vendor/FSWindow)
-add_executable(Renderer WIN32 ${SOURCES})
-target_link_libraries(Renderer PRIVATE FSWindow)
+add_executable(Renderer)
+target_sources(Renderer PRIVATE ${SOURCES})
 
+set_target_properties(Renderer PROPERTIES WIN32_EXECUTABLE FALSE)
+target_link_libraries(Renderer PRIVATE FSWindow)
 target_compile_definitions(Renderer PRIVATE
 _UNICODE
 UNICODE

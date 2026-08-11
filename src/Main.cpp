@@ -1,5 +1,4 @@
 #include "Main.h"
-#include "Colour.h"
 #include "Globals.h"
 #include "Logging.h"
 #include "Object.h"
@@ -9,11 +8,11 @@
 #include "Timer.h"
 #include "Window.h"
 #include <FSWindow.h>
-#include <chrono>
 #include <thread>
 
 // TODO(Fahad):
 /*
+ *  HIGH PRIORITY : FIX COMPILATION ON MINGW 
  *	Software Structure:
  *		-Seperate Engine and Game
  *	Adding Features:

@@ -12,7 +12,7 @@ void FXAAthr(int threadNum, int threadCount, FS::RenderState &renderState, float
     int ymin = (threadNum * yCount) + 1;
     int ymax = ymin + yCount;
     for (int y = ymin; y < ymax; y++) {
-        for (int x = 1; x < renderState.width - 1; x++) {
+        for (uint32_t x = 1; x < renderState.width - 1; x++) {
             Colour colorCenter = Renderer::getPixel(x, y, renderState);
             Colour colorTop = Renderer::getPixel(x, y - 1, renderState);
             Colour colorBottom = Renderer::getPixel(x, y + 1, renderState);
@@ -54,8 +54,8 @@ void FXAA(FS::RenderState &renderState, bool multiThread) {
     float edgeThreshold = 0.f;
     if (!multiThread) {
         // Single Threaded FXAA
-        for (int y = 1; y < (renderState.height - 1); y++) {
-            for (int x = 1; x < (renderState.width - 1); x++) {
+        for (uint32_t y = 1; y < (renderState.height - 1); y++) {
+            for (uint32_t x = 1; x < (renderState.width - 1); x++) {
                 Colour colorCenter = Renderer::getPixel(x, y, renderState);
                 Colour colorTop = Renderer::getPixel(x, y - 1, renderState);
                 Colour colorBottom = Renderer::getPixel(x, y + 1, renderState);
@@ -111,8 +111,8 @@ void renderAO(FS::RenderState &renderState) {
     const float SAMPLE_RADIUS = 2.f;
     std::uniform_int_distribution<> dist(-SAMPLE_RADIUS, SAMPLE_RADIUS);
     Vector samplesLoc[SAMPLE_COUNT];
-    for (int y = 0; y < renderState.height; y++) {
-        for (int x = 0; x < renderState.width; x++) {
+    for (uint32_t y = 0; y < renderState.height; y++) {
+        for (uint32_t x = 0; x < renderState.width; x++) {
             uint32_t pixelIndex = (y * renderState.width) + x;
             float pixelDepth = renderState.depthBuffer[pixelIndex];
             float z = 1.f / pixelDepth;
@@ -124,7 +124,7 @@ void renderAO(FS::RenderState &renderState) {
             int occlusionFactor = 0;
             for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
                 Vector offset = Renderer::projectVertex(samplesLoc[i]);
-                if (!isIn(int(offset.x), 0, renderState.width) || !isIn(int(offset.y), 0, renderState.height)) {
+                if (!isIn(int(offset.x), 0, int(renderState.width)) || !isIn(int(offset.y), 0, int(renderState.height))) {
                     clamp(offset.x, 0.f, (float)renderState.width);
                     clamp(offset.y, 0.f, (float)renderState.height);
                 }
@@ -148,8 +148,8 @@ void boxBlur(FS::RenderState &renderState) {
         return;
     }
     std::memcpy(buffer, renderState.screenBuffer, renderState.width * renderState.height * sizeof(uint32_t));
-    for (int y = 1; y < renderState.height - 1; y++) {
-        for (int x = 1; x < renderState.width - 1; x++) {
+    for (uint32_t y = 1; y < renderState.height - 1; y++) {
+        for (uint32_t x = 1; x < renderState.width - 1; x++) {
             Colour grid[9] = {
                 Renderer::getPixel(x - 1, y - 1, renderState),
                 Renderer::getPixel(x, y - 1, renderState),
