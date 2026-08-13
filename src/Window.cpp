@@ -22,7 +22,7 @@ int main() {
     window.swapBuffers();
     init();
     window.showCursor(!sceneSettings.lockMouse);
-    window.setCursorPos(windowPos.x + (renderState.width / 2.f), windowPos.y + (renderState.height / 2.f));
+    window.setCursorPos(uint32_t(windowPos.x + (renderState.width / 2.f)), uint32_t(windowPos.y + (renderState.height / 2.f)));
     timer.Stop();
     LOG_INFO("Initialization took " << timer.dtms << " ms\n");
     while (window.isOpen()) {

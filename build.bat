@@ -1,7 +1,7 @@
 @echo off
 setlocal
 set "EXENAME=Renderer.exe"
-set "PRESET=clang-release"
+set "PRESET=gcc-release"
 
 if not exist build mkdir build
 if exist bin\%CONFIG%\%EXENAME% del bin\%CONFIG%\%EXENAME%

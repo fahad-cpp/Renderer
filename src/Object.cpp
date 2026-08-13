@@ -89,7 +89,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
     LOG_INFO("Loading " << filename);
     std::vector<Vector> vertices = {};
     std::vector<Vector> normals = {};
-    std::vector<Texture> texture = {};
+    std::vector<Texture> textures = {};
     std::vector<Face> faces = {};
 
     std::ifstream OBJFile(filename, std::ios::binary | std::ios::ate);
@@ -122,7 +122,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
             float u, v, w;
             std::sscanf(line.c_str(), "vt %f %f %f", &u, &v, &w);
             Texture newtext({ u, v, w });
-            texture.emplace_back(newtext);
+            textures.emplace_back(newtext);
         } else if (ptr[0] == 'v' && ptr[1] == 'n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
             float x, y, z;
             std::sscanf(line.c_str(), "vn %f %f %f", &x, &y, &z);
@@ -165,7 +165,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
         if (*ptr == '\n')
             ptr++;
     }
-    Mesh mesh = { vertices, normals, texture, faces };
+    Mesh mesh = { vertices, normals, textures, faces };
     mesh.material = material;
     mesh.initTriangles();
     timer.Stop();

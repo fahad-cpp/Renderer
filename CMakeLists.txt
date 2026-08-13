@@ -6,6 +6,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 project(Renderer LANGUAGES CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin)
 file(GLOB SOURCES src/*.cpp)
 add_subdirectory(vendor/FSWindow)
 add_executable(Renderer)
@@ -14,8 +16,8 @@ target_sources(Renderer PRIVATE ${SOURCES})
 set_target_properties(Renderer PROPERTIES WIN32_EXECUTABLE FALSE)
 target_link_libraries(Renderer PRIVATE FSWindow)
 target_compile_definitions(Renderer PRIVATE
-_UNICODE
-UNICODE
+    _UNICODE
+    UNICODE
 )
 set_property(TARGET Renderer PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 if(MSVC)
@@ -85,7 +87,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         )
     endif()
 
-    if(WIN32)
+    if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         list(APPEND RENDERER_LINK_OPTIONS
             -Wl,--subsystem,console
         )

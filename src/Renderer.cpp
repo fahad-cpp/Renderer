@@ -70,8 +70,8 @@ void drawNoise(FS::RenderState &renderState) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(0, 256);
-    for (int y = (canvas.y / 2.f); y > -(canvas.y / 2.f); y--) {
-        for (int x = -(canvas.x / 2.f); x < (canvas.x / 2.f); x++) {
+    for (int y = int(canvas.y / 2.f); y > -int(canvas.y / 2.f); y--) {
+        for (int x = -int(canvas.x / 2.f); x < int(canvas.x / 2.f); x++) {
             Colour color = { uint8_t(dist(gen)), uint8_t(dist(gen)), uint8_t(dist(gen)) };
             putPixel(x, y, color, renderState);
         }
@@ -120,11 +120,11 @@ void drawLine(Vector a, Vector b, const Colour color, FS::RenderState &renderSta
         if (dx != 0)
             aspectRatio = (dy / dx);
         float y = a.y;
-        for (int x = a.x; x <= b.x; x++) {
+        for (float x = a.x; x <= b.x; x++) {
             if (x >= (canvas.x / 2) || x <= -(canvas.x / 2) || y >= (canvas.y / 2) || y <= -(canvas.y / 2)) {
                 y += aspectRatio;
             } else {
-                putPixel(x, y, color, renderState);
+                putPixel(int(x), int(y), color, renderState);
                 y += aspectRatio;
             }
         }
@@ -136,11 +136,11 @@ void drawLine(Vector a, Vector b, const Colour color, FS::RenderState &renderSta
         if (dy != 0)
             aspectRatio = (dx / dy);
         float x = a.x;
-        for (int y = a.y; y <= b.y; y++) {
+        for (float y = a.y; y <= b.y; y++) {
             if (x >= (canvas.x / 2) || x <= -(canvas.x / 2) || y >= (canvas.y / 2) || y <= -(canvas.y / 2)) {
                 x += aspectRatio;
             } else {
-                putPixel(x, y, color, renderState);
+                putPixel(int(x), int(y), color, renderState);
                 x += aspectRatio;
             }
         }
@@ -304,8 +304,8 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         const uint32_t scanline = uint32_t(y - int(projected[0].y));
         const float lz = (*zleft)[scanline];
         const float rz = (*zright)[scanline];
-        const int lx = (*xleft)[scanline];
-        const int rx = (*xright)[scanline];
+        const float lx = (*xleft)[scanline];
+        const float rx = (*xright)[scanline];
         const Vector ln = (*nleft)[scanline];
         const Vector rn = (*nright)[scanline];
 
@@ -315,9 +315,9 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         const uint32_t zsegmentSize = uint32_t(std::abs(rx - lx)) > renderState.width ? renderState.width : abs(rx - lx);
 
         zsegment.reserve(zsegmentSize);
-        interpolate(lz, float(lx), rz, float(rx), zsegment);
-        interpolate(ln, float(lx), rn, float(rx), nsegment);
-        for (int x = lx; x < rx; x++) {
+        interpolate(lz, lx, rz, rx, zsegment);
+        interpolate(ln, lx, rn, rx, nsegment);
+        for (int x = int(lx); x < int(rx); x++) {
             if (x <= -halfWidth || x >= halfWidth) {
                 continue;
             }
@@ -326,12 +326,12 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
             uint32_t index = (screeny * renderState.width) + screenx;
             std::lock_guard<std::mutex> lock(pixelLocks[index]);
             float dep = renderState.depthBuffer[index];
-            float invz = zsegment[x - lx];
+            float invz = zsegment[x - int(lx)];
             float z = 1.f / invz;
             if (invz < dep) {
                 continue;
             }
-            Vector normal = nsegment[x - lx];
+            Vector normal = nsegment[x - int(lx)];
             normalize(normal);
 
             Vector point = canvasToViewport(x * z / d, y * z / d);
@@ -1193,15 +1193,15 @@ void rayTraceThr(const int threadNum, const int threadCount, FS::RenderState &re
 }
 void rayTrace(FS::RenderState &renderState) {
     clearScreen(0x000000, renderState);
-    for (float y = 0; y < renderState.height; y++) {
+    for (uint32_t y = 0; y < renderState.height; ++y) {
         int scanlineDone = y + 1;
         LOG_INFO("\rScanlines Done:" << scanlineDone << '/' << (renderState.width) << ':' << int((scanlineDone / (renderState.width)) * 100) << "%" << std::flush);
-        for (float x = 0; x < renderState.width; x++) {
-            Vector D = canvasToViewport(x - (canvas.x / 2), (canvas.y / 2) - y);
+        for (uint32_t x = 0; x < renderState.width; ++x) {
+            Vector D = canvasToViewport(int(x) - int(canvas.x / 2), int(canvas.y / 2) - int(y));
             D = rotate(D, camera.rotation, RotateOrder::RO_XYZ);
             D = D / length(D);
             Colour result = traceRay(camera.position, D, 1, FLT_MAX, 3);
-            putPixelD(x, y, result, renderState);
+            putPixelD(int(x), int(y), result, renderState);
         }
     }
 }

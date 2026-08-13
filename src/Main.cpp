@@ -26,10 +26,10 @@
  *		-Implement BVH ray tracing(Ray tracer)
  */
 // frame delta time
-double fdt = 0.06;
+float fdt = 0.06f;
 float totalFrameTime = 0.f;
 int frameCount = 0;
-const float defSpeed = 2.f;
+const float defSpeed = 2.0f;
 float speed = defSpeed;
 const float boostSpeed = (5 * defSpeed);
 static FS::Vector2 getMouseDiff(FS::Window &window) {
@@ -40,8 +40,8 @@ static FS::Vector2 getMouseDiff(FS::Window &window) {
     FS::Vector2 windowPos = window.getWindowPos();
     FS::Vector2 mousePos = window.getCursorPos();
     static FS::Vector2 prevPoint = mousePos;
-    prevPoint = { windowPos.x + (renderState.width * 0.5f), windowPos.y + (renderState.height * 0.5f) };
-    window.setCursorPos(prevPoint.x, prevPoint.y);
+    prevPoint = { float(windowPos.x + (renderState.width * 0.5f)), float(windowPos.y + (renderState.height * 0.5f)) };
+    window.setCursorPos(uint32_t(prevPoint.x), uint32_t(prevPoint.y));
     FS::Vector2 diff = mousePos - prevPoint;
     return diff;
 }
@@ -122,7 +122,7 @@ void handleInput(FS::Window &window) {
             // LOG_INFO("Triangle count : " << instance.mesh->triangles.size() << "\n");
             LOG_INFO("Face count : " << instance.mesh->faces.size() << "\n");
             LOG_INFO("Normal count : " << instance.mesh->normals.size() << "\n");
-            totalTris += instance.mesh->triangleData.size();
+            totalTris += static_cast<int>(instance.mesh->triangleData.size());
             c++;
         }
         LOG_INFO("---\n");
@@ -183,9 +183,9 @@ void handleInput(FS::Window &window) {
     }
 
     // Slow down time
-    fdt = 0.06;
+    fdt = 0.06f;
     if (isDown(FS::Buttons::MOUSE_BUTTON_LEFT)) {
-        fdt = 0.001;
+        fdt = 0.001f;
     }
     if (isDown(FS::Buttons::MOUSE_BUTTON_RIGHT)) {
         Transform tf = { { 0, 0, 0 }, 1, { 0, float(100 * fdt), 0 } };
@@ -349,9 +349,9 @@ void update(FS::Window &window) {
         std::this_thread::sleep_for(std::chrono::milliseconds(int(frameLimit - timer.dtms)));
         timer.dtms += (frameLimit - timer.dtms);
     }
-    fdt = timer.dtms / 90;
+    fdt = float(timer.dtms / 90.f);
     // FPS count
-    totalFrameTime += (timer.dtms * 0.001);
+    totalFrameTime += float(timer.dtms * 0.001f);
     frameCount++;
     printLive("CUR-FPS: " + std::to_string(1.f / (timer.dtms * 0.001)) + " AVG-FPS : " + std::to_string(1 / (totalFrameTime / frameCount)) + " CUR-FRAME: " + std::to_string(timer.dtms) + "ms" + " AVG-FRAME: " + std::to_string((totalFrameTime * 1000) / frameCount) + "ms");
     timer.dtms = 0;

@@ -2,7 +2,7 @@
 #include <chrono>
 class Timer {
   public:
-    float dtms;
+    double dtms;
     Timer() {
         m_StartTimePoint = std::chrono::high_resolution_clock::now();
         dtms = 0;

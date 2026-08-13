@@ -25,7 +25,7 @@ inline std::ostream &green(std::ostream &os) {
 }
 inline void printLive(const std::string &message) {
     static std::string lastLine;
-    int pad = std::max<int>(0, lastLine.size() - message.size());
+    int pad = std::max<int>(0, static_cast<int>(lastLine.size() - message.size()));
     std::cout << "\r" << message << std::string(pad, ' ') << std::flush;
     lastLine = message;
 }
