@@ -114,16 +114,16 @@ void handleInput(FS::Window &window) {
         LOG_INFO("STATS:\n");
         LOG_INFO("Position : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n");
         LOG_INFO("Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n");
-        int c = 1;
         LOG_INFO("Model count " << scene.instances.size() << "\n");
         LOG_INFO("---\n");
         int totalTris = 0;
+        int c = 1;
         for (const Instance &instance : scene.instances) {
             LOG_INFO("Model " << c << ":\n");
             // LOG_INFO("Triangle count : " << instance.mesh->triangles.size() << "\n");
             LOG_INFO("Face count : " << instance.mesh->faces.size() << "\n");
             LOG_INFO("Normal count : " << instance.mesh->normals.size() << "\n");
-            // totalTris += instance.mesh->triangles.size();
+            totalTris += instance.mesh->triangleData.size();
             c++;
         }
         LOG_INFO("---\n");

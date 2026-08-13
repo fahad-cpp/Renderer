@@ -1,14 +1,9 @@
 #pragma once
-#include <cmath>
 struct Vector {
     float x;
     float y;
     float z;
-    Vector(float _x = 0, float _y = 0, float _z = 0) {
-        this->x = _x;
-        this->y = _y;
-        this->z = _z;
-    }
+    Vector(float _x = 0, float _y = 0, float _z = 0) : x(_x), y(_y), z(_z) {}
     friend Vector operator+(const Vector, const Vector);
     friend Vector operator+(const Vector, const float);
     friend Vector operator*(const Vector, const Vector);

@@ -30,7 +30,7 @@ inline void printLive(const std::string &message) {
     lastLine = message;
 }
 #else
-inline void setConsoleAttribute(int attribute) {
+inline void setConsoleAttribute(int attribute [[maybe_unused]]) {
 }
 inline std::ostream &red(std::ostream &os) {
     return os;
