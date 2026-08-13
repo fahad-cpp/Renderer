@@ -1,6 +1,11 @@
-CONFIG="Release"
+EXENAME=Renderer
+PRESET=clang-release
+
 mkdir -p build
+
 rm bin/$CONFIG/Renderer
-cmake -S . -G Ninja -B build -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON 2>build/error.txt
-cmake --build build --config $CONFIG --parallel >build/error.txt
-./bin/$CONFIG/Renderer
+cmake --preset $PRESET
+cmake --build --preset $PRESET
+
+[ -f "build/$PRESET/compile_commands.json" ] && cp -f build/$PRESET/compile_commands.json build/
+./bin/Renderer

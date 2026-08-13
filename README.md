@@ -25,8 +25,9 @@ This is a CPU Renderer that renders objects using the CPU , you can use either a
   - `ESC`: Exit the application.
 
 ## Building from source
+> **Note** : you can also use g++ & gcc  or Visual Studio but clang will have least problems as i use it for development 
 ### Windows
-- install a clang, cmake and ninja <br>
+- install clang, cmake and ninja <br>
 ```batch
 winget install cmake
 winget install LLVM.LLVM
@@ -39,15 +40,27 @@ git clone --recursive https://github.com/fahad-cpp/Renderer Renderer
 cd Renderer
 
 ```
-- build using cmake with ninja and run <br>
+- build using cmake (clang)
 ```batch
-cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
-cmake --build build --config Release
-bin\Release\Renderer.exe
+cmake --preset clang-release
+cmake --build --preset clang-release
+bin\Renderer.exe
 
 ```
+(use clang-debug for debug build)
+
+other presets that may be available on windows:
+```
+gcc-debug/gcc-release # gcc compiler with ninja
+vs-debug/vs-release # MSVC compiler with Visual Studio
+```
+to check available presets, run:
+```batch
+cmake --list-presets
+```
+
 ### Linux
-- install a clang, cmake and ninja using your package manager <br>
+- install clang, cmake and ninja using your package manager <br>
 ```bash
 sudo pacman -S clang ninja cmake lld
 
@@ -58,14 +71,24 @@ git clone --recursive https://github.com/fahad-cpp/Renderer Renderer
 cd Renderer
 
 ```
-- build using cmake with ninja and run <br>
-```bash
-cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
-cmake --build build --config Release
-./bin/Release/Renderer
+- build using cmake (clang)
+```batch
+cmake --preset clang-release
+cmake --build --preset clang-release
+./bin/Renderer
 
 ```
-> **Note:** <br>on Wayland systems the mouse locking does not work so mouse will go out of window <br> disable mouse lock by pressing G
+(use clang-debug for debug build)
+
+other presets that may be available on linux:
+```
+gcc-debug/gcc-release # gcc compiler with ninja
+```
+to check available presets, run:
+```batch
+cmake --list-presets
+```
+> **Note:** <br> on Wayland systems the mouse locking does not work so mouse will go out of window <br> disable mouse lock by pressing G.<br> you can also move camera using arrow keys
 
 ## Sample Outputs
 
