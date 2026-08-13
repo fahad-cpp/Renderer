@@ -77,7 +77,27 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             -fno-omit-frame-pointer
         >
     )
-    target_link_options(Renderer PRIVATE -fuse-ld=lld -pthread)
+    set(RENDERER_LINK_OPTIONS)
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        list(APPEND RENDERER_LINK_OPTIONS
+            -fuse-ld=lld
+        )
+    endif()
+
+    if(WIN32)
+        list(APPEND RENDERER_LINK_OPTIONS
+            -Wl,--subsystem,console
+        )
+    elseif(UNIX)
+        list(APPEND RENDERER_LINK_OPTIONS
+            -pthread
+        )
+    endif()
+
+    target_link_options(Renderer PRIVATE
+        ${RENDERER_LINK_OPTIONS}
+    )
 else()
     message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID} — no custom flags applied")
 endif()

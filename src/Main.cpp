@@ -12,7 +12,6 @@
 
 // TODO(Fahad):
 /*
- *  HIGH PRIORITY : FIX COMPILATION ON MINGW 
  *	Software Structure:
  *		-Seperate Engine and Game
  *	Adding Features:
