@@ -33,6 +33,12 @@ void putPixel(const int x, const int y, const Colour color, FS::RenderState &ren
     std::lock_guard<std::mutex> lock(pixelLocks[idx]);
     ((uint32_t *)renderState.screenBuffer)[idx] = hexColor;
 }
+//Unsynchronized version
+void putPixelUS(const int x, const int y, const Colour color, FS::RenderState &renderState) {
+    const uint32_t hexColor = rgbtoHex(color);
+    const uint32_t idx = (x + renderState.width / 2) + (((renderState.height / 2) - y) * renderState.width);
+    ((uint32_t *)renderState.screenBuffer)[idx] = hexColor;
+}
 // put pixel Direct (x and y specify buffer value)
 // x=0,y=0 will be on top left
 void putPixelD(const int x, const int y, const Colour color, FS::RenderState &renderState) {
@@ -73,7 +79,7 @@ void drawNoise(FS::RenderState &renderState) {
     for (int y = int(canvas.y / 2.f); y > -int(canvas.y / 2.f); y--) {
         for (int x = -int(canvas.x / 2.f); x < int(canvas.x / 2.f); x++) {
             Colour color = { uint8_t(dist(gen)), uint8_t(dist(gen)), uint8_t(dist(gen)) };
-            putPixel(x, y, color, renderState);
+            putPixelUS(x, y, color, renderState);
         }
     }
 }
