@@ -5,9 +5,9 @@
 #include "Renderer.h"
 #include "Timer.h"
 #include <FSWindow.h>
-void loadingScreen(FS::Window& window,std::atomic_bool& signal){
-    FS::RenderState& renderState = window.getRenderState();
-    while(!signal){
+void loadingScreen(FS::Window &window, std::atomic_bool &signal) {
+    FS::RenderState &renderState = window.getRenderState();
+    while (!signal) {
         Renderer::drawNoise(renderState);
         window.swapBuffers();
     }
@@ -19,10 +19,10 @@ int main() {
     FS::Window window("Renderer!", 720, 720);
     window.focus();
     std::atomic_bool initialized = false;
-    std::thread loadingThread(loadingScreen,std::ref(window),std::ref(initialized));
+    std::thread loadingThread(loadingScreen, std::ref(window), std::ref(initialized));
     FS::RenderState &renderState = window.getRenderState();
     FS::Vector2 windowPos = window.getWindowPos();
-    
+
     // Hack : TODO:reconstruct on resize
     size_t mutexSize = 2048 * 2048 * sizeof(std::mutex);
     pixelLocks = (std::mutex *)malloc(mutexSize);

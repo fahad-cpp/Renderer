@@ -23,6 +23,6 @@ if errorlevel 1 (
     echo Failed to build the project.
     exit /b 1
 )
-if exist "build\%PRESET%\compile_commands.json" copy /Y "build\%PRESET%\compile_commands.json" "build\compile_commands.json"
+if exist "build\%PRESET%\compile_commands.json" copy /Y "build\%PRESET%\compile_commands.json" "build\compile_commands.json" >nul
 bin\%CONFIG%\%EXENAME%
 endlocal

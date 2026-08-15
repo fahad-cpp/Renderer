@@ -1,5 +1,6 @@
 #include "Colour.h"
 #include <algorithm>
+#include <cstdint>
 
 Colour::Colour() {
     R = 0;
@@ -30,15 +31,4 @@ Colour operator+(const Colour color1, const Colour color2) {
 
 float Colour::luminance() {
     return ((0.2126f * float(R)) + (0.7152f * float(G)) + (0.0722f * float(B)));
-}
-
-Colour hexToRGB(uint32_t hex) {
-    Colour color;
-    color.R = uint8_t((hex >> 16) & 0xff);
-    color.G = uint8_t((hex >> 8) & 0xff);
-    color.B = uint8_t(hex & 0xff);
-    return color;
-}
-uint32_t rgbtoHex(const Colour RGB) {
-    return uint32_t((RGB.R << 16) | (RGB.G << 8) | RGB.B);
 }

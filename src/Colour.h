@@ -15,6 +15,15 @@ struct Colour {
     friend Colour operator+(const Colour color1, const Colour color2);
     float luminance();
 };
-Colour hexToRGB(uint32_t hex);
-uint32_t rgbtoHex(const Colour RGB);
+inline Colour hexToRGB(uint32_t hex) {
+    Colour color;
+    color.R = uint8_t((hex >> 16) & 0xff);
+    color.G = uint8_t((hex >> 8) & 0xff);
+    color.B = uint8_t(hex & 0xff);
+    return color;
+}
+inline uint32_t rgbtoHex(const Colour RGB) {
+    return uint32_t(uint32_t(RGB.R << 16) | uint32_t(RGB.G << 8) | uint32_t(RGB.B));
+}
+
 #endif
