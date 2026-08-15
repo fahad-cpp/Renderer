@@ -1,6 +1,3 @@
-#include <atomic>
-#include <functional>
-#include <thread>
 #define _CRT_SECURE_NO_WARNINGS
 #include "Globals.h"
 #include "Logging.h"
@@ -27,7 +24,7 @@ int main() {
     FS::Vector2 windowPos = window.getWindowPos();
     
     // Hack : TODO:reconstruct on resize
-    size_t mutexSize = 1920 * 1080 * sizeof(std::mutex);
+    size_t mutexSize = 2048 * 2048 * sizeof(std::mutex);
     pixelLocks = (std::mutex *)malloc(mutexSize);
     Renderer::drawNoise(renderState);
     init();
@@ -39,7 +36,7 @@ int main() {
     LOG_INFO("Initialization took " << timer.dtms << " ms\n");
     while (window.isOpen()) {
         canvas = { float(renderState.width), float(renderState.height) };
-        float aspectratio = float(renderState.width) / float(renderState.height);
+        const float aspectratio = float(renderState.width) / float(renderState.height);
         vpWidth = aspectratio;
         vpHeight = 1;
         // Update Loop

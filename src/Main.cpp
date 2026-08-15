@@ -8,6 +8,7 @@
 #include "Timer.h"
 #include "Window.h"
 #include <FSWindow.h>
+#include <cstdint>
 #include <thread>
 
 // TODO(Fahad):
@@ -36,13 +37,12 @@ static FS::Vector2 getMouseDiff(FS::Window &window) {
     if (!window.isFocused() || !sceneSettings.lockMouse) {
         return { 0.f, 0.f };
     }
-    FS::RenderState renderState = window.getRenderState();
+    static FS::RenderState& renderState = window.getRenderState();
     FS::Vector2 windowPos = window.getWindowPos();
     FS::Vector2 mousePos = window.getCursorPos();
-    static FS::Vector2 prevPoint = mousePos;
-    prevPoint = { float(windowPos.x + (renderState.width * 0.5f)), float(windowPos.y + (renderState.height * 0.5f)) };
-    window.setCursorPos(uint32_t(prevPoint.x), uint32_t(prevPoint.y));
-    FS::Vector2 diff = mousePos - prevPoint;
+    FS::Vector2 centerPos = { (windowPos.x + static_cast<uint32_t>(renderState.width / 2)),(windowPos.y + static_cast<uint32_t>(renderState.height / 2)) };
+    FS::Vector2 diff = mousePos - centerPos;
+    window.setCursorPos(static_cast<uint32_t>(centerPos.x), static_cast<uint32_t>(centerPos.y));
     return diff;
 }
 void handleInput(FS::Window &window) {
@@ -264,34 +264,35 @@ void init() {
     Triangle tri{ { p[0], p[1], p[2] }, { n[0], n[1], n[2] } };
     scene = {
         .spheres = std::vector<Sphere>{
-            {
-                .center = Vector{ 0, 0, -3 },
-                .radius = 1.f,
-                .specular = shininess,
-                .reflectiveness = 0.4f,
-                .color = Colour{ 255, 0, 0 },
-            },
-            {
-                .center = Vector{ -1, 0, -4 },
-                .radius = 1.f,
-                .specular = shininess,
-                .reflectiveness = 0.4f,
-                .color = Colour{ 0, 255, 0 },
-            },
-            {
-                .center = Vector{ 1, 0, -4 },
-                .radius = 1.f,
-                .specular = shininess,
-                .reflectiveness = 0.4f,
-                .color = Colour{ 0, 0, 255 },
-            },
-            {
-                .center = Vector{ 0, 1, 0 },
-                .radius = .1f,
-                .specular = 100.f,
-                .reflectiveness = 0.4f,
-                .color = Colour{ 255, 255, 255 },
-            } },
+            // {
+            //     .center = Vector{ 0, 0, -3 },
+            //     .radius = 1.f,
+            //     .specular = shininess,
+            //     .reflectiveness = 0.4f,
+            //     .color = Colour{ 255, 0, 0 },
+            // },
+            // {
+            //     .center = Vector{ -1, 0, -4 },
+            //     .radius = 1.f,
+            //     .specular = shininess,
+            //     .reflectiveness = 0.4f,
+            //     .color = Colour{ 0, 255, 0 },
+            // },
+            // {
+            //     .center = Vector{ 1, 0, -4 },
+            //     .radius = 1.f,
+            //     .specular = shininess,
+            //     .reflectiveness = 0.4f,
+            //     .color = Colour{ 0, 0, 255 },
+            // },
+            // {
+            //     .center = Vector{ 0, 1, 0 },
+            //     .radius = .1f,
+            //     .specular = 100.f,
+            //     .reflectiveness = 0.4f,
+            //     .color = Colour{ 255, 255, 255 },
+            // } 
+        },
         .triangles = std::vector<Triangle>{
             tri
             // empty
