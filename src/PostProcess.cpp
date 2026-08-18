@@ -105,14 +105,15 @@ void FXAA(FS::RenderState &renderState, bool multiThread) {
     }
 }
 void renderAO(FS::RenderState &renderState) {
+    //TODO: FIX CRASH IN RELEASE (SOMEHOW ONLY CRASHES IN RELEASE)
     std::random_device rd;
     std::mt19937 gen(rd());
     const int SAMPLE_COUNT = 64;
     const float SAMPLE_RADIUS = 2.f;
     std::uniform_int_distribution<> dist(-SAMPLE_RADIUS, SAMPLE_RADIUS);
     Vector samplesLoc[SAMPLE_COUNT];
-    for (uint32_t y = 0; y < renderState.height; y++) {
-        for (uint32_t x = 0; x < renderState.width; x++) {
+    for (uint32_t y = 0; y < renderState.height; ++y) {
+        for (uint32_t x = 0; x < renderState.width; ++x) {
             uint32_t pixelIndex = (y * renderState.width) + x;
             float pixelDepth = renderState.depthBuffer[pixelIndex];
             float z = 1.f / pixelDepth;

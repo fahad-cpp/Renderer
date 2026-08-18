@@ -37,10 +37,10 @@ static FS::Vector2 getMouseDiff(FS::Window &window) {
     if (!window.isFocused() || !sceneSettings.lockMouse) {
         return { 0.f, 0.f };
     }
-    static FS::RenderState& renderState = window.getRenderState();
+    static FS::RenderState &renderState = window.getRenderState();
     FS::Vector2 windowPos = window.getWindowPos();
     FS::Vector2 mousePos = window.getCursorPos();
-    FS::Vector2 centerPos = { (windowPos.x + static_cast<uint32_t>(renderState.width / 2)),(windowPos.y + static_cast<uint32_t>(renderState.height / 2)) };
+    FS::Vector2 centerPos = { (windowPos.x + static_cast<uint32_t>(renderState.width / 2)), (windowPos.y + static_cast<uint32_t>(renderState.height / 2)) };
     FS::Vector2 diff = mousePos - centerPos;
     window.setCursorPos(static_cast<uint32_t>(centerPos.x), static_cast<uint32_t>(centerPos.y));
     return diff;
@@ -249,8 +249,9 @@ void handleInput(FS::Window &window) {
 void init() {
     // ZoneScopedN("init");
     const float shininess = 64.f;
-    static Mesh model = loadOBJ("res/Models/sponza.obj", { shininess, 0.f, { 255, 255, 255 } });
-    // static Mesh floor = loadOBJ("res/Models/surface.obj", { 233,234,231 }, 0.f, shininess);
+    static Mesh model = loadOBJ("res/Models/Bed.obj", { shininess, 0.f, { 255, 255, 255 } });
+    static Mesh cube = loadOBJ("res/Models/cube.obj", { shininess, 0.f, { 255, 255, 255 } });
+    static Mesh floor = loadOBJ("res/Models/surface.obj", { shininess, 0.f, { 255, 255, 255 } });
     Vector p[3] = {
         { -1.f, 0.f, 1.f },
         { 0.f, 2.f, 1.f },
@@ -291,22 +292,23 @@ void init() {
             //     .specular = 100.f,
             //     .reflectiveness = 0.4f,
             //     .color = Colour{ 255, 255, 255 },
-            // } 
+            // }
         },
         .triangles = std::vector<Triangle>{
-            tri
+            // tri
             // empty
         },
         .instances = std::vector<Instance>{
-            { .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = .1f, .rotation = { 0, 0, 0 } } },
-            //{ .mesh = &floor, .transform = { .position = { 0, -1.f, 0 }, .scale = 1.f, .rotation = { 0, 0, 0 } } },
+            { .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = 1.f, .rotation = { 0, 0, 0 } } },
+            { .mesh = &cube, .transform = { .position = { 0, 3, 0 }, .scale = 1.f, .rotation = { 0, 0, 0 } } },
+            { .mesh = &floor, .transform = { .position = { 0, -1.f, 0 }, .scale = 1.f, .rotation = { 0, 0, 0 } } },
         },
         .lights = std::vector<Light>{
             { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.2f },
             { .type = LT_POINT, .pos = { 0, 1, 0 }, .direction = { 1, 2, 0 }, .intensity = 0.4f },
             { .type = LT_POINT, .pos = { -60, 1, 0 }, .direction = { 1, 2, 0 }, .intensity = 0.4f },
             { .type = LT_POINT, .pos = { 60, 1, 0 }, .direction = { 1, 2, 0 }, .intensity = 0.4f },
-            { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.5f },
+            { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 1 }, .intensity = 0.5f },
         }
     };
     for (Instance &ins : scene.instances) {

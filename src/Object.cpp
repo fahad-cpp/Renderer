@@ -130,14 +130,32 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
             normals.emplace_back(newnorm);
         } else if (ptr[0] == 'f' && (ptr[1] == ' ' || ptr[1] == '\t')) {
             //---Only works for 3 Vertices faces---
-            uint32_t v[3] = {};
-            uint32_t t[3] = {};
-            uint32_t n[3] = {};
+            uint32_t v[4] = {};
+            uint32_t t[4] = {};
+            uint32_t n[4] = {};
             Face newface = {};
-            if (std::sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
+            if (std::sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
                             &v[0], &t[0], &n[0],
                             &v[1], &t[1], &n[1],
-                            &v[2], &t[2], &n[2]) == 9) {
+                            &v[2], &t[2], &n[2],
+                            &v[3], &t[3], &n[3]) == 12) {
+                Face newface2 = {};
+                newface = {
+                    Index{ v[0] - 1, t[0] - 1, n[0] - 1 },
+                    Index{ v[1] - 1, t[1] - 1, n[1] - 1 },
+                    Index{ v[2] - 1, t[2] - 1, n[2] - 1 }
+                };
+                newface2 = {
+                    Index{ v[0] - 1, t[0] - 1, n[0] - 1 },
+                    Index{ v[2] - 1, t[1] - 1, n[2] - 1 },
+                    Index{ v[3] - 1, t[2] - 1, n[3] - 1 }
+                };
+                faces.emplace_back(newface);
+                faces.emplace_back(newface2);
+            } else if (std::sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
+                                   &v[0], &t[0], &n[0],
+                                   &v[1], &t[1], &n[1],
+                                   &v[2], &t[2], &n[2]) == 9) {
                 newface = {
                     Index{ v[0] - 1, t[0] - 1, n[0] - 1 },
                     Index{ v[1] - 1, t[1] - 1, n[1] - 1 },
