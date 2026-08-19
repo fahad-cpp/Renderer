@@ -1,7 +1,11 @@
+#include <cstdio>
+#include <sstream>
+#include <stdio.h>
 #define _CRT_SECURE_NO_WARNINGS
-#include "Object.h"
 #include "Logging.h"
+#include "Object.h"
 #include "Timer.h"
+
 
 #include <fstream>
 #include <vector>
@@ -129,57 +133,38 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
             Vector newnorm(x, y, z);
             normals.emplace_back(newnorm);
         } else if (ptr[0] == 'f' && (ptr[1] == ' ' || ptr[1] == '\t')) {
-            //---Only works for 3 Vertices faces---
-            uint32_t v[4] = {};
-            uint32_t t[4] = {};
-            uint32_t n[4] = {};
-            Face newface = {};
-            if (std::sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
-                            &v[0], &t[0], &n[0],
-                            &v[1], &t[1], &n[1],
-                            &v[2], &t[2], &n[2],
-                            &v[3], &t[3], &n[3]) == 12) {
-                Face newface2 = {};
-                newface = {
-                    Index{ v[0] - 1, t[0] - 1, n[0] - 1 },
-                    Index{ v[1] - 1, t[1] - 1, n[1] - 1 },
-                    Index{ v[2] - 1, t[2] - 1, n[2] - 1 }
-                };
-                newface2 = {
-                    Index{ v[0] - 1, t[0] - 1, n[0] - 1 },
-                    Index{ v[2] - 1, t[1] - 1, n[2] - 1 },
-                    Index{ v[3] - 1, t[2] - 1, n[3] - 1 }
-                };
-                faces.emplace_back(newface);
-                faces.emplace_back(newface2);
-            } else if (std::sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
-                                   &v[0], &t[0], &n[0],
-                                   &v[1], &t[1], &n[1],
-                                   &v[2], &t[2], &n[2]) == 9) {
-                newface = {
-                    Index{ v[0] - 1, t[0] - 1, n[0] - 1 },
-                    Index{ v[1] - 1, t[1] - 1, n[1] - 1 },
-                    Index{ v[2] - 1, t[2] - 1, n[2] - 1 }
-                };
-                faces.emplace_back(newface);
-            } else if (std::sscanf(line.c_str(), "f %d//%d %d//%d %d//%d",
-                                   &v[0], &n[0],
-                                   &v[1], &n[1],
-                                   &v[2], &n[2]) == 6) {
-                newface = {
-                    Index{ v[0] - 1, 0, n[0] - 1 },
-                    Index{ v[1] - 1, 0, n[1] - 1 },
-                    Index{ v[2] - 1, 0, n[2] - 1 }
-                };
-                faces.emplace_back(newface);
-            } else {
-                LOG_ERROR(("Unsupported face format :" + filename + "\n"));
+            std::istringstream stream(line.c_str() + 1);
+            std::vector<Index> faceIndices;
+            faceIndices.reserve(3);
+            std::string vertex;
+            // Handle arbitrary amount of vertices in a face
+            while (stream >> vertex) {
+                int v, t, n;
+                if (sscanf_s(vertex.c_str(), "%d/%d/%d", &v, &t, &n) == 3) {
+                    faceIndices.emplace_back(v - 1, t - 1, n - 1);
+                } else if (sscanf_s(vertex.c_str(), "%d//%d", &v, &n) == 2) {
+                    faceIndices.emplace_back(v - 1, 0, n - 1);
+                } else {
+                    LOG_ERROR(("Unsupported face format :" + filename + "\n"));
+                    LOG_ERROR("Encountered:" + vertex);
+                    return {};
+                }
+            }
+            if (faceIndices.size() < 3) {
+                LOG_ERROR("Less than 3 points in face: " << filename << "\n");
                 return {};
+            }
+
+            // Use TRIANGLE_FAN ordering
+            for (std::size_t i = 2; i < faceIndices.size(); i++) {
+                faces.emplace_back(Face{faceIndices[0],faceIndices[i-1],faceIndices[i]});
             }
         }
 
+        //skip until EOF or newline
         while ((*ptr != '\0') && *ptr != '\n')
             ptr++;
+        //skip newline
         if (*ptr == '\n')
             ptr++;
     }
