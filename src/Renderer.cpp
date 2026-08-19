@@ -218,18 +218,20 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
     std::vector<float> x12;
     std::vector<float> x02;
 
+    
+    std::vector<float> z01;
+    std::vector<float> z12;
+    std::vector<float> z02;
+    
+    std::vector<Vector> n01;
+    std::vector<Vector> n12;
+    std::vector<Vector> n02;
+    
     // Reserve space for x01 + x12 because we concatenate later
     x01.reserve(size01 + size12);
     x12.reserve(size12);
     x02.reserve(size02);
-
-    std::vector<float> z01;
-    std::vector<float> z12;
-    std::vector<float> z02;
-
-    std::vector<Vector> n01;
-    std::vector<Vector> n12;
-    std::vector<Vector> n02;
+    
     // Reserve space for z01 + z12 because we concatenate later
     z01.reserve(size01 + size12);
     z12.reserve(size12);
@@ -302,6 +304,8 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
     const int halfWidth = static_cast<int>(renderState.width / 2);
     const bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
     const bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
+    std::vector<float> zsegment = {};
+    std::vector<Vector> nsegment = {};
     for (int y = int(projected[0].y); y < int(projected[2].y); ++y) {
         if (y <= -halfHeight || y >= halfHeight) {
             continue;
@@ -314,12 +318,13 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         const Vector ln = (*nleft)[scanline];
         const Vector rn = (*nright)[scanline];
 
-        // interpolate z
-        std::vector<float> zsegment = {};
-        std::vector<Vector> nsegment = {};
-        const uint32_t zsegmentSize = uint32_t(std::abs(rx - lx)) > renderState.width ? renderState.width : abs(rx - lx);
+        const uint32_t segmentSize = uint32_t(std::abs(rx - lx)) > renderState.width ? renderState.width : abs(rx - lx);
 
-        zsegment.reserve(zsegmentSize);
+        zsegment.clear();
+        zsegment.reserve(segmentSize);
+        nsegment.clear();
+        nsegment.reserve(segmentSize);
+
         interpolate(lz, lx, rz, rx, zsegment);
         interpolate(ln, lx, rn, rx, nsegment);
         for (int x = int(lx); x < int(rx); ++x) {
@@ -332,10 +337,10 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
             std::lock_guard<std::mutex> lock(pixelLocks[index]);
             float dep = renderState.depthBuffer[index];
             float invz = zsegment[x - int(lx)];
-            float z = 1.f / invz;
             if (invz < dep) {
                 continue;
             }
+            float z = 1.f / invz;
             Vector normal = nsegment[x - int(lx)];
             normalize(normal);
 
@@ -348,9 +353,8 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
             Colour normalColour = Colour{ (uint8_t)clampv(abs(normal.x * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.y * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.z * 255.f), 0.f, 255.f) };
             Colour color = (sceneSettings.debugState == DebugState::DS_NORMAL) ? normalColour : material.color;
             color = color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
-            // renderState.normalBuffer[index] = normal;
             renderState.depthBuffer[index] = invz;
-            ((uint32_t *)renderState.screenBuffer)[index] = rgbtoHex(color);
+            (static_cast<uint32_t *>(renderState.screenBuffer))[index] = rgbtoHex(color);
         }
     }
 }
@@ -1048,7 +1052,7 @@ void getDrawableTriangles(const std::vector<Triangle> &triangleData, const Trans
         for (uint32_t i = 0; i < threadSize; ++i) {
             triProcessThr[i].join();
         }
-        size_t triangleVectorSize = 0;
+        size_t triangleVectorSize = outData.size();
         for (const std::vector<Triangle> &tris : outTrisArr) {
             triangleVectorSize += tris.size();
         }

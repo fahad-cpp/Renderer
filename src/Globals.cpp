@@ -6,7 +6,7 @@ SceneSettings sceneSettings = {
     .bfc = true,
     .antiAliasing = false,
     .triSeenCount = 0,
-    .debugState = DebugState::DS_WIREFRAME,
+    .debugState = DebugState::DS_OFF,
     .lockMouse = true,
     .renderMode = RenderMode::RM_COLOR,
     .rayTraceMode = false,
@@ -17,7 +17,6 @@ float vpWidth = 1.f;
 float vpHeight = 1.f;
 // only ray tracing when frame changes to make sure my cpu doesn't explode
 bool change = true;
-// true = raytracer , false = rasterizer
 
 // 144 fps
 float frameLimit = 6.944444415f;
