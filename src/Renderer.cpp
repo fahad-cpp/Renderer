@@ -1,7 +1,5 @@
-#include <cmath>
 #define NOMINMAX
 #define _CRT_SECURE_NO_WARNINGS
-#include <algorithm>
 #include "Renderer.h"
 #include "Colour.h"
 #include "FSWindow.h"
@@ -15,9 +13,11 @@
 #include "Transform.h"
 #include "Utility.h"
 #include "Vector.h"
+#include <algorithm>
 #include <cfloat>
 #include <cstring>
 #include <random>
+
 
 namespace Renderer {
 void clearScreen(uint32_t color, FS::RenderState &renderState) {
@@ -221,20 +221,19 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
     std::vector<float> x12;
     std::vector<float> x02;
 
-    
     std::vector<float> z01;
     std::vector<float> z12;
     std::vector<float> z02;
-    
+
     std::vector<Vector> n01;
     std::vector<Vector> n12;
     std::vector<Vector> n02;
-    
+
     // Reserve space for x01 + x12 because we concatenate later
     x01.reserve(size01 + size12);
     x12.reserve(size12);
     x02.reserve(size02);
-    
+
     // Reserve space for z01 + z12 because we concatenate later
     z01.reserve(size01 + size12);
     z12.reserve(size12);
@@ -303,20 +302,20 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         nright = &n02;
     }
 
-    const int halfHeight = static_cast<int>(renderState.height / 2);
-    const int halfWidth = static_cast<int>(renderState.width / 2);
+    const int halfHeight = static_cast<int>(renderState.height / 2.f);
+    const float halfWidth = renderState.width / 2.f;
     const bool rtShadows = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
     const bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
     std::vector<float> zsegment = {};
     std::vector<Vector> nsegment = {};
-    const int ly = std::max(static_cast<int>(projected[0].y),-halfHeight+1);
-    const int ry = std::min(static_cast<int>(projected[2].y),halfHeight-1);
+    const int ly = std::max(static_cast<int>(projected[0].y), -halfHeight + 1);
+    const int ry = std::min(static_cast<int>(projected[2].y), halfHeight - 1);
     for (int y = ly; y < ry; ++y) {
         const uint32_t scanline = uint32_t(y - int(projected[0].y));
         const float lz = (*zleft)[scanline];
         const float rz = (*zright)[scanline];
-        const int lx = std::floor(std::max((*xleft)[scanline],static_cast<float>(-halfWidth+1)));
-        const int rx = std::ceil(std::min((*xright)[scanline],static_cast<float>(halfWidth-1)));
+        const int lx = std::floor(std::max((*xleft)[scanline], -halfWidth + 1));
+        const int rx = std::ceil(std::min((*xright)[scanline], halfWidth - 1));
         const Vector ln = (*nleft)[scanline];
         const Vector rn = (*nright)[scanline];
 
@@ -331,8 +330,8 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         interpolate(lz, lx, rz, rx, zsegment);
         interpolate(ln, lx, rn, rx, nsegment);
         for (int x = lx; x < rx; ++x) {
-            int screenx = x + (renderState.width / 2.f);
-            int screeny = (renderState.height / 2.f) - y;
+            const int screenx = x + (renderState.width / 2);
+            const int screeny = (renderState.height / 2) - y;
             const uint32_t relativex = static_cast<uint32_t>(x - lx);
             const uint32_t index = (screeny * renderState.width) + screenx;
             std::lock_guard<std::mutex> lock(pixelLocks[index]);
