@@ -1,6 +1,3 @@
-#include <cstdio>
-#include <sstream>
-#include <stdio.h>
 #define _CRT_SECURE_NO_WARNINGS
 #include "Logging.h"
 #include "Object.h"

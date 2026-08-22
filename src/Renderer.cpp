@@ -1,4 +1,7 @@
+#include <cmath>
+#define NOMINMAX
 #define _CRT_SECURE_NO_WARNINGS
+#include <algorithm>
 #include "Renderer.h"
 #include "Colour.h"
 #include "FSWindow.h"
@@ -306,19 +309,19 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
     const bool noLight = sceneSettings.lightingMode == LightingMode::NO_LIGHT;
     std::vector<float> zsegment = {};
     std::vector<Vector> nsegment = {};
-    for (int y = int(projected[0].y); y < int(projected[2].y); ++y) {
-        if (y <= -halfHeight || y >= halfHeight) {
-            continue;
-        }
+    const int ly = std::max(static_cast<int>(projected[0].y),-halfHeight+1);
+    const int ry = std::min(static_cast<int>(projected[2].y),halfHeight-1);
+    for (int y = ly; y < ry; ++y) {
         const uint32_t scanline = uint32_t(y - int(projected[0].y));
         const float lz = (*zleft)[scanline];
         const float rz = (*zright)[scanline];
-        const float lx = (*xleft)[scanline];
-        const float rx = (*xright)[scanline];
+        const int lx = std::floor(std::max((*xleft)[scanline],static_cast<float>(-halfWidth+1)));
+        const int rx = std::ceil(std::min((*xright)[scanline],static_cast<float>(halfWidth-1)));
         const Vector ln = (*nleft)[scanline];
         const Vector rn = (*nright)[scanline];
 
-        const uint32_t segmentSize = uint32_t(std::abs(rx - lx)) > renderState.width ? renderState.width : abs(rx - lx);
+        const uint32_t xstride = uint32_t(std::abs(rx - lx));
+        const uint32_t segmentSize = xstride > renderState.width ? renderState.width : xstride;
 
         zsegment.clear();
         zsegment.reserve(segmentSize);
@@ -327,21 +330,19 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
 
         interpolate(lz, lx, rz, rx, zsegment);
         interpolate(ln, lx, rn, rx, nsegment);
-        for (int x = int(lx); x < int(rx); ++x) {
-            if (x <= -halfWidth || x >= halfWidth) {
-                continue;
-            }
-            int screenx = x + (renderState.width / 2);
-            int screeny = (renderState.height / 2) - y;
-            uint32_t index = (screeny * renderState.width) + screenx;
+        for (int x = lx; x < rx; ++x) {
+            int screenx = x + (renderState.width / 2.f);
+            int screeny = (renderState.height / 2.f) - y;
+            const uint32_t relativex = static_cast<uint32_t>(x - lx);
+            const uint32_t index = (screeny * renderState.width) + screenx;
             std::lock_guard<std::mutex> lock(pixelLocks[index]);
             float dep = renderState.depthBuffer[index];
-            float invz = zsegment[x - int(lx)];
+            float invz = zsegment[relativex];
             if (invz < dep) {
                 continue;
             }
             float z = 1.f / invz;
-            Vector normal = nsegment[x - int(lx)];
+            Vector normal = nsegment[relativex];
             normalize(normal);
 
             Vector point = canvasToViewport(x * z / d, y * z / d);

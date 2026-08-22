@@ -305,13 +305,6 @@ void init() {
                 .reflectiveness = 0.4f,
                 .color = Colour{ 0, 0, 255 },
             },
-            {
-                .center = Vector{ 0, 1, 0 },
-                .radius = .1f,
-                .specular = 100.f,
-                .reflectiveness = 0.4f,
-                .color = Colour{ 255, 255, 255 },
-            }
         },
         .triangles = std::vector<Triangle>{
             // tri
