@@ -4,6 +4,7 @@
 #include "Timer.h"
 
 
+#include <cstdio>
 #include <fstream>
 #include <vector>
 
@@ -137,9 +138,9 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
             // Handle arbitrary amount of vertices in a face
             while (stream >> vertex) {
                 int v, t, n;
-                if (sscanf_s(vertex.c_str(), "%d/%d/%d", &v, &t, &n) == 3) {
+                if (std::sscanf(vertex.c_str(), "%d/%d/%d", &v, &t, &n) == 3) {
                     faceIndices.emplace_back(v - 1, t - 1, n - 1);
-                } else if (sscanf_s(vertex.c_str(), "%d//%d", &v, &n) == 2) {
+                } else if (std::sscanf(vertex.c_str(), "%d//%d", &v, &n) == 2) {
                     faceIndices.emplace_back(v - 1, 0, n - 1);
                 } else {
                     LOG_ERROR(("Unsupported face format :" + filename + "\n"));
