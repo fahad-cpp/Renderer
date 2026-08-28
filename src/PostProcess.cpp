@@ -7,7 +7,7 @@
 #include <random>
 
 namespace PostProcess {
-void FXAAthr(int threadNum, int threadCount, FS::RenderState &renderState, float edgeThreshold) {
+void FXAAthr(int threadNum, int threadCount, FS::RenderState renderState, float edgeThreshold) {
     int yCount = (renderState.height - 2) / threadCount;
     int ymin = (threadNum * yCount) + 1;
     int ymax = ymin + yCount;
@@ -50,7 +50,7 @@ void FXAAthr(int threadNum, int threadCount, FS::RenderState &renderState, float
         }
     }
 }
-void FXAA(FS::RenderState &renderState, bool multiThread) {
+void FXAA(FS::RenderState renderState, bool multiThread) {
     float edgeThreshold = 0.f;
     if (!multiThread) {
         // Single Threaded FXAA
@@ -104,7 +104,7 @@ void FXAA(FS::RenderState &renderState, bool multiThread) {
         }
     }
 }
-void renderAO(FS::RenderState &renderState) {
+void renderAO(FS::RenderState renderState) {
     //TODO: FIX CRASH IN RELEASE (SOMEHOW ONLY CRASHES IN RELEASE)
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -143,7 +143,7 @@ void renderAO(FS::RenderState &renderState) {
     }
     // boxBlur();
 }
-void boxBlur(FS::RenderState &renderState) {
+void boxBlur(FS::RenderState renderState) {
     uint32_t *buffer = (uint32_t *)malloc(renderState.width * renderState.height * sizeof(uint32_t));
     if (!buffer) {
         return;
