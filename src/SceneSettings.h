@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-enum class DebugState {
+enum class DebugState : uint8_t{
     DS_OFF,
     DS_BOUNDING_BOX,
     DS_WIREFRAME,
@@ -12,7 +12,7 @@ enum class LightingMode : uint8_t {
     LIGHT_SHADOWS,
     MAX_ENUM
 };
-enum class RenderMode {
+enum class RenderMode : uint8_t{
     RM_COLOR = 0,
     RM_DEPTH,
     RM_AO
