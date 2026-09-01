@@ -108,3 +108,5 @@ cmake --list-presets
 
 - **Sponza**: Render time : ~40ms <br>
 ![DemonSkullLightBr](res/showcase/Sponza.png)
+
+> **Note:** <br> render times based on AMD ryzen 5 7600
