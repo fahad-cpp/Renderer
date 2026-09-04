@@ -8,7 +8,7 @@ struct Colour {
 
   public:
     Colour();
-    Colour(uint8_t _R, uint8_t _G, uint8_t _B);
+    Colour(const uint8_t _R, const uint8_t _G, const uint8_t _B);
 
     friend bool operator==(const Colour color1, const Colour color2);
     friend Colour operator*(const Colour color, const float num);

@@ -7,7 +7,7 @@ Colour::Colour() {
     G = 0;
     B = 0;
 }
-Colour::Colour(uint8_t _R, uint8_t _G, uint8_t _B) {
+Colour::Colour(const uint8_t _R, const uint8_t _G, const uint8_t _B) {
     this->R = _R;
     this->G = _G;
     this->B = _B;
