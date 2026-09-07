@@ -12,12 +12,8 @@ class Timer {
     }
     void Stop() {
         auto endTimePoint = std::chrono::high_resolution_clock::now();
-
-        long long start = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimePoint).time_since_epoch().count();
-        long long end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimePoint).time_since_epoch().count();
-
-        long long duration = end - start;
-        dtms = (double(duration) * 0.001);
+        dtms = std::chrono::duration<double,std::chrono::microseconds::period>(endTimePoint - m_StartTimePoint).count();
+        dtms = dtms / 1000.0;
     }
 
   private:

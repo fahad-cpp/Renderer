@@ -19,7 +19,7 @@ float vpHeight = 1.f;
 bool change = true;
 
 // 144 fps
-float frameLimit = 6.944444415f;
+double frameLimit = 6.944444;
 // float frameLimit = 1.f;
 double FOV = 90;
 // sponza ideal camera

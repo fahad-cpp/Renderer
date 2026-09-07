@@ -41,9 +41,8 @@ int main() {
         vpHeight = 1;
         // Update Loop
         update(window);
-        window.processMessages();
         window.swapBuffers();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        window.processMessages();
     }
     window.close();
     free(pixelLocks);

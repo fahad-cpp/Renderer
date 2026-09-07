@@ -21,7 +21,7 @@ const float farDist = 1000.f;
 extern float vpWidth;
 extern float vpHeight;
 extern bool change;
-extern float frameLimit;
+extern double frameLimit;
 extern double FOV;
 extern Transform camera;
 extern Scene scene;

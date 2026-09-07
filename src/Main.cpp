@@ -361,12 +361,12 @@ void update(FS::Window &window) {
     // Limit frame rate to 144
     if (timer.dtms < frameLimit) {
         std::this_thread::sleep_for(std::chrono::milliseconds(int(frameLimit - timer.dtms)));
-        timer.dtms += (frameLimit - timer.dtms);
+        timer.dtms += frameLimit - timer.dtms;
     }
     fdt = float(timer.dtms / 90.f);
     // FPS count
     totalFrameTime += float(timer.dtms * 0.001f);
     frameCount++;
-    printLive("CUR-FPS: " + std::to_string(1.f / (timer.dtms * 0.001)) + " AVG-FPS : " + std::to_string(1 / (totalFrameTime / frameCount)) + " CUR-FRAME: " + std::to_string(timer.dtms) + "ms" + " AVG-FRAME: " + std::to_string((totalFrameTime * 1000) / frameCount) + "ms");
+    printLive("CUR-FPS: " + std::to_string(1.f / (timer.dtms * 0.001f)) + " AVG-FPS : " + std::to_string(1 / (totalFrameTime / frameCount)) + " CUR-FRAME: " + std::to_string(timer.dtms) + "ms" + " AVG-FRAME: " + std::to_string((totalFrameTime * 1000) / frameCount) + "ms");
     timer.dtms = 0;
 }
