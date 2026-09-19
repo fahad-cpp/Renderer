@@ -140,10 +140,6 @@ inline static void getIndices(char *ptr, uint32_t &v, uint32_t &t, uint32_t &n) 
 Mesh loadOBJ(const std::string &filename, const Material material) {
     Timer timer;
     LOG_INFO("Loading " << filename);
-    std::vector<Vector> vertices = {};
-    std::vector<Vector> normals = {};
-    std::vector<Texture> textures = {};
-    std::vector<Face> faces = {};
 
     std::ifstream OBJFile(filename, std::ios::binary | std::ios::ate);
     if (!OBJFile) {
@@ -161,6 +157,50 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
 
     const char *ptr = buffer.data();
     std::string line;
+
+    uint32_t positionsCount = 0;
+    uint32_t normalsCount   = 0;
+    uint32_t indicesCount   = 0;
+    //uint32_t texCoordCount  = 0;
+    while (*ptr != '\0') {
+        if (ptr[0] == 'v') {
+            if (ptr[1] == ' ' || ptr[1] == '\t') {
+                ++positionsCount;
+            // } else if (ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
+            //     ++texCoordCount;
+            } else if (ptr[1] == 'n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
+                ++normalsCount;
+            }
+        } else if (ptr[0] == 'f') {
+            uint32_t faceVerticesCount = 0;
+            while (*ptr != '\n') {
+                if (*ptr == ' ' || *ptr == '\t') {
+                    ++faceVerticesCount;
+                    // skip whitespace between face vertices
+                    while (*ptr == ' ' || *ptr == '\t') {
+                        ptr++;
+                    }
+                }
+                ptr++;
+            }
+            indicesCount += (faceVerticesCount - 2) * 3;
+        } else {
+            ptr++;
+            continue;
+        }
+        while ((*ptr != '\0') && *ptr != '\n')
+            ptr++;
+        if (*ptr == '\n')
+            ptr++;
+    }
+    ptr = buffer.data();
+    std::vector<Vector> vertices(positionsCount);
+    std::vector<Vector> normals(normalsCount);
+    //std::vector<Texture> textures(texCoordCount);
+    std::vector<Face> faces;
+    uint32_t vi=0,ni=0;
+    faces.reserve(indicesCount);
+
     while (*ptr != '\0') {
         const char *end = ptr;
         while ((*end != '\0') && *end != '\n')
@@ -169,7 +209,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
 
         if (ptr[0] == 'v' && (ptr[1] == ' ' || ptr[1] == '\t')) {
             Vector position = get3floats(line.data() + 2);
-            vertices.emplace_back(position);
+            vertices[vi++] = position;
         } else if (ptr[0] == 'v' && ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
             // float u, v, w;
             // std::sscanf(line.c_str(), "vt %f %f %f", &u, &v, &w);
@@ -177,7 +217,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
             // textures.emplace_back(newtext);
         } else if (ptr[0] == 'v' && ptr[1] == 'n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
             Vector newnorm = get3floats(line.data() + 3);
-            normals.emplace_back(newnorm);
+            normals[ni++] = newnorm;
         } else if (ptr[0] == 'f' && (ptr[1] == ' ' || ptr[1] == '\t')) {
             std::istringstream stream(line.c_str() + 1);
             std::vector<Index> faceIndices;
@@ -207,7 +247,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
         if (*ptr == '\n')
             ptr++;
     }
-    Mesh mesh = { vertices, normals, textures, faces };
+    Mesh mesh = { vertices, normals, {}, faces };
     mesh.material = material;
     mesh.initTriangles();
     timer.Stop();
