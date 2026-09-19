@@ -1,8 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "Logging.h"
 #include "Object.h"
+#include "Logging.h"
 #include "Timer.h"
-
 
 #include <cstdio>
 #include <fstream>
@@ -85,7 +84,59 @@ void Mesh::getTriangles() {
         triangleData.emplace_back(Triangle{ { p[0], p[1], p[2] }, { n[0], n[1], n[2] } });
     }
 }
+inline static bool isNumeric(char c) {
+    return (c >= '0' && c <= '9');
+}
+inline static char *getfloat(char *ptr, float *value) {
+    while (!isNumeric(*ptr) && (*ptr != '-')) {
+        ptr++;
+    }
+    char *end = ptr;
+    while (isNumeric(*end) || (*end == '.') || (*end == '-')) {
+        end++;
+    }
+    std::from_chars(ptr, end, *value);
+    return end;
+}
+inline static char *getuint(char *ptr, uint32_t *value) {
+    while (!isNumeric(*ptr)) {
+        ptr++;
+    }
+    char *end = ptr;
+    while (isNumeric(*end)) {
+        end++;
+    }
+    std::from_chars(ptr, end, *value);
+    return end;
+}
+// get floats seperated by space
+inline static Vector get3floats(char *ptr) {
+    Vector res;
+    ptr = getfloat(ptr, &res.x);
+    ptr = getfloat(ptr + 1, &res.y);
+    ptr = getfloat(ptr + 1, &res.z);
+    return res;
+}
 
+inline static void getIndices(char *ptr, uint32_t &v, uint32_t &t, uint32_t &n) {
+    while (!isNumeric(*ptr)) {
+        ptr++;
+    }
+    ptr = getuint(ptr, &v);
+    if (*ptr != '/') {
+        return;
+    }
+    ptr++;
+    if (*ptr != '/') {
+        ptr = getuint(ptr, &t);
+    }
+
+    if (*ptr != '/') {
+        return;
+    }
+    ptr++;
+    ptr = getuint(ptr, &n);
+}
 Mesh loadOBJ(const std::string &filename, const Material material) {
     Timer timer;
     LOG_INFO("Loading " << filename);
@@ -117,18 +168,15 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
         line = std::string(ptr, end - ptr);
 
         if (ptr[0] == 'v' && (ptr[1] == ' ' || ptr[1] == '\t')) {
-            float x = 0, y = 0, z = 0;
-            std::sscanf(line.c_str(), "v %f %f %f", &x, &y, &z);
-            vertices.emplace_back(x, y, z);
+            Vector position = get3floats(line.data() + 2);
+            vertices.emplace_back(position);
         } else if (ptr[0] == 'v' && ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
-            float u, v, w;
-            std::sscanf(line.c_str(), "vt %f %f %f", &u, &v, &w);
-            Texture newtext({ u, v, w });
-            textures.emplace_back(newtext);
+            // float u, v, w;
+            // std::sscanf(line.c_str(), "vt %f %f %f", &u, &v, &w);
+            // Texture newtext({ u, v, w });
+            // textures.emplace_back(newtext);
         } else if (ptr[0] == 'v' && ptr[1] == 'n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
-            float x, y, z;
-            std::sscanf(line.c_str(), "vn %f %f %f", &x, &y, &z);
-            Vector newnorm(x, y, z);
+            Vector newnorm = get3floats(line.data() + 3);
             normals.emplace_back(newnorm);
         } else if (ptr[0] == 'f' && (ptr[1] == ' ' || ptr[1] == '\t')) {
             std::istringstream stream(line.c_str() + 1);
@@ -137,16 +185,9 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
             std::string vertex;
             // Handle arbitrary amount of vertices in a face
             while (stream >> vertex) {
-                int v, t, n;
-                if (std::sscanf(vertex.c_str(), "%d/%d/%d", &v, &t, &n) == 3) {
-                    faceIndices.emplace_back(v - 1, t - 1, n - 1);
-                } else if (std::sscanf(vertex.c_str(), "%d//%d", &v, &n) == 2) {
-                    faceIndices.emplace_back(v - 1, 0, n - 1);
-                } else {
-                    LOG_ERROR(("Unsupported face format :" + filename + "\n"));
-                    LOG_ERROR("Encountered:" + vertex);
-                    return {};
-                }
+                uint32_t v = 0, t = 0, n = 0;
+                getIndices(vertex.data(), v, t, n);
+                faceIndices.emplace_back(v - 1, t - 1, n - 1);
             }
             if (faceIndices.size() < 3) {
                 LOG_ERROR("Less than 3 points in face: " << filename << "\n");
@@ -155,14 +196,14 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
 
             // Use TRIANGLE_FAN ordering
             for (std::size_t i = 2; i < faceIndices.size(); i++) {
-                faces.emplace_back(Face{faceIndices[0],faceIndices[i-1],faceIndices[i]});
+                faces.emplace_back(Face{ faceIndices[0], faceIndices[i - 1], faceIndices[i] });
             }
         }
 
-        //skip until EOF or newline
+        // skip until EOF or newline
         while ((*ptr != '\0') && *ptr != '\n')
             ptr++;
-        //skip newline
+        // skip newline
         if (*ptr == '\n')
             ptr++;
     }
