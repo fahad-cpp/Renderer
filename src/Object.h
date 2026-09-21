@@ -7,21 +7,21 @@
 #include <vector>
 
 struct Material {
-    float specular = -1.f;
-    float reflectiveness = 0.f;
-    Colour color = { 0, 0, 0 };
+    float  specular       = -1.f;
+    float  reflectiveness = 0.f;
+    Colour color          = { 0, 0, 0 };
 };
 struct HitData {
-    Material material = {};
-    Vector normal = { 0, 0, 0 };
-    float intersection = float(INFINITY);
+    Material material     = {};
+    Vector   normal       = { 0, 0, 0 };
+    float    intersection = float(INFINITY);
 };
 struct Sphere {
-    Vector center = { 0, 0, 0 };
-    float radius = 0.f;
-    float specular = -1.f;
-    float reflectiveness = 0.f;
-    Colour color = { 0, 0, 0 };
+    Vector center         = { 0, 0, 0 };
+    float  radius         = 0.f;
+    float  specular       = -1.f;
+    float  reflectiveness = 0.f;
+    Colour color          = { 0, 0, 0 };
 
     friend bool operator==(const Sphere &sphere1, const Sphere &sphere2);
 };
@@ -33,7 +33,7 @@ struct Triangle {
 Vector getTriangleNormal(const Triangle &triangle);
 struct Plane {
     Vector normal;
-    float offset;
+    float  offset;
 };
 struct Texture {
     float u;
@@ -49,18 +49,18 @@ struct Face {
     Index index[3];
 };
 struct Box {
-    Vector highest;
-    Vector lowest;
+    Vector      highest;
+    Vector      lowest;
     friend bool operator==(const Box &box2, const Box &box);
 };
 struct Mesh {
-    std::vector<Vector> vertices;
-    std::vector<Vector> normals;
-    std::vector<Texture> texture;
-    std::vector<Face> faces;
+    std::vector<Vector>   vertices;
+    std::vector<Vector>   normals;
+    std::vector<Texture>  texture;
+    std::vector<Face>     faces;
     std::vector<Triangle> triangleData;
-    Box boundingBox;
-    Material material;
+    Box                   boundingBox;
+    Material              material;
     Mesh();
     Mesh(std::vector<Vector> vertex, std::vector<Vector> normal = {}, std::vector<Texture> text = {}, std::vector<Face> face = {}, Material material = {});
     void initTriangles();

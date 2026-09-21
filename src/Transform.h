@@ -4,7 +4,7 @@
 #include <numbers>
 struct Transform {
     Vector position = { 0, 0, 0 };
-    float scale = 1.f;
+    float  scale    = 1.f;
     Vector rotation = { 0, 0, 0 };
 };
 enum class RotateOrder {
@@ -16,7 +16,7 @@ static Vector rotate(const Vector vec, const Vector rotationP, const RotateOrder
         return vec;
     }
 
-    float sinx, siny, sinz, cosx, cosy, cosz;
+    float  sinx, siny, sinz, cosx, cosy, cosz;
     Vector rotation = { float(rotationP.x * (std::numbers::pi * 2)) / 360.f, float(rotationP.y * (std::numbers::pi * 2)) / 360.f, float(rotationP.z * (std::numbers::pi * 2)) / 360.f };
 
     sinx = std::sin(rotation.x);

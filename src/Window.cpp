@@ -15,17 +15,17 @@ void loadingScreen(FS::Window &window, std::atomic_bool &signal) {
 int main() {
     // Random seed
     srand(uint32_t(time(NULL)));
-    Timer timer;
+    Timer      timer;
     FS::Window window("Renderer!", 720, 720);
     window.focus();
     std::atomic_bool initialized = false;
-    std::thread loadingThread(loadingScreen, std::ref(window), std::ref(initialized));
+    std::thread      loadingThread(loadingScreen, std::ref(window), std::ref(initialized));
     FS::RenderState &renderState = window.getRenderState();
-    FS::Vector2 windowPos = window.getWindowPos();
+    FS::Vector2      windowPos   = window.getWindowPos();
 
     // Hack : TODO:reconstruct on resize
     size_t mutexSize = 2048 * 2048 * sizeof(std::mutex);
-    pixelLocks = (std::mutex *)malloc(mutexSize);
+    pixelLocks       = (std::mutex *)malloc(mutexSize);
     Renderer::drawNoise(renderState);
     init();
     window.showCursor(!sceneSettings.lockMouse);
@@ -35,10 +35,10 @@ int main() {
     loadingThread.join();
     LOG_INFO("Initialization took " << timer.dtms << " ms\n");
     while (window.isOpen()) {
-        canvas = { float(renderState.width), float(renderState.height) };
+        canvas                  = { float(renderState.width), float(renderState.height) };
         const float aspectratio = float(renderState.width) / float(renderState.height);
-        vpWidth = aspectratio;
-        vpHeight = 1;
+        vpWidth                 = aspectratio;
+        vpHeight                = 1;
         // Update Loop
         update(window);
         window.swapBuffers();

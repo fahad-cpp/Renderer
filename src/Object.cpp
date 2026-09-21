@@ -22,27 +22,27 @@ Vector getTriangleNormal(const Triangle &triangle) {
 
 // Mesh
 Mesh::Mesh() {
-    vertices = {};
-    normals = {};
-    texture = {};
-    faces = {};
+    vertices     = {};
+    normals      = {};
+    texture      = {};
+    faces        = {};
     triangleData = {};
-    boundingBox = {};
-    material = {};
+    boundingBox  = {};
+    material     = {};
 }
 Mesh::Mesh(std::vector<Vector> vertex, std::vector<Vector> normal, std::vector<Texture> text, std::vector<Face> face, Material material) {
-    vertices = vertex;
-    normals = normal;
-    texture = text;
-    faces = face;
+    vertices       = vertex;
+    normals        = normal;
+    texture        = text;
+    faces          = face;
     this->material = material;
 }
 void Mesh::initTriangles() {
     Vector lowest, highest;
-    int count = 0;
+    int    count = 0;
     for (const Vector vertex : vertices) {
         if (count == 0) {
-            lowest = vertex;
+            lowest  = vertex;
             highest = vertex;
         }
         if (vertex.x < lowest.x)
@@ -59,7 +59,7 @@ void Mesh::initTriangles() {
             highest.z = vertex.z;
         count++;
     }
-    boundingBox.lowest = lowest;
+    boundingBox.lowest  = lowest;
     boundingBox.highest = highest;
     this->getTriangles();
 }
@@ -161,13 +161,13 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
     uint32_t positionsCount = 0;
     uint32_t normalsCount   = 0;
     uint32_t indicesCount   = 0;
-    //uint32_t texCoordCount  = 0;
+    // uint32_t texCoordCount  = 0;
     while (*ptr != '\0') {
         if (ptr[0] == 'v') {
             if (ptr[1] == ' ' || ptr[1] == '\t') {
                 ++positionsCount;
-            // } else if (ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
-            //     ++texCoordCount;
+                // } else if (ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
+                //     ++texCoordCount;
             } else if (ptr[1] == 'n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
                 ++normalsCount;
             }
@@ -196,9 +196,9 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
     ptr = buffer.data();
     std::vector<Vector> vertices(positionsCount);
     std::vector<Vector> normals(normalsCount);
-    //std::vector<Texture> textures(texCoordCount);
+    // std::vector<Texture> textures(texCoordCount);
     std::vector<Face> faces;
-    uint32_t vi=0,ni=0;
+    uint32_t          vi = 0, ni = 0;
     faces.reserve(indicesCount);
 
     while (*ptr != '\0') {
@@ -209,7 +209,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
 
         if (ptr[0] == 'v' && (ptr[1] == ' ' || ptr[1] == '\t')) {
             Vector position = get3floats(line.data() + 2);
-            vertices[vi++] = position;
+            vertices[vi++]  = position;
         } else if (ptr[0] == 'v' && ptr[1] == 't' && (ptr[2] == ' ' || ptr[2] == '\t')) {
             // float u, v, w;
             // std::sscanf(line.c_str(), "vt %f %f %f", &u, &v, &w);
@@ -217,7 +217,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
             // textures.emplace_back(newtext);
         } else if (ptr[0] == 'v' && ptr[1] == 'n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
             Vector newnorm = get3floats(line.data() + 3);
-            normals[ni++] = newnorm;
+            normals[ni++]  = newnorm;
         } else if (ptr[0] == 'f' && (ptr[1] == ' ' || ptr[1] == '\t')) {
             std::istringstream stream(line.c_str() + 1);
             std::vector<Index> faceIndices;
@@ -247,7 +247,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
         if (*ptr == '\n')
             ptr++;
     }
-    Mesh mesh = { vertices, normals, {}, faces };
+    Mesh mesh     = { vertices, normals, {}, faces };
     mesh.material = material;
     mesh.initTriangles();
     timer.Stop();

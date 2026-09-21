@@ -9,23 +9,23 @@
 namespace PostProcess {
 void FXAAthr(int threadNum, int threadCount, FS::RenderState renderState, float edgeThreshold) {
     int yCount = (renderState.height - 2) / threadCount;
-    int ymin = (threadNum * yCount) + 1;
-    int ymax = ymin + yCount;
+    int ymin   = (threadNum * yCount) + 1;
+    int ymax   = ymin + yCount;
     for (int y = ymin; y < ymax; y++) {
         for (uint32_t x = 1; x < renderState.width - 1; x++) {
             Colour colorCenter = Renderer::getPixel(x, y, renderState);
-            Colour colorTop = Renderer::getPixel(x, y - 1, renderState);
+            Colour colorTop    = Renderer::getPixel(x, y - 1, renderState);
             Colour colorBottom = Renderer::getPixel(x, y + 1, renderState);
-            Colour colorLeft = Renderer::getPixel(x - 1, y, renderState);
-            Colour colorRight = Renderer::getPixel(x + 1, y, renderState);
+            Colour colorLeft   = Renderer::getPixel(x - 1, y, renderState);
+            Colour colorRight  = Renderer::getPixel(x + 1, y, renderState);
 
-            float topLuma = colorTop.luminance();
+            float topLuma    = colorTop.luminance();
             float bottomLuma = colorBottom.luminance();
-            float leftLuma = colorLeft.luminance();
-            float rightLuma = colorRight.luminance();
+            float leftLuma   = colorLeft.luminance();
+            float rightLuma  = colorRight.luminance();
 
             float edgeHorizontal = std::abs(leftLuma - rightLuma);
-            float edgeVertical = std::abs(topLuma - bottomLuma);
+            float edgeVertical   = std::abs(topLuma - bottomLuma);
 
             bool isHorizontal = (edgeHorizontal >= edgeVertical);
 
@@ -57,18 +57,18 @@ void FXAA(FS::RenderState renderState, bool multiThread) {
         for (uint32_t y = 1; y < (renderState.height - 1); y++) {
             for (uint32_t x = 1; x < (renderState.width - 1); x++) {
                 Colour colorCenter = Renderer::getPixel(x, y, renderState);
-                Colour colorTop = Renderer::getPixel(x, y - 1, renderState);
+                Colour colorTop    = Renderer::getPixel(x, y - 1, renderState);
                 Colour colorBottom = Renderer::getPixel(x, y + 1, renderState);
-                Colour colorLeft = Renderer::getPixel(x - 1, y, renderState);
-                Colour colorRight = Renderer::getPixel(x + 1, y, renderState);
+                Colour colorLeft   = Renderer::getPixel(x - 1, y, renderState);
+                Colour colorRight  = Renderer::getPixel(x + 1, y, renderState);
 
-                float topLuma = colorTop.luminance();
+                float topLuma    = colorTop.luminance();
                 float bottomLuma = colorBottom.luminance();
-                float leftLuma = colorLeft.luminance();
-                float rightLuma = colorRight.luminance();
+                float leftLuma   = colorLeft.luminance();
+                float rightLuma  = colorRight.luminance();
 
                 float edgeHorizontal = std::abs(leftLuma - rightLuma);
-                float edgeVertical = std::abs(topLuma - bottomLuma);
+                float edgeVertical   = std::abs(topLuma - bottomLuma);
 
                 bool isHorizontal = (edgeHorizontal >= edgeVertical);
 
@@ -94,7 +94,7 @@ void FXAA(FS::RenderState renderState, bool multiThread) {
         }
     } else {
         // Multi-Threaded FXAA
-        int threadCount = 12;
+        int                      threadCount = 12;
         std::vector<std::thread> tObjs(threadCount);
         for (int i = 0; i < threadCount; i++) {
             tObjs[i] = std::thread(FXAAthr, i, threadCount, std::ref(renderState), 0.f);
@@ -105,19 +105,19 @@ void FXAA(FS::RenderState renderState, bool multiThread) {
     }
 }
 void renderAO(FS::RenderState renderState) {
-    //TODO: FIX CRASH IN RELEASE (SOMEHOW ONLY CRASHES IN RELEASE)
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    const int SAMPLE_COUNT = 64;
-    const float SAMPLE_RADIUS = 2.f;
+    // TODO: FIX CRASH IN RELEASE (SOMEHOW ONLY CRASHES IN RELEASE)
+    std::random_device              rd;
+    std::mt19937                    gen(rd());
+    const int                       SAMPLE_COUNT  = 64;
+    const float                     SAMPLE_RADIUS = 2.f;
     std::uniform_int_distribution<> dist(-SAMPLE_RADIUS, SAMPLE_RADIUS);
-    Vector samplesLoc[SAMPLE_COUNT];
+    Vector                          samplesLoc[SAMPLE_COUNT];
     for (uint32_t y = 0; y < renderState.height; ++y) {
         for (uint32_t x = 0; x < renderState.width; ++x) {
             uint32_t pixelIndex = (y * renderState.width) + x;
-            float pixelDepth = renderState.depthBuffer[pixelIndex];
-            float z = 1.f / pixelDepth;
-            Vector point = Renderer::canvasToViewport(x * z / d, y * z / d);
+            float    pixelDepth = renderState.depthBuffer[pixelIndex];
+            float    z          = 1.f / pixelDepth;
+            Vector   point      = Renderer::canvasToViewport(x * z / d, y * z / d);
 
             for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
                 samplesLoc[i] = { float(dist(gen)) + point.x, float(dist(gen)) + point.y, float(dist(gen)) + z };
@@ -130,7 +130,7 @@ void renderAO(FS::RenderState renderState) {
                     clamp(offset.y, 0.f, (float)renderState.height);
                 }
                 uint32_t offsetIndex = uint32_t(offset.x) + (uint32_t(offset.y) * renderState.width);
-                float sampleDepth = renderState.depthBuffer[offsetIndex];
+                float    sampleDepth = renderState.depthBuffer[offsetIndex];
                 // float threshold = 0.001f;
                 if ((sampleDepth > pixelDepth) && (pixelDepth != 0.f)) {
                     occlusionFactor++;
@@ -180,7 +180,7 @@ void boxBlur(FS::RenderState renderState) {
             uint8_t B = totalB / 9;
 
             uint32_t index = (y * renderState.width) + x;
-            buffer[index] = rgbtoHex({ R, G, B });
+            buffer[index]  = rgbtoHex({ R, G, B });
         }
     }
     memcpy(renderState.screenBuffer, buffer, renderState.width * renderState.height * sizeof(uint32_t));

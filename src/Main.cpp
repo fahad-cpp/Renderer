@@ -27,31 +27,31 @@
  *		-Implement BVH ray tracing(Ray tracer)
  */
 // frame delta time
-float fdt = 0.06f;
-float totalFrameTime = 0.f;
-int frameCount = 0;
-const float defSpeed = 2.0f;
-float speed = defSpeed;
-const float boostSpeed = (5 * defSpeed);
+float              fdt            = 0.06f;
+float              totalFrameTime = 0.f;
+int                frameCount     = 0;
+const float        defSpeed       = 2.0f;
+float              speed          = defSpeed;
+const float        boostSpeed     = (5 * defSpeed);
 static FS::Vector2 getMouseDiff(FS::Window &window) {
     if (!window.isFocused() || !sceneSettings.lockMouse) {
         return { 0.f, 0.f };
     }
     static FS::RenderState &renderState = window.getRenderState();
-    FS::Vector2 windowPos = window.getWindowPos();
-    FS::Vector2 mousePos = window.getCursorPos();
-    FS::Vector2 centerPos = { (windowPos.x + static_cast<uint32_t>(renderState.width / 2)), (windowPos.y + static_cast<uint32_t>(renderState.height / 2)) };
-    FS::Vector2 diff = mousePos - centerPos;
+    FS::Vector2             windowPos   = window.getWindowPos();
+    FS::Vector2             mousePos    = window.getCursorPos();
+    FS::Vector2             centerPos   = { (windowPos.x + static_cast<uint32_t>(renderState.width / 2)), (windowPos.y + static_cast<uint32_t>(renderState.height / 2)) };
+    FS::Vector2             diff        = mousePos - centerPos;
     window.setCursorPos(static_cast<uint32_t>(centerPos.x), static_cast<uint32_t>(centerPos.y));
     return diff;
 }
 void handleInput(FS::Window &window) {
-    const FS::Input &input = window.getInput();
+    const FS::Input &input       = window.getInput();
     FS::RenderState &renderState = window.getRenderState();
-    const float sensitivity = 1.2f;
-    FS::Vector2 mouseDiff = sceneSettings.lockMouse ? getMouseDiff(window) : 0;
-    mouseDiff = mouseDiff * sensitivity;
-    Vector velocity = { 0.f, 0.f, 0.f };
+    const float      sensitivity = 1.2f;
+    FS::Vector2      mouseDiff   = sceneSettings.lockMouse ? getMouseDiff(window) : 0;
+    mouseDiff                    = mouseDiff * sensitivity;
+    Vector velocity              = { 0.f, 0.f, 0.f };
     if (isDown(FS::Buttons::BUTTON_ESC)) {
         window.close();
     }
@@ -90,10 +90,10 @@ void handleInput(FS::Window &window) {
 
     // Normalize move vector and move the Camera
     if (!(velocity == Vector{ 0, 0, 0 })) {
-        change = true;
-        velocity = velocity / length(velocity);
-        velocity = velocity * speed;
-        velocity = rotate(velocity, { 0, camera.rotation.y, 0 });
+        change          = true;
+        velocity        = velocity / length(velocity);
+        velocity        = velocity * speed;
+        velocity        = rotate(velocity, { 0, camera.rotation.y, 0 });
         camera.position = camera.position + (velocity * fdt);
     }
 
@@ -116,7 +116,7 @@ void handleInput(FS::Window &window) {
         LOG_INFO("Model count " << scene.instances.size() << "\n");
         LOG_INFO("---\n");
         int totalTris = 0;
-        int c = 1;
+        int c         = 1;
         for (const Instance &instance : scene.instances) {
             LOG_INFO("Model " << c << ":\n");
             // LOG_INFO("Triangle count : " << instance.mesh->triangles.size() << "\n");
@@ -135,21 +135,21 @@ void handleInput(FS::Window &window) {
         if (sceneSettings.debugState != DebugState::DS_WIREFRAME)
             LOG_INFO("Debug state set to wireframe triangle\n");
         sceneSettings.debugState = DebugState::DS_WIREFRAME;
-        change = true;
+        change                   = true;
     }
     // Show bounding box of the mesh
     if (pressed(FS::Buttons::BUTTON_B)) {
         if (sceneSettings.debugState != DebugState::DS_BOUNDING_BOX)
             LOG_INFO("Debug state set to bounding box\n");
         sceneSettings.debugState = DebugState::DS_BOUNDING_BOX;
-        change = true;
+        change                   = true;
     }
     // Turn off Debug view
     if (pressed(FS::Buttons::BUTTON_V)) {
         if (sceneSettings.debugState != DebugState::DS_OFF)
             LOG_INFO("Visual debugging off\n");
         sceneSettings.debugState = DebugState::DS_OFF;
-        change = true;
+        change                   = true;
     }
     // Change ray tracing to rasterization and vise versa
     if (pressed(FS::Buttons::BUTTON_R)) {
@@ -179,7 +179,7 @@ void handleInput(FS::Window &window) {
     if (pressed(FS::Buttons::BUTTON_Q)) {
         camera.rotation = { 0, 0, 0 };
         camera.position = { 0, 0, 0 };
-        change = true;
+        change          = true;
     }
 
     // Slow down time
@@ -222,13 +222,13 @@ void handleInput(FS::Window &window) {
 
     // Change lighting modes
     if (pressed(FS::Buttons::BUTTON_X)) {
-        LightingMode mode = sceneSettings.lightingMode;
-        uint8_t modenumber = static_cast<uint8_t>(mode);
+        LightingMode mode       = sceneSettings.lightingMode;
+        uint8_t      modenumber = static_cast<uint8_t>(mode);
         modenumber++;
         if (modenumber >= static_cast<uint8_t>(LightingMode::MAX_ENUM)) {
             modenumber = 0;
         }
-        mode = static_cast<LightingMode>(modenumber);
+        mode                       = static_cast<LightingMode>(modenumber);
         sceneSettings.lightingMode = mode;
     }
 
@@ -282,38 +282,36 @@ void init() {
     // };
     // Sponza scene
     static Mesh model = loadOBJ("res/Models/sponza.obj", { shininess, 0.f, { 255, 255, 255 } });
-    scene = {
+    scene             = {
         .spheres = std::vector<Sphere>{
             {
-                .center = Vector{ 0, 0, -3 },
-                .radius = 1.f,
-                .specular = shininess,
+                .center         = Vector{ 0, 0, -3 },
+                .radius         = 1.f,
+                .specular       = shininess,
                 .reflectiveness = 0.4f,
-                .color = Colour{ 255, 0, 0 },
+                .color          = Colour{ 255, 0, 0 },
             },
             {
-                .center = Vector{ -1, 0, -4 },
-                .radius = 1.f,
-                .specular = shininess,
+                .center         = Vector{ -1, 0, -4 },
+                .radius         = 1.f,
+                .specular       = shininess,
                 .reflectiveness = 0.4f,
-                .color = Colour{ 0, 255, 0 },
+                .color          = Colour{ 0, 255, 0 },
             },
             {
-                .center = Vector{ 1, 0, -4 },
-                .radius = 1.f,
-                .specular = shininess,
+                .center         = Vector{ 1, 0, -4 },
+                .radius         = 1.f,
+                .specular       = shininess,
                 .reflectiveness = 0.4f,
-                .color = Colour{ 0, 0, 255 },
+                .color          = Colour{ 0, 0, 255 },
             },
         },
         .triangles = std::vector<Triangle>{
             // tri
             // empty
         },
-        .instances = std::vector<Instance>{
-            { .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = .1f, .rotation = { 0, 0, 0 } } }
-        },
-        .lights = std::vector<Light>{
+        .instances = std::vector<Instance>{ { .mesh = &model, .transform = { .position = { 0, 0, 0 }, .scale = .1f, .rotation = { 0, 0, 0 } } } },
+        .lights    = std::vector<Light>{
             { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.2f },
             { .type = LT_POINT, .pos = { 0, 1, 0 }, .direction = { 1, 2, 0 }, .intensity = 0.4f },
             { .type = LT_POINT, .pos = { -60, 1, 0 }, .direction = { 1, 2, 0 }, .intensity = 0.4f },
@@ -321,7 +319,7 @@ void init() {
             { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { 1, -4, 4 }, .intensity = 0.5f },
         }
     };
-    
+
     for (Instance &ins : scene.instances) {
         ins.getBoundingBox();
     }
@@ -334,7 +332,7 @@ void update(FS::Window &window) {
     if (sceneSettings.rayTraceMode && change) {
         Renderer::clearScreen(0x000000, renderState);
         // Ray tracing multithreaded
-        static size_t threadCount = std::thread::hardware_concurrency();
+        static size_t                   threadCount = std::thread::hardware_concurrency();
         static std::vector<std::thread> rtThreads(threadCount);
         for (size_t i = 0; i < threadCount; i++) {
             rtThreads[i] = std::thread(Renderer::rayTraceThr, i, threadCount, std::ref(renderState));

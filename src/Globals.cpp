@@ -1,20 +1,20 @@
 #include "Globals.h"
 
 std::vector<std::thread> ppmThreads;
-std::mutex *pixelLocks;
-SceneSettings sceneSettings = {
-    .bfc = true,
+std::mutex              *pixelLocks;
+SceneSettings            sceneSettings = {
+    .bfc          = true,
     .antiAliasing = false,
     .triSeenCount = 0,
-    .debugState = DebugState::DS_OFF,
-    .lockMouse = true,
-    .renderMode = RenderMode::RM_COLOR,
+    .debugState   = DebugState::DS_OFF,
+    .lockMouse    = true,
+    .renderMode   = RenderMode::RM_COLOR,
     .rayTraceMode = false,
     .lightingMode = LightingMode::LIGHT_ONLY
 };
 Vector canvas(720, 720);
-float vpWidth = 1.f;
-float vpHeight = 1.f;
+float  vpWidth  = 1.f;
+float  vpHeight = 1.f;
 // only ray tracing when frame changes to make sure my cpu doesn't explode
 bool change = true;
 
@@ -25,7 +25,7 @@ double FOV = 90;
 // sponza ideal camera
 Transform camera{ Vector{ 80.f, 60.f, -3.6f }, 1, { 0, -270, 0 } };
 // Transform camera{ Vector{ 0, 2.f, 0 }, 1, { 0, 0, 0 } };
-Scene scene = {};
+Scene scene     = {};
 Plane planes[6] = {
     // Near
     { { 0, 0, 1 }, -d },

@@ -2,14 +2,14 @@
 template <typename T>
 inline void swap(T &a, T &b) {
     T c = a;
-    a = b;
-    b = c;
+    a   = b;
+    b   = c;
 }
 template <typename T>
 inline void swap(T *a, T *b) {
     T c = *a;
-    *a = *b;
-    *b = c;
+    *a  = *b;
+    *b  = c;
 }
 template <typename T>
 inline void clamp(T &num, T minLimit, T maxLimit) {
