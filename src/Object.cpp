@@ -92,7 +92,7 @@ inline static char *getfloat(char *ptr, float *value) {
         ptr++;
     }
     char *end = ptr;
-    while (isNumeric(*end) || (*end == '.') || (*end == '-')) {
+    while (isNumeric(*end) || (*end == '.') || (*end == '-') || (*end == 'E') || (*end == 'e')) {
         end++;
     }
     std::from_chars(ptr, end, *value);
