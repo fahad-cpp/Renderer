@@ -26,24 +26,47 @@ void clearScreen(uint32_t color, FS::RenderState renderState) {
     std::fill_n(pixel, bufferSize, color);
     std::fill_n(dep, bufferSize, 0.f);
 }
+float gammaCorrect(float value) {
+    if (value < 0.003f) {
+        return value * 12.92f;
+    }
+    return 1.055 * pow(value,1/2.4) - 0.055;
+    // return value;
+}
+Colour SRGBtoLinear(const Colour color) {
+    float R = color.R / 255.f;
+    float G = color.G / 255.f;
+    float B = color.B / 255.f;
+
+    R = std::clamp(gammaCorrect(R), 0.f, 1.f);
+    G = std::clamp(gammaCorrect(G), 0.f, 1.f);
+    B = std::clamp(gammaCorrect(B), 0.f, 1.f);
+
+    Colour res = {
+        static_cast<uint8_t>(R * 255),
+        static_cast<uint8_t>(G * 255),
+        static_cast<uint8_t>(B * 255),
+    };
+    return res;
+};
 // Put pixel (x and y specify viewport coordinates)
 // this means x=0,y=0 will be on center
 void putPixel(const int x, const int y, const Colour color, FS::RenderState renderState) {
-    const uint32_t              hexColor = rgbtoHex(color);
+    const uint32_t              hexColor = rgbtoHex(SRGBtoLinear(color));
     const uint32_t              idx      = (x + renderState.width / 2) + ((renderState.height / 2 - y) * renderState.width);
     std::lock_guard<std::mutex> lock(pixelLocks[idx]);
     ((uint32_t *)renderState.screenBuffer)[idx] = hexColor;
 }
 // Unsynchronized version
 void putPixelUS(const int x, const int y, const Colour color, FS::RenderState renderState) {
-    const uint32_t hexColor                                  = rgbtoHex(color);
+    const uint32_t hexColor                                  = rgbtoHex(SRGBtoLinear(color));
     const uint32_t idx                                       = (x + renderState.width / 2) + ((renderState.height / 2 - y) * renderState.width);
     (static_cast<uint32_t *>(renderState.screenBuffer))[idx] = hexColor;
 }
 // put pixel Direct (x and y specify buffer value)
 // x=0,y=0 will be on top left
 void putPixelD(const int x, const int y, const Colour color, FS::RenderState renderState) {
-    uint32_t                    hexColor = rgbtoHex(color);
+    uint32_t                    hexColor = rgbtoHex(SRGBtoLinear(color));
     uint32_t                    idx      = x + (y * renderState.width);
     std::lock_guard<std::mutex> lock(pixelLocks[idx]);
     ((uint32_t *)renderState.screenBuffer)[idx] = hexColor;
@@ -353,7 +376,7 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
             Colour color                                               = (sceneSettings.debugState == DebugState::DS_NORMAL) ? normalColour : material.color;
             color                                                      = color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
             renderState.depthBuffer[index]                             = invz;
-            (static_cast<uint32_t *>(renderState.screenBuffer))[index] = rgbtoHex(color);
+            (static_cast<uint32_t *>(renderState.screenBuffer))[index] = rgbtoHex(SRGBtoLinear(color));
         }
     }
 }
