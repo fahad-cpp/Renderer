@@ -809,7 +809,7 @@ float computeLight(const Vector P, const Vector N, const Vector V, float s, bool
                 Vector Ln = normalize(L);
                 Vector Vn = normalize(V);
                 Vector H  = normalize(Ln + Vn);
-                specular  = pow(getMax(dot(Nn, H), 0.f), s);
+                specular  = std::clamp(pow(getMax(dot(Nn, H), 0.f), s),0.f,1.f);
 #endif
             }
             float attinuation = (light.type == LT_POINT) ? clampv(1 - distance / radius, 0.f, 1.f) : 1.f;
