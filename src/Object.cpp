@@ -173,7 +173,7 @@ Mesh loadOBJ(const std::string &filename, const Material material) {
             }
         } else if (ptr[0] == 'f') {
             uint32_t faceVerticesCount = 0;
-            while (*ptr != '\n' && ptr != '\0') {
+            while ((*ptr != '\n') && (*ptr != '\0')) {
                 if (*ptr == ' ' || *ptr == '\t') {
                     ++faceVerticesCount;
                     // skip whitespace between face vertices

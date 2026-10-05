@@ -769,11 +769,12 @@ float computeLight(const Vector P, const Vector N, const Vector V, float s, bool
             i += light.intensity;
         } else {
             if (light.type == LT_DIRECTIONAL) {
-                L        = -light.direction;
+                L        = normalize(-light.direction);
                 distance = FLT_MAX;
             } else if (light.type == LT_POINT) {
                 L        = (light.pos - P);
                 distance = length(L);
+                L = normalize(L);
                 if (distance > radius) {
                     continue;
                 }
