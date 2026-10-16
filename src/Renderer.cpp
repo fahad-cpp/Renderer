@@ -31,7 +31,7 @@ float gammaCorrect(float value) {
         return value * 12.92f;
     }
     return 1.055 * pow(value,1/2.4) - 0.055;
-    // return value;
+    //return std::sqrt(value);
 }
 Colour SRGBtoLinear(const Colour color) {
     float R = color.R / 255.f;
