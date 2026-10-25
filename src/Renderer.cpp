@@ -198,6 +198,7 @@ void interpolate(T x0, float y0, T x1, float y1, std::vector<T> &arr) {
     }
 }
 void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material material, bool wireframe, FS::RenderState renderState) {
+    // FIX HANG IN CLANG-DEBUG in this function
     Vector projected[3] = {
         projectVertex(p[0]),
         projectVertex(p[1]),
@@ -208,18 +209,18 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         n[1],
         n[2]
     };
-
+    
     projected[0].z = p[0].z;
     projected[1].z = p[1].z;
     projected[2].z = p[2].z;
-
+    
     if (wireframe) {
         drawLine(projected[0], projected[1], material.color, renderState);
         drawLine(projected[1], projected[2], material.color, renderState);
         drawLine(projected[0], projected[2], material.color, renderState);
         return;
     }
-
+    
     if (projected[0].y > projected[1].y) {
         std::swap(projected[0], projected[1]);
         std::swap(norm[0], norm[1]);
@@ -232,98 +233,98 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         std::swap(projected[1], projected[2]);
         std::swap(norm[1], norm[2]);
     }
-
+    
     float z0 = (1.f / projected[0].z), z1 = (1.f / projected[1].z), z2 = (1.f / projected[2].z);
-
+    
     size_t size01 = uint32_t(projected[1].y - projected[0].y);
     size_t size12 = uint32_t(projected[2].y - projected[1].y);
     size_t size02 = uint32_t(projected[2].y - projected[0].y);
-
+    
     std::vector<float> x01;
     std::vector<float> x12;
     std::vector<float> x02;
-
+    
     std::vector<float> z01;
     std::vector<float> z12;
     std::vector<float> z02;
-
+    
     std::vector<Vector> n01;
     std::vector<Vector> n12;
     std::vector<Vector> n02;
-
+    
     // Reserve space for x01 + x12 because we concatenate later
     x01.reserve(size01 + size12);
     x12.reserve(size12);
     x02.reserve(size02);
-
+    
     // Reserve space for z01 + z12 because we concatenate later
     z01.reserve(size01 + size12);
     z12.reserve(size12);
     z02.reserve(size02);
-
+    
     n01.reserve(size01 + size12);
     n12.reserve(size12);
     n02.reserve(size02);
-
+    
     interpolate(projected[0].x, projected[0].y, projected[1].x, projected[1].y, x01);
     interpolate(projected[1].x, projected[1].y, projected[2].x, projected[2].y, x12);
     interpolate(projected[0].x, projected[0].y, projected[2].x, projected[2].y, x02);
-
+    
     interpolate(z0, projected[0].y, z1, projected[1].y, z01);
     interpolate(z1, projected[1].y, z2, projected[2].y, z12);
     interpolate(z0, projected[0].y, z2, projected[2].y, z02);
-
+    
     interpolate(norm[0], projected[0].y, norm[1], projected[1].y, n01);
     interpolate(norm[1], projected[1].y, norm[2], projected[2].y, n12);
     interpolate(norm[0], projected[0].y, norm[2], projected[2].y, n02);
-
+    
     // Concatenate short sides
     for (const float x : x12) {
         x01.push_back(x);
     }
-
+    
     for (const float z : z12) {
         z01.push_back(z);
     }
-
+    
     for (const Vector nrm : n12) {
         n01.push_back(nrm);
     }
-
+    
     uint32_t middle = uint32_t(x02.size() / 2.f);
-
+    
     std::vector<float>  *xleft  = nullptr;
     std::vector<float>  *xright = nullptr;
     std::vector<float>  *zleft  = nullptr;
     std::vector<float>  *zright = nullptr;
     std::vector<Vector> *nleft  = nullptr;
     std::vector<Vector> *nright = nullptr;
-
+    
     if ((!x02.size())) {
         return;
     }
-
+    
     // Find left and right
     if (x02[middle] < x01[middle]) {
         xleft  = &x02;
         xright = &x01;
-
+        
         zleft  = &z02;
         zright = &z01;
-
+        
         nleft  = &n02;
         nright = &n01;
     } else {
         xleft  = &x01;
         xright = &x02;
-
+        
         zleft  = &z01;
         zright = &z02;
-
+        
         nleft  = &n01;
         nright = &n02;
     }
-
+    
     const int           halfHeight = static_cast<int>(renderState.height / 2.f);
     const float         halfWidth  = renderState.width / 2.f;
     const bool          rtShadows  = sceneSettings.lightingMode == LightingMode::LIGHT_SHADOWS;
@@ -340,15 +341,15 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
         const int      rx       = std::ceil(std::min((*xright)[scanline], halfWidth - 1));
         const Vector   ln       = (*nleft)[scanline];
         const Vector   rn       = (*nright)[scanline];
-
+        
         const uint32_t xstride     = uint32_t(std::abs(rx - lx));
         const uint32_t segmentSize = xstride > renderState.width ? renderState.width : xstride;
-
-        zsegment.clear();
+        
         zsegment.reserve(segmentSize);
-        nsegment.clear();
+        zsegment.clear();
         nsegment.reserve(segmentSize);
-
+        nsegment.clear();
+        
         interpolate(lz, lx, rz, rx, zsegment);
         interpolate(ln, lx, rn, rx, nsegment);
         for (int x = lx; x < rx; ++x) {
@@ -365,13 +366,13 @@ void drawVerticesTriangle(const Vector p[3], const Vector n[3], const Material m
             float  z      = 1.f / invz;
             Vector normal = nsegment[relativex];
             normalize(normal);
-
+            
             Vector point     = canvasToViewport(x * z / d, y * z / d);
             point.z          = z;
             point            = transformVertex(point, camera, RotateOrder::RO_XYZ);
             Vector direction = camera.position - point;
             direction        = direction / length(direction);
-
+            
             Colour normalColour                                        = Colour{ (uint8_t)clampv(abs(normal.x * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.y * 255.f), 0.f, 255.f), (uint8_t)clampv(abs(normal.z * 255.f), 0.f, 255.f) };
             Colour color                                               = (sceneSettings.debugState == DebugState::DS_NORMAL) ? normalColour : material.color;
             color                                                      = color * ((noLight) ? 1.f : computeLight(point, normal, direction, material.specular, rtShadows));
@@ -386,7 +387,7 @@ void drawTriangleDepth(const Vector p[3], FS::RenderState renderState) {
         projectVertex(p[1]),
         projectVertex(p[2]),
     };
-
+    
     projected[0].z = p[0].z;
     projected[1].z = p[1].z;
     projected[2].z = p[2].z;
