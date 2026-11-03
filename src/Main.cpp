@@ -281,9 +281,9 @@ void init() {
     //     }
     // };
     // Sponza scene
-    //static Mesh model = loadOBJ("res/Models/sponza.obj", { shininess, 0.f, { 255, 255, 255 } });
-    static Mesh cube  = loadOBJ("res/Models/cube.obj", { shininess, 0.f, { 255, 255, 255 } });
-    scene             = {
+    // static Mesh model = loadOBJ("res/Models/sponza.obj", { shininess, 0.f, { 255, 255, 255 } });
+    static Mesh cube = loadOBJ("res/Models/cube.obj", { shininess, 0.f, { 255, 255, 255 } });
+    scene            = {
         .spheres = std::vector<Sphere>{
             // {
             //     .center         = Vector{ 0, 0, -3 },
