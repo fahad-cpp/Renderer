@@ -30,5 +30,5 @@ Colour operator+(const Colour color1, const Colour color2) {
 }
 
 float Colour::luminance() {
-    return ((0.2126f * float(R)) + (0.7152f * float(G)) + (0.0722f * float(B)));
+    return ((0.2126f * float(R / 255.f)) + (0.7152f * float(G / 255.f)) + (0.0722f * float(B / 255.f)));
 }

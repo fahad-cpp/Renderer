@@ -10,12 +10,14 @@
 #define WHITE { 255, 255, 255 }
 namespace Renderer {
 void   clearScreen(uint32_t color, FS::RenderState renderState);
+float gammaCorrect(float value);
+Colour SRGBtoLinear(const Colour color);
 void   putPixel(const int x, const int y, const Colour color, FS::RenderState renderState);
 void   putPixelD(const int x, const int y, const Colour color, FS::RenderState renderState);
 void   renderDepthBuffer(FS::RenderState renderState);
 Colour getPixel(const int x, const int y, FS::RenderState renderState);
 void   drawSquare(float x, float y, int size, Colour color, FS::RenderState renderState);
-void   drawNoise(FS::RenderState renderState);
+void   drawNoise(FS::RenderState& renderState);
 void   printPPM(const std::string &filename, FS::RenderState renderState);
 void   exportToPPM(const std::string &filename, uint32_t *buffer, int width, int height);
 void   drawLine(Vector a, Vector b, const Colour color, FS::RenderState renderState);

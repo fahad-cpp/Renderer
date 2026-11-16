@@ -7,7 +7,7 @@
 #include <random>
 
 namespace PostProcess {
-void FXAAthr(int threadNum, int threadCount, FS::RenderState renderState, float edgeThreshold) {
+void FXAAthr(int threadNum, int threadCount, FS::RenderState renderState, std::vector<uint32_t> &resultBuffer, float edgeThreshold) {
     int yCount = (renderState.height - 2) / threadCount;
     int ymin   = (threadNum * yCount) + 1;
     int ymax   = ymin + yCount;
@@ -24,34 +24,36 @@ void FXAAthr(int threadNum, int threadCount, FS::RenderState renderState, float 
             float leftLuma   = colorLeft.luminance();
             float rightLuma  = colorRight.luminance();
 
-            float edgeHorizontal = std::abs(leftLuma - rightLuma);
-            float edgeVertical   = std::abs(topLuma - bottomLuma);
+            float edgeVertical   = std::abs(leftLuma - rightLuma);
+            float edgeHorizontal = std::abs(topLuma - bottomLuma);
 
             bool isHorizontal = (edgeHorizontal >= edgeVertical);
 
             Colour blendColour;
             if (isHorizontal) {
-                blendColour.R = ((colorTop.R + colorBottom.R) * 0.5f);
-                blendColour.G = ((colorTop.G + colorBottom.G) * 0.5f);
-                blendColour.B = ((colorTop.B + colorBottom.B) * 0.5f);
+                blendColour.R = uint8_t(float(colorTop.R + colorBottom.R) * 0.5f);
+                blendColour.G = uint8_t(float(colorTop.G + colorBottom.G) * 0.5f);
+                blendColour.B = uint8_t(float(colorTop.B + colorBottom.B) * 0.5f);
             } else {
-                blendColour.R = ((colorLeft.R + colorRight.R) * 0.5f);
-                blendColour.G = ((colorLeft.G + colorRight.G) * 0.5f);
-                blendColour.B = ((colorLeft.B + colorRight.B) * 0.5f);
+                blendColour.R = uint8_t(float(colorLeft.R + colorRight.R) * 0.5f);
+                blendColour.G = uint8_t(float(colorLeft.G + colorRight.G) * 0.5f);
+                blendColour.B = uint8_t(float(colorLeft.B + colorRight.B) * 0.5f);
             }
 
-            bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
-
+            bool           isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
+            const uint32_t index  = x + (y * renderState.width);
             if (isEdge) {
-                Renderer::putPixelD(x, y, blendColour, renderState);
+                resultBuffer[index] = rgbtoHex(blendColour);
             } else {
-                Renderer::putPixelD(x, y, colorCenter, renderState);
+                resultBuffer[index] = rgbtoHex(colorCenter);
             }
         }
     }
 }
 void FXAA(FS::RenderState renderState, bool multiThread) {
-    float edgeThreshold = 0.f;
+    float                 edgeThreshold = 0.2f;
+    static std::vector<uint32_t> resultBuffer(renderState.width * renderState.height);
+    resultBuffer.resize(renderState.width * renderState.height);
     if (!multiThread) {
         // Single Threaded FXAA
         for (uint32_t y = 1; y < (renderState.height - 1); y++) {
@@ -67,28 +69,28 @@ void FXAA(FS::RenderState renderState, bool multiThread) {
                 float leftLuma   = colorLeft.luminance();
                 float rightLuma  = colorRight.luminance();
 
-                float edgeHorizontal = std::abs(leftLuma - rightLuma);
-                float edgeVertical   = std::abs(topLuma - bottomLuma);
+                float edgeVertical   = std::abs(leftLuma - rightLuma);
+                float edgeHorizontal = std::abs(topLuma - bottomLuma);
 
                 bool isHorizontal = (edgeHorizontal >= edgeVertical);
 
                 Colour blendColour;
                 if (isHorizontal) {
-                    blendColour.R = ((colorTop.R + colorBottom.R) * 0.5f);
-                    blendColour.G = ((colorTop.G + colorBottom.G) * 0.5f);
-                    blendColour.B = ((colorTop.B + colorBottom.B) * 0.5f);
+                    blendColour.R = uint8_t(float(colorTop.R + colorBottom.R) * 0.5f);
+                    blendColour.G = uint8_t(float(colorTop.G + colorBottom.G) * 0.5f);
+                    blendColour.B = uint8_t(float(colorTop.B + colorBottom.B) * 0.5f);
                 } else {
-                    blendColour.R = ((colorLeft.R + colorRight.R) * 0.5f);
-                    blendColour.G = ((colorLeft.G + colorRight.G) * 0.5f);
-                    blendColour.B = ((colorLeft.B + colorRight.B) * 0.5f);
+                    blendColour.R = uint8_t(float(colorLeft.R + colorRight.R) * 0.5f);
+                    blendColour.G = uint8_t(float(colorLeft.G + colorRight.G) * 0.5f);
+                    blendColour.B = uint8_t(float(colorLeft.B + colorRight.B) * 0.5f);
                 }
 
-                bool isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
-
+                bool           isEdge = (getMax(edgeHorizontal, edgeVertical) > edgeThreshold);
+                const uint32_t index  = x + (y * renderState.width);
                 if (isEdge) {
-                    Renderer::putPixelD(x, y, blendColour, renderState);
+                    resultBuffer[index] = rgbtoHex(blendColour);
                 } else {
-                    Renderer::putPixelD(x, y, colorCenter, renderState);
+                    resultBuffer[index] = rgbtoHex(colorCenter);
                 }
             }
         }
@@ -97,12 +99,13 @@ void FXAA(FS::RenderState renderState, bool multiThread) {
         int                      threadCount = 12;
         std::vector<std::thread> tObjs(threadCount);
         for (int i = 0; i < threadCount; i++) {
-            tObjs[i] = std::thread(FXAAthr, i, threadCount, std::ref(renderState), 0.f);
+            tObjs[i] = std::thread(FXAAthr, i, threadCount, std::ref(renderState), std::ref(resultBuffer), edgeThreshold);
         }
         for (int i = 0; i < threadCount; i++) {
             tObjs[i].join();
         }
     }
+    std::memcpy(renderState.screenBuffer,resultBuffer.data(),resultBuffer.size() * sizeof(uint32_t));
 }
 void renderAO(FS::RenderState renderState) {
     // TODO: FIX CRASH IN RELEASE (SOMEHOW ONLY CRASHES IN RELEASE)

@@ -281,45 +281,45 @@ void init() {
     //     }
     // };
     // Sponza scene
-    // static Mesh model = loadOBJ("res/Models/sponza.obj", { shininess, 0.f, { 255, 255, 255 } });
+    static Mesh model = loadOBJ("res/Models/sponza.obj", { shininess, 0.f, { 255, 255, 255 } });
     static Mesh cube = loadOBJ("res/Models/cube.obj", { shininess, 0.f, { 255, 255, 255 } });
     scene            = {
         .spheres = std::vector<Sphere>{
-            // {
-            //     .center         = Vector{ 0, 0, -3 },
-            //     .radius         = 1.f,
-            //     .specular       = shininess,
-            //     .reflectiveness = 0.4f,
-            //     .color          = Colour{ 255, 0, 0 },
-            // },
-            // {
-            //     .center         = Vector{ -1, 0, -4 },
-            //     .radius         = 1.f,
-            //     .specular       = shininess,
-            //     .reflectiveness = 0.4f,
-            //     .color          = Colour{ 0, 255, 0 },
-            // },
-            // {
-            //     .center         = Vector{ 1, 0, -4 },
-            //     .radius         = 1.f,
-            //     .specular       = shininess,
-            //     .reflectiveness = 0.4f,
-            //     .color          = Colour{ 0, 0, 255 },
-            // },
+            {
+                .center         = Vector{ 0, 0, -3 },
+                .radius         = 1.f,
+                .specular       = shininess,
+                .reflectiveness = 0.4f,
+                .color          = Colour{ 255, 0, 0 },
+            },
+            {
+                .center         = Vector{ -1, 0, -4 },
+                .radius         = 1.f,
+                .specular       = shininess,
+                .reflectiveness = 0.4f,
+                .color          = Colour{ 0, 255, 0 },
+            },
+            {
+                .center         = Vector{ 1, 0, -4 },
+                .radius         = 1.f,
+                .specular       = shininess,
+                .reflectiveness = 0.4f,
+                .color          = Colour{ 0, 0, 255 },
+            },
         },
         .triangles = std::vector<Triangle>{
             // tri
             // empty
         },
         .instances = std::vector<Instance>{
-            // {
-            //     .mesh      = &model,
-            //     .transform = {
-            //         .position = { 0, 0, 0 },
-            //         .scale    = .1f,
-            //         .rotation = { 0, 0, 0 },
-            //     },
-            // },
+            {
+                .mesh      = &model,
+                .transform = {
+                    .position = { 0, 0, 0 },
+                    .scale    = .1f,
+                    .rotation = { 0, 0, 0 },
+                },
+            },
             {
                 .mesh      = &cube,
                 .transform = {
@@ -332,8 +332,8 @@ void init() {
         .lights = std::vector<Light>{
             { .type = LT_AMBIENT, .pos = { 0, 0, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.01f },
             { .type = LT_POINT, .pos = { 0, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.4f },
-            // { .type = LT_POINT, .pos = { -60, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.4f },
-            // { .type = LT_POINT, .pos = { 60, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.4f },
+            { .type = LT_POINT, .pos = { -60, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.4f },
+            { .type = LT_POINT, .pos = { 60, 1, 0 }, .direction = { 0, 0, 0 }, .intensity = 0.4f },
             { .type = LT_DIRECTIONAL, .pos = { 0, 0, 0 }, .direction = { -1, -1, 1 }, .intensity = 0.3f },
         }
     };

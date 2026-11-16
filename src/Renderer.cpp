@@ -31,7 +31,6 @@ float gammaCorrect(float value) {
         return value * 12.92f;
     }
     return 1.055 * pow(value, 1 / 2.4) - 0.055;
-    // return std::sqrt(value);
 }
 Colour SRGBtoLinear(const Colour color) {
     float R = color.R / 255.f;
@@ -63,11 +62,12 @@ void putPixelUS(const int x, const int y, const Colour color, FS::RenderState re
     const uint32_t idx                                       = (x + renderState.width / 2) + ((renderState.height / 2 - y) * renderState.width);
     (static_cast<uint32_t *>(renderState.screenBuffer))[idx] = hexColor;
 }
-// put pixel Direct (x and y specify buffer value)
-// x=0,y=0 will be on top left
+// put pixel direct (x and y specify buffer value).
+// No gamma correction or any extra steps.
+// x=0,y=0 will be on top left.
 void putPixelD(const int x, const int y, const Colour color, FS::RenderState renderState) {
-    uint32_t                    hexColor = rgbtoHex(SRGBtoLinear(color));
-    uint32_t                    idx      = x + (y * renderState.width);
+    const uint32_t              hexColor = rgbtoHex(color);
+    const uint32_t              idx      = x + (y * renderState.width);
     std::lock_guard<std::mutex> lock(pixelLocks[idx]);
     ((uint32_t *)renderState.screenBuffer)[idx] = hexColor;
 }
@@ -83,8 +83,9 @@ void renderDepthBuffer(FS::RenderState renderState) {
     }
 }
 Colour getPixel(const int x, const int y, FS::RenderState renderState) {
-    uint32_t *pixel  = (uint32_t *)renderState.screenBuffer + x + (y * renderState.width);
-    Colour    result = hexToRGB(*pixel);
+    const uint32_t idx    = x + (y * renderState.width);
+    uint32_t      pixel  = ((uint32_t *)renderState.screenBuffer)[idx];
+    Colour         result = hexToRGB(pixel);
     return result;
 }
 void drawSquare(float x, float y, int size, Colour color, FS::RenderState renderState) {
@@ -96,7 +97,7 @@ void drawSquare(float x, float y, int size, Colour color, FS::RenderState render
         }
     }
 }
-void drawNoise(FS::RenderState renderState) {
+void drawNoise(FS::RenderState &renderState) {
     std::random_device              rd;
     std::mt19937                    gen(rd());
     std::uniform_int_distribution<> dist(0, 256);
@@ -1219,6 +1220,7 @@ void rayTraceThr(const int threadNum, const int threadCount, FS::RenderState ren
             direction        = rotate(direction, camera.rotation, RotateOrder::RO_XYZ);
             direction        = direction / length(direction);
             Colour result    = traceRay(camera.position, direction, 1, FLT_MAX, 3);
+            result           = SRGBtoLinear(result);
             putPixelD(x, y, result, renderState);
         }
     }
@@ -1233,6 +1235,7 @@ void rayTrace(FS::RenderState renderState) {
             D             = rotate(D, camera.rotation, RotateOrder::RO_XYZ);
             D             = D / length(D);
             Colour result = traceRay(camera.position, D, 1, FLT_MAX, 3);
+            result        = SRGBtoLinear(result);
             putPixelD(int(x), int(y), result, renderState);
         }
     }
