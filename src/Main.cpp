@@ -6,7 +6,6 @@
 #include "Renderer.h"
 #include "SceneSettings.h"
 #include "Timer.h"
-#include "Window.h"
 #include <FSWindow.h>
 #include <cstdint>
 #include <thread>
@@ -52,30 +51,30 @@ void handleInput(FS::Window &window) {
     FS::Vector2      mouseDiff   = sceneSettings.lockMouse ? getMouseDiff(window) : 0;
     mouseDiff                    = mouseDiff * sensitivity;
     Vector velocity              = { 0.f, 0.f, 0.f };
-    if (isDown(FS::Buttons::BUTTON_ESC)) {
+    if (input.isDown(FS::BUTTON_ESC)) {
         window.close();
     }
     // Movement events
-    if (isDown(FS::Buttons::BUTTON_W)) {
+    if (input.isDown(FS::BUTTON_W)) {
         velocity = velocity + Vector{ 0, 0, 1.f };
     }
-    if (isDown(FS::Buttons::BUTTON_A)) {
+    if (input.isDown(FS::BUTTON_A)) {
         velocity = velocity + Vector{ -1.f, 0, 0 };
     }
-    if (isDown(FS::Buttons::BUTTON_S)) {
+    if (input.isDown(FS::BUTTON_S)) {
         velocity = velocity + Vector{ 0, 0, -1.f };
     }
-    if (isDown(FS::Buttons::BUTTON_D)) {
+    if (input.isDown(FS::BUTTON_D)) {
         velocity = velocity + Vector{ 1.f, 0, 0 };
     }
-    if (isDown(FS::Buttons::BUTTON_CTRL)) {
+    if (input.isDown(FS::BUTTON_CTRL)) {
         velocity = velocity + Vector{ 0, -1.f, 0 };
     }
-    if (isDown(FS::Buttons::BUTTON_SPACE)) {
+    if (input.isDown(FS::BUTTON_SPACE)) {
         velocity = velocity + Vector{ 0, 1.f, 0 };
     }
 
-    if (isDown(FS::Buttons::BUTTON_SHIFT)) {
+    if (input.isDown(FS::BUTTON_SHIFT)) {
         speed += 10 * fdt;
         if (speed > boostSpeed) {
             speed = boostSpeed;
@@ -97,19 +96,19 @@ void handleInput(FS::Window &window) {
         camera.position = camera.position + (velocity * fdt);
     }
 
-    if (isDown(FS::Buttons::BUTTON_LEFT)) {
+    if (input.isDown(FS::BUTTON_LEFT)) {
         mouseDiff.x -= 100.f * fdt * sensitivity;
     }
-    if (isDown(FS::Buttons::BUTTON_RIGHT)) {
+    if (input.isDown(FS::BUTTON_RIGHT)) {
         mouseDiff.x += 100.f * fdt * sensitivity;
     }
-    if (isDown(FS::Buttons::BUTTON_UP)) {
+    if (input.isDown(FS::BUTTON_UP)) {
         mouseDiff.y -= 100.f * fdt * sensitivity;
     }
-    if (isDown(FS::Buttons::BUTTON_DOWN)) {
+    if (input.isDown(FS::BUTTON_DOWN)) {
         mouseDiff.y += 100.f * fdt * sensitivity;
     }
-    if (pressed(FS::Buttons::BUTTON_L)) {
+    if (input.pressed(FS::BUTTON_L)) {
         LOG_INFO("STATS:\n");
         LOG_INFO("Position : " << camera.position.x << " " << camera.position.y << " " << camera.position.z << "\n");
         LOG_INFO("Rotation : " << camera.rotation.x << " " << camera.rotation.y << " " << camera.rotation.z << "\n");
@@ -131,28 +130,28 @@ void handleInput(FS::Window &window) {
     }
 
     // Show triangles of the mesh
-    if (pressed(FS::Buttons::BUTTON_T)) {
+    if (input.pressed(FS::BUTTON_T)) {
         if (sceneSettings.debugState != DebugState::DS_WIREFRAME)
             LOG_INFO("Debug state set to wireframe triangle\n");
         sceneSettings.debugState = DebugState::DS_WIREFRAME;
         change                   = true;
     }
     // Show bounding box of the mesh
-    if (pressed(FS::Buttons::BUTTON_B)) {
+    if (input.pressed(FS::BUTTON_B)) {
         if (sceneSettings.debugState != DebugState::DS_BOUNDING_BOX)
             LOG_INFO("Debug state set to bounding box\n");
         sceneSettings.debugState = DebugState::DS_BOUNDING_BOX;
         change                   = true;
     }
     // Turn off Debug view
-    if (pressed(FS::Buttons::BUTTON_V)) {
+    if (input.pressed(FS::BUTTON_V)) {
         if (sceneSettings.debugState != DebugState::DS_OFF)
             LOG_INFO("Visual debugging off\n");
         sceneSettings.debugState = DebugState::DS_OFF;
         change                   = true;
     }
     // Change ray tracing to rasterization and vise versa
-    if (pressed(FS::Buttons::BUTTON_R)) {
+    if (input.pressed(FS::BUTTON_R)) {
         sceneSettings.rayTraceMode = !sceneSettings.rayTraceMode;
         if (sceneSettings.rayTraceMode) {
             LOG_INFO("Ray tracing turned on\n");
@@ -162,11 +161,11 @@ void handleInput(FS::Window &window) {
         change = true;
     }
     // Exporting an image
-    if (pressed(FS::Buttons::BUTTON_P)) {
+    if (input.pressed(FS::BUTTON_P)) {
         Renderer::printPPM("Image.ppm", renderState);
     }
     // Backface culling toggle
-    if (pressed(FS::Buttons::BUTTON_C)) {
+    if (input.pressed(FS::BUTTON_C)) {
         sceneSettings.bfc = !sceneSettings.bfc;
         if (sceneSettings.bfc) {
             LOG_INFO("Backface culling turned on\n");
@@ -176,7 +175,7 @@ void handleInput(FS::Window &window) {
     }
 
     // Reset camera Position and rotation
-    if (pressed(FS::Buttons::BUTTON_Q)) {
+    if (input.pressed(FS::BUTTON_Q)) {
         camera.rotation = { 0, 0, 0 };
         camera.position = { 0, 0, 0 };
         change          = true;
@@ -184,10 +183,10 @@ void handleInput(FS::Window &window) {
 
     // Slow down time
     fdt = 0.06f;
-    if (isDown(FS::Buttons::MOUSE_BUTTON_LEFT)) {
+    if (input.isDown(FS::MOUSE_BUTTON_LEFT)) {
         fdt = 0.001f;
     }
-    if (isDown(FS::Buttons::MOUSE_BUTTON_RIGHT)) {
+    if (input.isDown(FS::MOUSE_BUTTON_RIGHT)) {
         Transform tf = { { 0, 0, 0 }, 1, { 0, float(100 * fdt), 0 } };
         if (scene.instances.size()) {
             scene.instances[0].applyTransform(tf);
@@ -196,7 +195,7 @@ void handleInput(FS::Window &window) {
     }
 
     // Toggle Anti aliasing
-    if (pressed(FS::Buttons::BUTTON_F)) {
+    if (input.pressed(FS::BUTTON_F)) {
         sceneSettings.antiAliasing = !sceneSettings.antiAliasing;
         if (sceneSettings.antiAliasing) {
             LOG_INFO("Anti aliasing turned on.\n");
@@ -206,11 +205,11 @@ void handleInput(FS::Window &window) {
         change = true;
     }
     // Lock / Unlock mouse
-    if (pressed(FS::Buttons::BUTTON_G)) {
+    if (input.pressed(FS::BUTTON_G)) {
         window.showCursor(sceneSettings.lockMouse);
         sceneSettings.lockMouse = !sceneSettings.lockMouse;
     }
-    if (pressed(FS::Buttons::BUTTON_M)) {
+    if (input.pressed(FS::BUTTON_M)) {
         sceneSettings.renderMode = ((sceneSettings.renderMode == RenderMode::RM_DEPTH) ? RenderMode::RM_COLOR : RenderMode::RM_DEPTH);
     }
     // Move according to mouse difference
@@ -221,7 +220,7 @@ void handleInput(FS::Window &window) {
     }
 
     // Change lighting modes
-    if (pressed(FS::Buttons::BUTTON_X)) {
+    if (input.pressed(FS::BUTTON_X)) {
         LightingMode mode       = sceneSettings.lightingMode;
         uint8_t      modenumber = static_cast<uint8_t>(mode);
         modenumber++;
@@ -233,7 +232,7 @@ void handleInput(FS::Window &window) {
     }
 
     // Ambient Occlusion
-    if (pressed(FS::Buttons::BUTTON_O)) {
+    if (input.pressed(FS::BUTTON_O)) {
         if (sceneSettings.renderMode == RenderMode::RM_AO) {
             sceneSettings.renderMode = RenderMode::RM_COLOR;
         } else {
@@ -242,7 +241,7 @@ void handleInput(FS::Window &window) {
     }
 
     // Normal vis
-    if (pressed(FS::Buttons::BUTTON_N)) {
+    if (input.pressed(FS::BUTTON_N)) {
         sceneSettings.debugState = DebugState::DS_NORMAL;
     }
 }

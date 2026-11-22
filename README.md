@@ -7,7 +7,7 @@ This is a CPU Renderer that renders objects using the CPU , you can use either a
 - **W, A, S, D**: Move the camera.
 - **Space/CTRL**: Move the camera up/down.
 - **SHIFT**: Increase moving speed.
-- **Mouse**: Rotate the camera.
+- **Mouse/Arrow Keys**: Rotate the camera.
 - **Key Bindings**:
   - `R`: Toggle ray tracing/rasterization.
   - `X`: Change lighting modes
@@ -88,7 +88,6 @@ to check available presets, run:
 ```batch
 cmake --list-presets
 ```
-> **Note:** <br> on Wayland systems the mouse locking does not work so mouse will go out of window <br> disable mouse lock by pressing G.<br> you can also move camera using arrow keys
 
 ## Sample Outputs
 
